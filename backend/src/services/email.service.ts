@@ -2,7 +2,7 @@ import { Resend } from 'resend';
 import { config } from '../config';
 import logger from '../utils/logger';
 
-const resend = new Resend(config.email.resendApiKey);
+const resend = config.email.resendApiKey ? new Resend(config.email.resendApiKey) : null;
 
 const BASE_URL = config.appUrl;
 
@@ -41,7 +41,7 @@ const emailTemplate = (content: string): string => `
 `;
 
 async function send(to: string, subject: string, html: string): Promise<void> {
-  if (!config.email.resendApiKey) {
+  if (!resend) {
     logger.info('[Email] No API key configured, skipping email send', { to, subject });
     return;
   }
