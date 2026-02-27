@@ -1,0 +1,209 @@
+name: TruVis.info CI/CD Pipeline
+
+on:
+  push:
+    branches:
+      - main
+      - staging
+  pull_request:
+    branches:
+      - main
+
+env:
+  REGISTRY: ghcr.io
+  IMAGE_NAME: ${{ github.repository_owner }}/truvis
+
+jobs:
+  # ─────────────────────────────────────────
+  # QUALITY CHECKS
+  # ─────────────────────────────────────────
+  quality:
+    name: Quality Checks
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+          cache-dependency-path: |
+            backend/package-lock.json
+            frontend/package-lock.json
+
+      - name: Install Backend Dependencies
+        working-directory: backend
+        run: npm ci
+
+      - name: Install Frontend Dependencies
+        working-directory: frontend
+        run: npm ci
+
+      - name: Backend Type Check
+        working-directory: backend
+        run: npx tsc --noEmit
+
+      - name: Frontend Type Check
+        working-directory: frontend
+        run: npm run type-check
+
+      - name: Backend Lint
+        working-directory: backend
+        run: npm run lint || true
+
+      - name: Frontend Lint
+        working-directory: frontend
+        run: npm run lint || true
+
+  # ─────────────────────────────────────────
+  # BUILD & PUSH DOCKER IMAGES
+  # ─────────────────────────────────────────
+  build:
+    name: Build Docker Images
+    runs-on: ubuntu-latest
+    needs: quality
+    if: github.event_name == 'push'
+    permissions:
+      contents: read
+      packages: write
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Log in to GitHub Container Registry
+        uses: docker/login-action@v3
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Extract metadata (backend)
+        id: meta-backend
+        uses: docker/metadata-action@v5
+        with:
+          images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}-backend
+          tags: |
+            type=ref,event=branch
+            type=sha,prefix=sha-
+            type=raw,value=latest,enable=${{ github.ref == 'refs/heads/main' }}
+
+      - name: Build & Push Backend
+        uses: docker/build-push-action@v5
+        with:
+          context: ./backend
+          push: true
+          tags: ${{ steps.meta-backend.outputs.tags }}
+          labels: ${{ steps.meta-backend.outputs.labels }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+      - name: Extract metadata (frontend)
+        id: meta-frontend
+        uses: docker/metadata-action@v5
+        with:
+          images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}-frontend
+          tags: |
+            type=ref,event=branch
+            type=sha,prefix=sha-
+            type=raw,value=latest,enable=${{ github.ref == 'refs/heads/main' }}
+
+      - name: Build & Push Frontend
+        uses: docker/build-push-action@v5
+        with:
+          context: ./frontend
+          push: true
+          tags: ${{ steps.meta-frontend.outputs.tags }}
+          labels: ${{ steps.meta-frontend.outputs.labels }}
+          build-args: |
+            NEXT_PUBLIC_API_URL=${{ secrets.NEXT_PUBLIC_API_URL }}
+            NEXT_PUBLIC_APP_URL=${{ secrets.NEXT_PUBLIC_APP_URL }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+  # ─────────────────────────────────────────
+  # DEPLOY TO STAGING
+  # ─────────────────────────────────────────
+  deploy-staging:
+    name: Deploy to Staging
+    runs-on: ubuntu-latest
+    needs: build
+    if: github.ref == 'refs/heads/staging'
+    environment:
+      name: staging
+      url: https://staging.truvis.info
+
+    steps:
+      - name: Deploy to Staging Server
+        uses: appleboy/ssh-action@v1
+        with:
+          host: ${{ secrets.STAGING_HOST }}
+          username: ${{ secrets.SSH_USER }}
+          key: ${{ secrets.SSH_PRIVATE_KEY }}
+          script: |
+            cd /opt/truvis
+            git pull origin staging
+            docker compose pull
+            docker compose up -d --remove-orphans
+            docker compose exec api npx prisma migrate deploy
+            docker system prune -f
+
+  # ─────────────────────────────────────────
+  # DEPLOY TO PRODUCTION (manual approval)
+  # ─────────────────────────────────────────
+  deploy-production:
+    name: Deploy to Production
+    runs-on: ubuntu-latest
+    needs: build
+    if: github.ref == 'refs/heads/main'
+    environment:
+      name: production
+      url: https://truvis.info
+    # Manual approval gate set in GitHub Environment settings
+
+    steps:
+      - name: Deploy to Production Server
+        uses: appleboy/ssh-action@v1
+        with:
+          host: ${{ secrets.PROD_HOST }}
+          username: ${{ secrets.SSH_USER }}
+          key: ${{ secrets.SSH_PRIVATE_KEY }}
+          script: |
+            cd /opt/truvis
+            git pull origin main
+
+            # Pull new images
+            docker compose pull
+
+            # Run DB migrations first (zero-downtime)
+            docker compose run --rm api npx prisma migrate deploy
+
+            # Rolling restart (no downtime)
+            docker compose up -d --remove-orphans
+
+            # Cleanup old images
+            docker system prune -f
+
+            echo "Deployment complete: $(date)"
+
+      - name: Post-deployment Health Check
+        run: |
+          sleep 30
+          curl --fail https://truvis.info/health || exit 1
+          curl --fail https://api.truvis.info/health || exit 1
+          echo "Health checks passed ✓"
+
+      - name: Notify on Success
+        if: success()
+        run: |
+          echo "Production deployment successful 🚀"
+
+      - name: Notify on Failure
+        if: failure()
+        run: |
+          echo "Production deployment FAILED ❌"

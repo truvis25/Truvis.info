@@ -1,0 +1,111 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --background: 0 0% 100%;
+    --foreground: 222 47% 11%;
+    --card: 0 0% 100%;
+    --card-foreground: 222 47% 11%;
+    --primary: 220 78% 16%;        /* navy-900: #0F2044 */
+    --primary-foreground: 0 0% 100%;
+    --secondary: 43 52% 54%;       /* gold-500: #C9A84C */
+    --secondary-foreground: 0 0% 100%;
+    --muted: 210 20% 96%;
+    --muted-foreground: 215 20% 45%;
+    --accent: 210 20% 96%;
+    --accent-foreground: 222 47% 11%;
+    --border: 220 13% 91%;
+    --input: 220 13% 91%;
+    --ring: 220 78% 16%;
+    --radius: 0.5rem;
+  }
+
+  * {
+    @apply border-border;
+  }
+
+  body {
+    @apply bg-background text-foreground antialiased;
+    font-feature-settings: "rlig" 1, "calt" 1;
+  }
+
+  /* Typography */
+  h1, h2, h3, h4, h5, h6 {
+    @apply font-semibold tracking-tight;
+  }
+}
+
+@layer components {
+  /* TruVis Badge Components */
+  .badge-verified {
+    @apply inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-semibold
+           bg-gold-100 text-gold-800 border border-gold-300;
+  }
+
+  .badge-client {
+    @apply inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-semibold
+           bg-navy-50 text-navy-900 border border-navy-200;
+  }
+
+  .badge-featured {
+    @apply inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-semibold
+           bg-amber-50 text-amber-700 border border-amber-200;
+  }
+
+  /* Company Card */
+  .company-card {
+    @apply bg-white rounded-xl border border-gray-100 shadow-card hover:shadow-card-hover
+           transition-all duration-200 overflow-hidden cursor-pointer;
+  }
+
+  /* Section Container */
+  .section-container {
+    @apply max-w-7xl mx-auto px-4 sm:px-6 lg:px-8;
+  }
+
+  /* Form Input Style */
+  .input-field {
+    @apply w-full rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm
+           placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-navy-900
+           focus:border-transparent transition-colors;
+  }
+
+  /* Primary Button */
+  .btn-primary {
+    @apply inline-flex items-center justify-center gap-2 px-6 py-2.5 rounded-lg
+           bg-navy-900 text-white font-medium text-sm hover:bg-navy-800
+           focus:outline-none focus:ring-2 focus:ring-navy-900 focus:ring-offset-2
+           transition-colors disabled:opacity-50 disabled:cursor-not-allowed;
+  }
+
+  /* Gold Accent Button */
+  .btn-gold {
+    @apply inline-flex items-center justify-center gap-2 px-6 py-2.5 rounded-lg
+           bg-gold-500 text-white font-medium text-sm hover:bg-gold-600
+           focus:outline-none focus:ring-2 focus:ring-gold-500 focus:ring-offset-2
+           transition-colors;
+  }
+
+  /* Ghost Button */
+  .btn-ghost {
+    @apply inline-flex items-center justify-center gap-2 px-4 py-2 rounded-lg
+           text-gray-600 font-medium text-sm hover:bg-gray-100
+           focus:outline-none focus:ring-2 focus:ring-gray-200
+           transition-colors;
+  }
+}
+
+/* Rich Text Content Styles */
+.prose-truvis {
+  @apply text-gray-700 leading-relaxed;
+}
+.prose-truvis h2 { @apply text-xl font-semibold text-navy-900 mt-8 mb-4; }
+.prose-truvis h3 { @apply text-lg font-semibold text-navy-900 mt-6 mb-3; }
+.prose-truvis p { @apply mb-4; }
+.prose-truvis ul { @apply list-disc list-inside mb-4 space-y-1; }
+.prose-truvis ol { @apply list-decimal list-inside mb-4 space-y-1; }
+.prose-truvis a { @apply text-navy-700 underline hover:text-navy-900; }
+.prose-truvis blockquote { @apply border-l-4 border-gold-400 pl-4 italic text-gray-600 my-4; }
+.prose-truvis strong { @apply font-semibold text-gray-900; }

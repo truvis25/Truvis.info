@@ -1,0 +1,57 @@
+# Dependencies
+node_modules/
+*/node_modules/
+
+# Build outputs
+dist/
+.next/
+out/
+build/
+
+# Environment variables
+.env
+.env.local
+.env.development
+.env.staging
+.env.production
+*.pem
+private.pem
+public.pem
+
+# Database
+*.sqlite
+*.db
+
+# Logs
+*.log
+logs/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Runtime
+*.pid
+*.seed
+pids/
+
+# Coverage
+coverage/
+.nyc_output
+
+# Prisma
+backend/prisma/dev.db
+
+# Next.js
+.next/
+.swc/
+
+# Temporary
+tmp/
+temp/
