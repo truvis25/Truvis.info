@@ -22,7 +22,6 @@ type ProfileOrg = {
 };
 
 async function fetchOrg(slug: string): Promise<ProfileOrg | null> {
-  if (!process.env.NEXT_PUBLIC_SUPABASE_URL) return null;
   const supabase = await createClient();
   // RLS returns nothing for hidden orgs — public routes 404 them (DIR-6).
   const { data } = await supabase

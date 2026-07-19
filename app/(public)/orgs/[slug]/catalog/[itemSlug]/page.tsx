@@ -22,7 +22,6 @@ async function fetchItem(
   slug: string,
   itemSlug: string,
 ): Promise<CatalogDetail | null> {
-  if (!process.env.NEXT_PUBLIC_SUPABASE_URL) return null;
   const supabase = await createClient();
   // RLS hides items of hidden orgs and unpublished items from the public.
   const { data } = await supabase

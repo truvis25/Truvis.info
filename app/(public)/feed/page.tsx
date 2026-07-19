@@ -18,17 +18,6 @@ type FeedPost = {
 };
 
 export default async function FeedPage() {
-  if (!process.env.NEXT_PUBLIC_SUPABASE_URL) {
-    return (
-      <main className="mx-auto w-full max-w-3xl flex-1 px-6 py-16">
-        <h1 className="text-3xl font-semibold tracking-tight">Feed</h1>
-        <p className="mt-4 text-gray-600 dark:text-gray-300">
-          The feed backend is not configured in this environment.
-        </p>
-      </main>
-    );
-  }
-
   const supabase = await createClient();
   // RLS keeps posts of hidden orgs out (POST-2 / DIR-6).
   const { data: posts } = await supabase
