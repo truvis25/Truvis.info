@@ -3,8 +3,8 @@ import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { getManagedOrg } from "@/lib/orgs/queries";
-import { decideRegistration, setEventStatus } from "@/lib/events/actions";
-import { Notice, buttonGhostCls } from "@/components/form-field";
+import { decideRegistration, setEventStatus, updateEvent } from "@/lib/events/actions";
+import { Notice, inputCls, buttonCls, buttonGhostCls } from "@/components/form-field";
 
 export const metadata: Metadata = { title: "Manage event" };
 
@@ -36,11 +36,15 @@ export default async function ManageEventPage({
 
   const { data: event } = await supabase
     .from("events")
-    .select("id, slug, title, status, starts_at, capacity, approval_mode")
+    .select("id, slug, title, description, venue_address, online_url, status, starts_at, ends_at, capacity, registration_deadline, approval_mode")
     .eq("id", id)
     .eq("org_id", org.id)
     .maybeSingle();
   if (!event) notFound();
+
+  // datetime-local prefill (UTC-based, matching how the create form stores values)
+  const toLocalInput = (iso: string | null) =>
+    iso ? new Date(iso).toISOString().slice(0, 16) : "";
 
   const { data: registrations } = await supabase
     .from("event_registrations")
@@ -81,6 +85,56 @@ export default async function ManageEventPage({
       </div>
 
       <Notice error={error} saved={saved} />
+
+      {/* Edit event (EVT-1) */}
+      <section className="rounded-xl border border-border bg-card p-6">
+        <h2 className="mb-4 font-display font-semibold">Edit event</h2>
+        <form action={updateEvent} className="flex flex-col gap-4">
+          <input type="hidden" name="id" value={event.id} />
+          <label className="flex flex-col gap-1 text-sm font-medium">
+            Title
+            <input name="title" required maxLength={160} defaultValue={event.title} className={inputCls} />
+          </label>
+          <label className="flex flex-col gap-1 text-sm font-medium">
+            Description
+            <textarea name="description" rows={4} maxLength={5000} defaultValue={event.description ?? ""} className={inputCls} />
+          </label>
+          <div className="grid gap-4 sm:grid-cols-2">
+            <label className="flex flex-col gap-1 text-sm font-medium">
+              Starts
+              <input name="starts_at" type="datetime-local" required defaultValue={toLocalInput(event.starts_at)} className={inputCls} />
+            </label>
+            <label className="flex flex-col gap-1 text-sm font-medium">
+              Ends
+              <input name="ends_at" type="datetime-local" required defaultValue={toLocalInput(event.ends_at)} className={inputCls} />
+            </label>
+            <label className="flex flex-col gap-1 text-sm font-medium">
+              Venue address
+              <input name="venue_address" maxLength={240} defaultValue={event.venue_address ?? ""} className={inputCls} />
+            </label>
+            <label className="flex flex-col gap-1 text-sm font-medium">
+              Online URL
+              <input name="online_url" type="url" defaultValue={event.online_url ?? ""} className={inputCls} />
+            </label>
+            <label className="flex flex-col gap-1 text-sm font-medium">
+              Capacity
+              <input name="capacity" type="number" min={1} defaultValue={event.capacity ?? ""} className={inputCls} />
+            </label>
+            <label className="flex flex-col gap-1 text-sm font-medium">
+              Registration deadline
+              <input name="registration_deadline" type="datetime-local" defaultValue={toLocalInput(event.registration_deadline)} className={inputCls} />
+            </label>
+          </div>
+          <label className="flex flex-col gap-1 text-sm font-medium">
+            Attendance approval
+            <select name="approval_mode" defaultValue={event.approval_mode} className={inputCls}>
+              <option value="manual">Manual — I approve each attendee</option>
+              <option value="auto">Automatic — first come, first served</option>
+            </select>
+          </label>
+          <button type="submit" className={`${buttonCls} self-start`}>Save changes</button>
+        </form>
+      </section>
 
       <section className="flex flex-col gap-3">
         <h2 className="font-semibold">

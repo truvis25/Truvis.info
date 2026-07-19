@@ -1,7 +1,20 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import Image from "next/image";
 import { notFound } from "next/navigation";
+import {
+  Globe,
+  Mail,
+  Phone,
+  CalendarDays,
+  UserPlus,
+  UserCheck,
+} from "lucide-react";
 import { createClient } from "@/lib/supabase/server";
+import { toggleFollow } from "@/lib/orgs/actions";
+import { VerifiedBadge, Badge } from "@/components/ui/badge";
+import { Card, CardContent } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
 import type { ContactPerson } from "@/types/domain";
 
 export const dynamic = "force-dynamic";
@@ -19,15 +32,17 @@ type ProfileOrg = {
   industry_code: string | null;
   size_band: string | null;
   contact_person: ContactPerson | null;
+  logo_url: string | null;
+  cover_url: string | null;
+  social_links: { linkedin?: string; x?: string; instagram?: string } | null;
 };
 
 async function fetchOrg(slug: string): Promise<ProfileOrg | null> {
   const supabase = await createClient();
-  // RLS returns nothing for hidden orgs — public routes 404 them (DIR-6).
   const { data } = await supabase
     .from("organizations")
     .select(
-      "id, slug, legal_name, tagline, description, website, jurisdiction, trade_license_no, incorporation_year, industry_code, size_band, contact_person",
+      "id, slug, legal_name, tagline, description, website, jurisdiction, trade_license_no, incorporation_year, industry_code, size_band, contact_person, logo_url, cover_url, social_links",
     )
     .eq("slug", slug)
     .maybeSingle();
@@ -45,6 +60,11 @@ export async function generateMetadata({
   return {
     title: org.legal_name,
     description: org.tagline ?? `Verified profile of ${org.legal_name} on Truvis.info`,
+    openGraph: {
+      title: `${org.legal_name} — Verified on Truvis.info`,
+      description: org.tagline ?? undefined,
+      images: org.logo_url ? [org.logo_url] : undefined,
+    },
   };
 }
 
@@ -58,7 +78,17 @@ export default async function OrgProfilePage({
   if (!org) notFound();
 
   const supabase = await createClient();
-  const [{ data: catalog }, { data: posts }] = await Promise.all([
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
+  const [
+    { data: catalog },
+    { data: posts },
+    { data: events },
+    { data: followerCount },
+    followingRes,
+  ] = await Promise.all([
     supabase
       .from("catalog_items")
       .select("slug, name, item_type, category, price_indication")
@@ -72,10 +102,29 @@ export default async function OrgProfilePage({
       .eq("org_id", org.id)
       .eq("status", "published")
       .order("published_at", { ascending: false })
-      .limit(10),
+      .limit(6),
+    supabase
+      .from("events")
+      .select("slug, title, starts_at, venue_address")
+      .eq("org_id", org.id)
+      .eq("status", "published")
+      .gte("starts_at", new Date().toISOString())
+      .order("starts_at")
+      .limit(4),
+    supabase.rpc("get_follower_count", { p_org_id: org.id }),
+    user
+      ? supabase
+          .from("org_follows")
+          .select("org_id")
+          .eq("org_id", org.id)
+          .eq("user_id", user.id)
+          .maybeSingle()
+      : Promise.resolve({ data: null }),
   ]);
 
+  const isFollowing = Boolean(followingRes.data);
   const contact = org.contact_person;
+  const socials = org.social_links ?? {};
   const facts: Array<[string, string | number | null]> = [
     ["Jurisdiction", org.jurisdiction],
     ["Trade license", org.trade_license_no],
@@ -84,153 +133,253 @@ export default async function OrgProfilePage({
     ["Company size", org.size_band],
   ];
 
+  const jsonLd = {
+    "@context": "https://schema.org",
+    "@type": "Organization",
+    name: org.legal_name,
+    url: `https://truvis.info/orgs/${org.slug}`,
+    logo: org.logo_url ?? undefined,
+    description: org.tagline ?? undefined,
+    sameAs: [socials.linkedin, socials.x, socials.instagram, org.website].filter(Boolean),
+  };
+
   return (
-    <main className="mx-auto w-full max-w-4xl flex-1 px-6 py-16">
-      <Link
-        href="/directory"
-        className="text-sm text-gray-500 underline underline-offset-4 dark:text-gray-400"
-      >
-        ← Directory
-      </Link>
+    <main className="flex-1">
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+      />
 
-      <header className="mt-6 flex flex-col gap-3">
-        <div className="flex flex-wrap items-center gap-3">
-          <h1 className="text-3xl font-semibold tracking-tight">
-            {org.legal_name}
-          </h1>
-          <span
-            className="rounded-full bg-emerald-100 px-3 py-1 text-xs font-medium text-emerald-800 dark:bg-emerald-950 dark:text-emerald-300"
-            title="Identity and standing verified via the Truvis compliance platform"
-          >
-            ✓ Verified via Truvis Compliance
-          </span>
-        </div>
-        {org.tagline ? (
-          <p className="text-lg text-gray-600 dark:text-gray-300">
-            {org.tagline}
-          </p>
+      {/* Cover band */}
+      <div className="relative h-44 bg-gradient-to-r from-petroleum-deep via-petroleum to-[#03427a] sm:h-56">
+        {org.cover_url ? (
+          <Image src={org.cover_url} alt="" fill className="object-cover opacity-70" />
         ) : null}
-        {org.website ? (
-          <a
-            href={org.website}
-            rel="noopener noreferrer nofollow"
-            target="_blank"
-            className="text-sm font-medium underline underline-offset-4"
-          >
-            {org.website}
-          </a>
-        ) : null}
-      </header>
+        <div className="absolute inset-0 bg-gradient-to-t from-petroleum-deep/60 to-transparent" aria-hidden />
+      </div>
 
-      <section className="mt-10 grid gap-8 sm:grid-cols-[2fr_1fr]">
-        <div className="flex flex-col gap-8">
-          {org.description ? (
-            <div>
-              <h2 className="mb-2 font-semibold">About</h2>
-              <p className="whitespace-pre-line text-sm leading-6 text-gray-700 dark:text-gray-300">
-                {org.description}
-              </p>
-            </div>
-          ) : null}
-          {catalog?.length ? (
-            <div>
-              <h2 className="mb-3 font-semibold">Products &amp; services</h2>
-              <ul className="grid gap-3 sm:grid-cols-2">
-                {catalog.map((item) => (
-                  <li key={item.slug}>
-                    <Link
-                      href={`/orgs/${org.slug}/catalog/${item.slug}`}
-                      className="flex h-full flex-col gap-1 rounded-xl border border-black/10 p-4 transition-colors hover:bg-black/5 dark:border-white/15 dark:hover:bg-white/5"
-                    >
-                      <span className="font-medium">{item.name}</span>
-                      <span className="text-xs text-gray-500 dark:text-gray-400">
-                        {[item.item_type, item.category, item.price_indication]
-                          .filter(Boolean)
-                          .join(" · ")}
-                      </span>
-                    </Link>
-                  </li>
-                ))}
-              </ul>
-            </div>
-          ) : null}
-
-          {posts?.length ? (
-            <div>
-              <h2 className="mb-3 font-semibold">Latest updates</h2>
-              <ul className="flex flex-col gap-4">
-                {posts.map((post) => (
-                  <li
-                    key={post.id}
-                    className="rounded-xl border border-black/10 p-4 dark:border-white/15"
-                  >
-                    <p className="font-medium">{post.title}</p>
-                    {post.published_at ? (
-                      <p className="mt-0.5 text-xs text-gray-500 dark:text-gray-400">
-                        {new Date(post.published_at).toLocaleDateString("en-GB", {
-                          dateStyle: "medium",
-                        })}
-                      </p>
-                    ) : null}
-                    <p className="mt-2 whitespace-pre-line text-sm text-gray-700 dark:text-gray-300">
-                      {(post.body as { text?: string })?.text ?? ""}
-                    </p>
-                  </li>
-                ))}
-              </ul>
-            </div>
-          ) : null}
-
-          <div>
-            <h2 className="mb-2 font-semibold">Company facts</h2>
-            <dl className="grid grid-cols-2 gap-3 text-sm">
-              {facts
-                .filter(([, v]) => v != null && v !== "")
-                .map(([label, value]) => (
-                  <div key={label}>
-                    <dt className="text-gray-500 dark:text-gray-400">
-                      {label}
-                    </dt>
-                    <dd className="font-medium">{value}</dd>
-                  </div>
-                ))}
-            </dl>
-            <p className="mt-3 text-xs text-gray-500 dark:text-gray-400">
-              Company facts are sourced from the organization&apos;s verified
-              records on the Truvis compliance platform.
-            </p>
-          </div>
-        </div>
-
-        <aside className="flex flex-col gap-6">
-          {contact ? (
-            <div className="rounded-2xl border border-black/10 p-6 dark:border-white/15">
-              <h2 className="mb-3 font-semibold">Contact person</h2>
-              <p className="font-medium">{contact.name}</p>
-              <p className="text-sm text-gray-600 dark:text-gray-300">
-                {contact.title}
-              </p>
-              <div className="mt-3 flex flex-col gap-1 text-sm">
-                <a
-                  href={`mailto:${contact.email}`}
-                  className="underline underline-offset-4"
-                >
-                  {contact.email}
-                </a>
-                <a
-                  href={`tel:${contact.phone}`}
-                  className="underline underline-offset-4"
-                >
-                  {contact.phone}
-                </a>
+      <div className="mx-auto w-full max-w-6xl px-6 lg:px-12">
+        {/* Identity header */}
+        <div className="relative -mt-12 flex flex-col gap-5 sm:flex-row sm:items-end sm:justify-between">
+          <div className="flex items-end gap-4">
+            {org.logo_url ? (
+              <Image
+                src={org.logo_url}
+                alt={`${org.legal_name} logo`}
+                width={96}
+                height={96}
+                className="size-24 rounded-xl border-4 border-background bg-card object-contain shadow-lg"
+              />
+            ) : (
+              <span className="flex size-24 items-center justify-center rounded-xl border-4 border-background bg-gradient-to-br from-petroleum to-petroleum-deep font-display text-2xl font-bold text-white shadow-lg">
+                {org.legal_name.slice(0, 2).toUpperCase()}
+              </span>
+            )}
+            <div className="pb-1">
+              <div className="flex flex-wrap items-center gap-2">
+                <h1 className="font-display text-2xl font-bold tracking-tight text-petroleum sm:text-3xl dark:text-foreground">
+                  {org.legal_name}
+                </h1>
+                <VerifiedBadge long />
               </div>
+              {org.tagline ? (
+                <p className="mt-1 text-muted-foreground">{org.tagline}</p>
+              ) : null}
             </div>
-          ) : null}
-          <div className="rounded-2xl border border-dashed border-black/10 p-6 text-sm text-gray-500 dark:border-white/15 dark:text-gray-400">
-            Events by this organization arrive in Phase 3.
           </div>
-        </aside>
-      </section>
+
+          <div className="flex items-center gap-3 pb-1">
+            <span className="text-sm text-muted-foreground">
+              {Number(followerCount ?? 0)} follower{Number(followerCount ?? 0) === 1 ? "" : "s"}
+            </span>
+            <form action={toggleFollow}>
+              <input type="hidden" name="org_id" value={org.id} />
+              <input type="hidden" name="org_slug" value={org.slug} />
+              <input type="hidden" name="following" value={isFollowing ? "1" : "0"} />
+              <Button variant={isFollowing ? "outline" : "default"} size="sm" type="submit">
+                {isFollowing ? <UserCheck aria-hidden /> : <UserPlus aria-hidden />}
+                {isFollowing ? "Following" : "Follow"}
+              </Button>
+            </form>
+          </div>
+        </div>
+
+        {/* Body */}
+        <section className="mt-10 grid gap-10 pb-20 lg:grid-cols-[2fr_1fr]">
+          <div className="flex flex-col gap-10">
+            {org.description ? (
+              <div>
+                <h2 className="mb-3 font-display text-lg font-bold text-petroleum dark:text-foreground">About</h2>
+                <p className="whitespace-pre-line text-sm leading-7 text-foreground/80">
+                  {org.description}
+                </p>
+              </div>
+            ) : null}
+
+            {catalog?.length ? (
+              <div>
+                <h2 className="mb-4 font-display text-lg font-bold text-petroleum dark:text-foreground">
+                  Products &amp; Services
+                </h2>
+                <ul className="grid gap-4 sm:grid-cols-2">
+                  {catalog.map((item) => (
+                    <li key={item.slug}>
+                      <Link href={`/orgs/${org.slug}/catalog/${item.slug}`} className="group block h-full">
+                        <Card className="h-full transition-all group-hover:-translate-y-0.5 group-hover:shadow-md">
+                          <CardContent className="p-5">
+                            <p className="font-semibold text-petroleum group-hover:text-emerald-deeper dark:text-foreground">
+                              {item.name}
+                            </p>
+                            <p className="mt-1 text-xs text-muted-foreground">
+                              {[item.item_type, item.category, item.price_indication].filter(Boolean).join(" · ")}
+                            </p>
+                          </CardContent>
+                        </Card>
+                      </Link>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            ) : null}
+
+            {events?.length ? (
+              <div>
+                <h2 className="mb-4 font-display text-lg font-bold text-petroleum dark:text-foreground">
+                  Upcoming Events
+                </h2>
+                <ul className="flex flex-col gap-3">
+                  {events.map((event) => (
+                    <li key={event.slug}>
+                      <Link
+                        href={`/events/${event.slug}`}
+                        className="flex items-center gap-4 rounded-xl border border-border bg-card p-4 transition-colors hover:bg-secondary"
+                      >
+                        <span className="flex size-10 shrink-0 items-center justify-center rounded-lg bg-petroleum text-emerald-brand">
+                          <CalendarDays className="size-5" aria-hidden />
+                        </span>
+                        <span>
+                          <span className="block font-semibold">{event.title}</span>
+                          <span className="block text-xs text-muted-foreground">
+                            {new Date(event.starts_at).toLocaleString("en-GB", { dateStyle: "full", timeStyle: "short" })}
+                            {event.venue_address ? ` · ${event.venue_address}` : ""}
+                          </span>
+                        </span>
+                      </Link>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            ) : null}
+
+            {posts?.length ? (
+              <div>
+                <h2 className="mb-4 font-display text-lg font-bold text-petroleum dark:text-foreground">
+                  Latest Updates
+                </h2>
+                <ul className="flex flex-col gap-4">
+                  {posts.map((post) => (
+                    <li key={post.id}>
+                      <Card>
+                        <CardContent className="p-5">
+                          <p className="font-semibold">{post.title}</p>
+                          {post.published_at ? (
+                            <p className="mt-0.5 text-xs text-muted-foreground">
+                              {new Date(post.published_at).toLocaleDateString("en-GB", { dateStyle: "medium" })}
+                            </p>
+                          ) : null}
+                          <p className="mt-2 whitespace-pre-line text-sm leading-6 text-foreground/80">
+                            {(post.body as { text?: string })?.text ?? ""}
+                          </p>
+                        </CardContent>
+                      </Card>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            ) : null}
+          </div>
+
+          {/* Sidebar */}
+          <aside className="flex flex-col gap-6">
+            {contact ? (
+              <Card>
+                <CardContent className="p-6">
+                  <h2 className="mb-3 font-display text-sm font-bold uppercase tracking-wide text-petroleum dark:text-foreground">
+                    Contact Person
+                  </h2>
+                  <p className="font-semibold">{contact.name}</p>
+                  <p className="text-sm text-muted-foreground">{contact.title}</p>
+                  <div className="mt-4 flex flex-col gap-2 text-sm">
+                    <a href={`mailto:${contact.email}`} className="inline-flex items-center gap-2 text-emerald-deeper hover:underline dark:text-emerald-brand">
+                      <Mail className="size-4" aria-hidden />
+                      {contact.email}
+                    </a>
+                    <a href={`tel:${contact.phone}`} className="inline-flex items-center gap-2 text-emerald-deeper hover:underline dark:text-emerald-brand">
+                      <Phone className="size-4" aria-hidden />
+                      {contact.phone}
+                    </a>
+                  </div>
+                </CardContent>
+              </Card>
+            ) : null}
+
+            <Card>
+              <CardContent className="p-6">
+                <h2 className="mb-3 font-display text-sm font-bold uppercase tracking-wide text-petroleum dark:text-foreground">
+                  Company Facts
+                </h2>
+                <dl className="flex flex-col gap-3 text-sm">
+                  {facts
+                    .filter(([, v]) => v != null && v !== "")
+                    .map(([label, value]) => (
+                      <div key={label} className="flex justify-between gap-4">
+                        <dt className="text-muted-foreground">{label}</dt>
+                        <dd className="font-medium">{value}</dd>
+                      </div>
+                    ))}
+                </dl>
+                <p className="mt-4 text-xs leading-5 text-muted-foreground">
+                  Sourced from verified records on the Truvis compliance
+                  platform.
+                </p>
+              </CardContent>
+            </Card>
+
+            {(org.website || socials.linkedin || socials.x || socials.instagram) ? (
+              <Card>
+                <CardContent className="flex flex-wrap items-center gap-3 p-6">
+                  {org.website ? (
+                    <Button asChild variant="outline" size="sm">
+                      <a href={org.website} target="_blank" rel="noopener noreferrer nofollow">
+                        <Globe aria-hidden /> Website
+                      </a>
+                    </Button>
+                  ) : null}
+                  {socials.linkedin ? (
+                    <Button asChild variant="outline" size="sm">
+                      <a href={socials.linkedin} target="_blank" rel="noopener noreferrer nofollow">LinkedIn</a>
+                    </Button>
+                  ) : null}
+                  {socials.x ? (
+                    <Button asChild variant="outline" size="sm">
+                      <a href={socials.x} target="_blank" rel="noopener noreferrer nofollow">X</a>
+                    </Button>
+                  ) : null}
+                  {socials.instagram ? (
+                    <Button asChild variant="outline" size="sm">
+                      <a href={socials.instagram} target="_blank" rel="noopener noreferrer nofollow">Instagram</a>
+                    </Button>
+                  ) : null}
+                </CardContent>
+              </Card>
+            ) : null}
+
+            <Badge variant="outline" className="self-start">
+              Profile hidden automatically if compliance standing lapses
+            </Badge>
+          </aside>
+        </section>
+      </div>
     </main>
   );
 }

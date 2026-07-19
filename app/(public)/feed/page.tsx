@@ -29,14 +29,23 @@ export default async function FeedPage({
     data: { user },
   } = await supabase.auth.getUser();
   // RLS keeps posts of hidden orgs out (POST-2 / DIR-6).
-  const { data: posts } = await supabase
-    .from("posts")
-    .select("id, title, body, published_at, organizations!inner(slug, legal_name)")
-    .eq("status", "published")
-    .order("published_at", { ascending: false })
-    .limit(50);
+  const [{ data: posts }, { data: follows }] = await Promise.all([
+    supabase
+      .from("posts")
+      .select("id, title, body, published_at, org_id, organizations!inner(slug, legal_name)")
+      .eq("status", "published")
+      .order("published_at", { ascending: false })
+      .limit(50),
+    user
+      ? supabase.from("org_follows").select("org_id").eq("user_id", user.id)
+      : Promise.resolve({ data: [] as Array<{ org_id: string }> }),
+  ]);
 
-  const list = (posts ?? []) as unknown as FeedPost[];
+  // Followed organizations first (POST-2), then newest.
+  const followedIds = new Set((follows ?? []).map((f) => f.org_id));
+  const list = ((posts ?? []) as unknown as (FeedPost & { org_id: string })[]).sort(
+    (a, b) => Number(followedIds.has(b.org_id)) - Number(followedIds.has(a.org_id)),
+  );
 
   return (
     <main className="mx-auto w-full max-w-3xl flex-1 px-6 py-16">

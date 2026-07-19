@@ -7,6 +7,7 @@ import {
   createCatalogItem,
   setCatalogItemStatus,
   deleteCatalogItem,
+  uploadCatalogImage,
 } from "@/lib/catalog/actions";
 import {
   Notice,
@@ -114,6 +115,19 @@ export default async function CatalogAdminPage({
                 </span>
               </p>
             </div>
+            <form action={uploadCatalogImage} className="flex items-center gap-2">
+              <input type="hidden" name="item_id" value={item.id} />
+              <label className="sr-only" htmlFor={`img-${item.id}`}>Add image to {item.name}</label>
+              <input
+                id={`img-${item.id}`}
+                type="file"
+                name="file"
+                accept="image/*"
+                required
+                className="w-44 text-xs file:mr-2 file:rounded-md file:border-0 file:bg-secondary file:px-2 file:py-1 file:text-xs"
+              />
+              <button className={buttonGhostCls}>Add image</button>
+            </form>
             <div className="flex items-center gap-2">
               <form action={setCatalogItemStatus}>
                 <input type="hidden" name="id" value={item.id} />

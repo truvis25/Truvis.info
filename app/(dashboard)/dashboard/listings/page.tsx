@@ -178,6 +178,9 @@ export default async function ListingsAdminPage({
               </p>
             </div>
             <div className="flex items-center gap-2">
+              <Link href={`/dashboard/listings/${listing.id}`} className={buttonGhostCls}>
+                Edit
+              </Link>
               {listing.status === "draft" || listing.status === "paused" ? (
                 <form action={setListingStatus}>
                   <input type="hidden" name="id" value={listing.id} />

@@ -1,13 +1,16 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import { CalendarDays, MapPin, Video } from "lucide-react";
 import { createClient } from "@/lib/supabase/server";
+import { Card, CardContent } from "@/components/ui/card";
+import { VerifiedBadge } from "@/components/ui/badge";
 
 export const metadata: Metadata = {
   title: "Events",
   description: "Business events hosted by verified organizations.",
 };
 
-export const dynamic = "force-dynamic";
+export const revalidate = 300;
 
 type EventRow = {
   slug: string;
@@ -20,7 +23,6 @@ type EventRow = {
 
 export default async function EventsPage() {
   const supabase = await createClient();
-  // RLS: only published events of visible orgs reach the public (EVT-2).
   const { data: events } = await supabase
     .from("events")
     .select("slug, title, starts_at, venue_address, online_url, organizations!inner(slug, legal_name)")
@@ -31,41 +33,68 @@ export default async function EventsPage() {
   const list = (events ?? []) as unknown as EventRow[];
 
   return (
-    <main className="mx-auto w-full max-w-4xl flex-1 px-6 py-16">
-      <header className="mb-10">
-        <h1 className="text-3xl font-semibold tracking-tight">Events</h1>
-        <p className="mt-2 text-gray-600 dark:text-gray-300">
+    <main className="mx-auto w-full max-w-5xl flex-1 px-6 py-14 lg:px-12">
+      <header className="mb-10 max-w-2xl">
+        <h1 className="font-display text-3xl font-bold tracking-tight text-petroleum dark:text-foreground">
+          Events
+        </h1>
+        <p className="mt-2 text-muted-foreground">
           Upcoming events hosted by verified organizations.
         </p>
       </header>
 
       {list.length === 0 ? (
-        <p className="rounded-2xl border border-dashed border-black/15 p-10 text-center text-gray-500 dark:border-white/20 dark:text-gray-400">
-          No upcoming events. Check back soon.
-        </p>
+        <div className="flex flex-col items-center gap-3 rounded-2xl border border-dashed border-border py-20 text-center">
+          <CalendarDays className="size-10 text-muted-foreground/50" aria-hidden />
+          <p className="font-medium">No upcoming events right now.</p>
+          <p className="text-sm text-muted-foreground">Check back soon — verified organizers publish here.</p>
+        </div>
       ) : (
         <ul className="flex flex-col gap-4">
-          {list.map((event) => (
-            <li key={event.slug}>
-              <Link
-                href={`/events/${event.slug}`}
-                className="flex flex-col gap-1 rounded-2xl border border-black/10 p-6 transition-colors hover:bg-black/5 dark:border-white/15 dark:hover:bg-white/5"
-              >
-                <span className="text-lg font-semibold">{event.title}</span>
-                <span className="text-sm text-gray-600 dark:text-gray-300">
-                  {new Date(event.starts_at).toLocaleString("en-GB", {
-                    dateStyle: "full",
-                    timeStyle: "short",
-                  })}
-                </span>
-                <span className="text-xs text-gray-500 dark:text-gray-400">
-                  by {event.organizations.legal_name}
-                  {event.venue_address ? ` · ${event.venue_address}` : ""}
-                  {event.online_url ? " · Online" : ""}
-                </span>
-              </Link>
-            </li>
-          ))}
+          {list.map((event) => {
+            const date = new Date(event.starts_at);
+            return (
+              <li key={event.slug}>
+                <Link href={`/events/${event.slug}`} className="group block">
+                  <Card className="transition-all group-hover:-translate-y-0.5 group-hover:shadow-[0_16px_40px_-16px_rgba(2,48,89,0.25)]">
+                    <CardContent className="flex items-center gap-5 p-6">
+                      <div className="flex size-16 shrink-0 flex-col items-center justify-center rounded-xl bg-gradient-to-br from-petroleum to-petroleum-deep text-white">
+                        <span className="font-display text-xl font-extrabold leading-none">
+                          {date.getDate()}
+                        </span>
+                        <span className="text-[10px] font-semibold uppercase tracking-wide text-emerald-brand">
+                          {date.toLocaleString("en-GB", { month: "short" })}
+                        </span>
+                      </div>
+                      <div className="min-w-0 flex-1">
+                        <h2 className="font-display text-lg font-bold text-petroleum transition-colors group-hover:text-emerald-deeper dark:text-foreground">
+                          {event.title}
+                        </h2>
+                        <p className="mt-1 flex flex-wrap items-center gap-x-4 gap-y-1 text-sm text-muted-foreground">
+                          <span>
+                            {date.toLocaleString("en-GB", { weekday: "long", hour: "2-digit", minute: "2-digit" })}
+                          </span>
+                          {event.venue_address ? (
+                            <span className="inline-flex items-center gap-1">
+                              <MapPin className="size-3.5" aria-hidden /> {event.venue_address}
+                            </span>
+                          ) : null}
+                          {event.online_url ? (
+                            <span className="inline-flex items-center gap-1">
+                              <Video className="size-3.5" aria-hidden /> Online
+                            </span>
+                          ) : null}
+                        </p>
+                        <p className="mt-2 flex items-center gap-2 text-xs text-muted-foreground">
+                          by {event.organizations.legal_name} <VerifiedBadge />
+                        </p>
+                      </div>
+                    </CardContent>
+                  </Card>
+                </Link>
+              </li>
+            );
+          })}
         </ul>
       )}
     </main>

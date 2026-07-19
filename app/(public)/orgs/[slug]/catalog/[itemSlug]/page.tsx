@@ -6,17 +6,22 @@ import { createClient } from "@/lib/supabase/server";
 export const dynamic = "force-dynamic";
 
 type CatalogDetail = {
+  id: string;
   name: string;
   item_type: string;
   category: string | null;
   description: string | null;
   price_indication: string | null;
+  catalog_media: Array<{ id: string; storage_path: string | null; media_type: string }>;
   organizations: {
     slug: string;
     legal_name: string;
     contact_person: { email?: string } | null;
   };
 };
+
+const MEDIA_BASE =
+  "https://hyzotwxtqssefsgryawl.supabase.co/storage/v1/object/public/public-media/";
 
 async function fetchItem(
   slug: string,
@@ -27,7 +32,7 @@ async function fetchItem(
   const { data } = await supabase
     .from("catalog_items")
     .select(
-      "name, item_type, category, description, price_indication, organizations!inner(slug, legal_name, contact_person)",
+      "id, name, item_type, category, description, price_indication, catalog_media(id, storage_path, media_type), organizations!inner(slug, legal_name, contact_person)",
     )
     .eq("slug", itemSlug)
     .eq("status", "published")
@@ -78,6 +83,23 @@ export default async function CatalogItemPage({
             .join(" · ")}
         </p>
       </header>
+
+      {item.catalog_media?.filter((m) => m.media_type === "image" && m.storage_path).length ? (
+        <div className="mt-8 grid grid-cols-2 gap-3 sm:grid-cols-3">
+          {item.catalog_media
+            .filter((m) => m.media_type === "image" && m.storage_path)
+            .map((media) => (
+              // eslint-disable-next-line @next/next/no-img-element
+              <img
+                key={media.id}
+                src={`${MEDIA_BASE}${media.storage_path}`}
+                alt={`${item.name} image`}
+                className="aspect-[4/3] w-full rounded-xl border border-border object-cover"
+                loading="lazy"
+              />
+            ))}
+        </div>
+      ) : null}
 
       {item.description ? (
         <p className="mt-8 whitespace-pre-line text-sm leading-6 text-gray-700 dark:text-gray-300">

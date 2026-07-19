@@ -90,6 +90,39 @@ export async function setCatalogItemStatus(formData: FormData) {
   redirect("/dashboard/catalog");
 }
 
+// Catalog item image upload (CAT-2) into public-media/org/<org_id>/…;
+// the storage RLS policy from migration 0008 enforces membership.
+export async function uploadCatalogImage(formData: FormData) {
+  const itemId = String(formData.get("item_id") ?? "");
+  const { supabase, org } = await requireContentManager("/dashboard/catalog");
+
+  const file = formData.get("file") as File | null;
+  if (!file || file.size === 0) {
+    redirect("/dashboard/catalog?error=Choose%20an%20image%20file");
+  }
+  if (file.size > 5 * 1024 * 1024) {
+    redirect("/dashboard/catalog?error=Image%20must%20be%20under%205MB");
+  }
+
+  const ext = file.name.split(".").pop()?.toLowerCase() || "png";
+  const path = `org/${org.id}/catalog/${itemId}-${Date.now()}.${ext}`;
+  const { error: uploadError } = await supabase.storage
+    .from("public-media")
+    .upload(path, file, { upsert: true, contentType: file.type });
+  if (uploadError) {
+    redirect(`/dashboard/catalog?error=${encodeURIComponent(uploadError.message)}`);
+  }
+
+  const { error } = await supabase.from("catalog_media").insert({
+    item_id: itemId,
+    media_type: "image",
+    storage_path: path,
+  });
+  if (error) redirect(`/dashboard/catalog?error=${encodeURIComponent(error.message)}`);
+  revalidatePath(`/orgs/${org.slug}`);
+  redirect("/dashboard/catalog?saved=1");
+}
+
 export async function deleteCatalogItem(formData: FormData) {
   const id = String(formData.get("id") ?? "");
   const { supabase, org } = await requireContentManager("/dashboard/catalog");
