@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/server";
+import { reportPost } from "@/lib/moderation/actions";
 
 export const metadata: Metadata = {
   title: "Feed",
@@ -17,8 +18,16 @@ type FeedPost = {
   organizations: { slug: string; legal_name: string };
 };
 
-export default async function FeedPage() {
+export default async function FeedPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ reported?: string; error?: string }>;
+}) {
+  const { reported, error } = await searchParams;
   const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
   // RLS keeps posts of hidden orgs out (POST-2 / DIR-6).
   const { data: posts } = await supabase
     .from("posts")
@@ -37,6 +46,17 @@ export default async function FeedPage() {
           Updates from verified organizations.
         </p>
       </header>
+
+      {reported ? (
+        <p className="mb-6 rounded-lg border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-800 dark:border-emerald-900 dark:bg-emerald-950 dark:text-emerald-300">
+          Thanks — the post was reported for review.
+        </p>
+      ) : null}
+      {error ? (
+        <p className="mb-6 rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700 dark:border-red-900 dark:bg-red-950 dark:text-red-300">
+          {error}
+        </p>
+      ) : null}
 
       {list.length === 0 ? (
         <p className="rounded-2xl border border-dashed border-black/15 p-10 text-center text-gray-500 dark:border-white/20 dark:text-gray-400">
@@ -71,6 +91,20 @@ export default async function FeedPage() {
               <p className="mt-1 whitespace-pre-line text-sm text-gray-700 dark:text-gray-300">
                 {post.body?.text ?? ""}
               </p>
+              {user ? (
+                <form action={reportPost} className="mt-3 flex items-center gap-2">
+                  <input type="hidden" name="post_id" value={post.id} />
+                  <input
+                    name="reason"
+                    placeholder="Reason (optional)"
+                    maxLength={300}
+                    className="rounded-lg border border-black/10 px-2 py-1 text-xs dark:border-white/15 dark:bg-transparent"
+                  />
+                  <button className="text-xs text-gray-500 underline underline-offset-4 dark:text-gray-400">
+                    Report
+                  </button>
+                </form>
+              ) : null}
             </li>
           ))}
         </ul>

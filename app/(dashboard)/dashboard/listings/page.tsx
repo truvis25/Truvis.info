@@ -55,13 +55,12 @@ export default async function ListingsAdminPage({
   if (!org) redirect("/dashboard");
   if (org.role !== "owner") redirect("/dashboard");
 
-  const { data: listings } = await supabase
-    .from("marketplace_listings")
-    .select("id, listing_type, status, teaser_headline")
-    .eq("org_id", org.id)
-    .order("created_at", { ascending: false });
+  // org_id is not API-selectable since migration 0007 (anonymity hardening);
+  // owners list their listings through this SECURITY DEFINER RPC instead.
+  const { data: listingsData } = await supabase.rpc("get_my_listings");
+  const listings = (listingsData ?? []) as ListingRow[];
 
-  const listingIds = (listings ?? []).map((l) => l.id);
+  const listingIds = listings.map((l) => l.id);
   const { data: applications } = listingIds.length
     ? await supabase
         .from("listing_applications")
@@ -163,8 +162,8 @@ export default async function ListingsAdminPage({
       </section>
 
       <section className="flex flex-col gap-3">
-        <h2 className="font-semibold">Your listings ({listings?.length ?? 0})</h2>
-        {(listings as ListingRow[] | null)?.map((listing) => (
+        <h2 className="font-semibold">Your listings ({listings.length})</h2>
+        {listings.map((listing) => (
           <div
             key={listing.id}
             className="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-black/10 px-5 py-4 dark:border-white/15"
@@ -204,7 +203,7 @@ export default async function ListingsAdminPage({
             </div>
           </div>
         ))}
-        {!listings?.length ? (
+        {!listings.length ? (
           <p className="text-sm text-gray-500 dark:text-gray-400">No listings yet.</p>
         ) : null}
       </section>
