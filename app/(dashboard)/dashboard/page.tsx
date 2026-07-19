@@ -206,11 +206,32 @@ export default async function DashboardPage({
                 >
                   Events
                 </Link>
+                <Link
+                  href="/dashboard/listings"
+                  className="rounded-full border border-black/10 px-4 py-2 font-medium hover:bg-black/5 dark:border-white/20 dark:hover:bg-white/10"
+                >
+                  Marketplace listings
+                </Link>
               </div>
             </section>
           );
         })
       )}
+
+      <section className="rounded-2xl border border-black/10 p-8 dark:border-white/15">
+        <h2 className="text-xl font-semibold">Marketplace</h2>
+        <p className="mt-2 text-sm text-gray-600 dark:text-gray-300">
+          Track your review applications and seller threads under{" "}
+          <Link href="/dashboard/applications" className="underline underline-offset-4">
+            My applications
+          </Link>
+          , or browse the{" "}
+          <Link href="/marketplace" className="underline underline-offset-4">
+            marketplace
+          </Link>
+          .
+        </p>
+      </section>
 
       <section className="rounded-2xl border border-black/10 p-8 dark:border-white/15">
         <h2 className="text-xl font-semibold">My events</h2>
