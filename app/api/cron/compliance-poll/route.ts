@@ -3,7 +3,8 @@ import { createAdminClient } from "@/lib/supabase/admin";
 import { getComplianceClient } from "@/lib/compliance/client";
 
 // Polling fallback + staleness sweep (docs/ARCHITECTURE.md §5.4, BR-5).
-// Scheduled via vercel.json crons every 30 minutes.
+// Scheduled via vercel.json crons — daily on the Hobby plan (its cron limit);
+// tighten to */30 with a 1h window on Pro. Webhooks remain the primary path.
 export async function GET(request: NextRequest) {
   const cronSecret = process.env.CRON_SECRET;
   if (cronSecret && request.headers.get("authorization") !== `Bearer ${cronSecret}`) {
@@ -16,7 +17,7 @@ export async function GET(request: NextRequest) {
   const supabase = createAdminClient();
   const compliance = getComplianceClient();
 
-  const since = new Date(Date.now() - 60 * 60 * 1000).toISOString();
+  const since = new Date(Date.now() - 25 * 60 * 60 * 1000).toISOString();
   const orgIds = await compliance.listUpdatedOrgs(since);
 
   let refreshed = 0;

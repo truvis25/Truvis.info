@@ -2,7 +2,7 @@
   "crons": [
     {
       "path": "/api/cron/compliance-poll",
-      "schedule": "*/30 * * * *"
+      "schedule": "0 3 * * *"
     }
   ]
 }
