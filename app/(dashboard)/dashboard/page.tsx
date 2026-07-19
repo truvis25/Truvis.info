@@ -173,8 +173,26 @@ export default async function DashboardPage({
                 >
                   View public profile
                 </Link>
+                <Link
+                  href="/dashboard/profile"
+                  className="rounded-full border border-black/10 px-4 py-2 font-medium hover:bg-black/5 dark:border-white/20 dark:hover:bg-white/10"
+                >
+                  Edit profile
+                </Link>
+                <Link
+                  href="/dashboard/catalog"
+                  className="rounded-full border border-black/10 px-4 py-2 font-medium hover:bg-black/5 dark:border-white/20 dark:hover:bg-white/10"
+                >
+                  Catalog
+                </Link>
+                <Link
+                  href="/dashboard/posts"
+                  className="rounded-full border border-black/10 px-4 py-2 font-medium hover:bg-black/5 dark:border-white/20 dark:hover:bg-white/10"
+                >
+                  Posts
+                </Link>
                 <span className="rounded-full border border-dashed border-black/10 px-4 py-2 text-gray-400 dark:border-white/15">
-                  Catalog, posts &amp; events — Phase 2/3
+                  Events — Phase 3
                 </span>
               </div>
             </section>
