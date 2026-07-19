@@ -73,13 +73,14 @@ export async function setListingStatus(formData: FormData) {
   if (!["draft", "active", "paused", "closed"].includes(status)) {
     redirect("/dashboard/listings");
   }
-  const { supabase, org } = await requireOwner("/dashboard/listings");
+  const { supabase } = await requireOwner("/dashboard/listings");
 
+  // Row scoping comes from the "owner manages listings" RLS policy; org_id is
+  // no longer API-referenceable after the 0007 anonymity hardening.
   const { error } = await supabase
     .from("marketplace_listings")
     .update({ status, updated_at: new Date().toISOString() })
-    .eq("id", id)
-    .eq("org_id", org.id);
+    .eq("id", id);
 
   if (error) redirect(`/dashboard/listings?error=${encodeURIComponent(error.message)}`);
   revalidatePath("/marketplace");
