@@ -35,12 +35,21 @@ export default async function DashboardPage({
   } = await supabase.auth.getUser();
   if (!user) redirect("/login?next=/dashboard");
 
-  const { data: memberships } = await supabase
-    .from("org_members")
-    .select(
-      "role, organizations(id, slug, legal_name, is_visible, grant_active, admin_suspended, compliance_status(state, risk_level, score, renewal_expiry, synced_at))",
-    )
-    .eq("user_id", user.id);
+  const [{ data: memberships }, { data: myRegistrations }] = await Promise.all([
+    supabase
+      .from("org_members")
+      .select(
+        "role, organizations(id, slug, legal_name, is_visible, grant_active, admin_suspended, compliance_status(state, risk_level, score, renewal_expiry, synced_at))",
+      )
+      .eq("user_id", user.id),
+    supabase
+      .from("event_registrations")
+      .select("id, status, events(slug, title, starts_at)")
+      .eq("user_id", user.id)
+      .neq("status", "cancelled")
+      .order("created_at", { ascending: false })
+      .limit(10),
+  ]);
 
   const orgs = (memberships ?? [])
     .map((m) => m.organizations as unknown as OrgRow)
@@ -191,14 +200,70 @@ export default async function DashboardPage({
                 >
                   Posts
                 </Link>
-                <span className="rounded-full border border-dashed border-black/10 px-4 py-2 text-gray-400 dark:border-white/15">
-                  Events — Phase 3
-                </span>
+                <Link
+                  href="/dashboard/events"
+                  className="rounded-full border border-black/10 px-4 py-2 font-medium hover:bg-black/5 dark:border-white/20 dark:hover:bg-white/10"
+                >
+                  Events
+                </Link>
               </div>
             </section>
           );
         })
       )}
+
+      <section className="rounded-2xl border border-black/10 p-8 dark:border-white/15">
+        <h2 className="text-xl font-semibold">My events</h2>
+        {myRegistrations?.length ? (
+          <ul className="mt-4 flex flex-col gap-3">
+            {myRegistrations.map((reg) => {
+              const event = reg.events as unknown as {
+                slug: string;
+                title: string;
+                starts_at: string;
+              } | null;
+              if (!event) return null;
+              return (
+                <li
+                  key={reg.id}
+                  className="flex flex-wrap items-center justify-between gap-2 text-sm"
+                >
+                  <Link
+                    href={`/events/${event.slug}`}
+                    className="font-medium underline-offset-4 hover:underline"
+                  >
+                    {event.title}
+                  </Link>
+                  <span className="text-gray-500 dark:text-gray-400">
+                    {new Date(event.starts_at).toLocaleDateString("en-GB", {
+                      dateStyle: "medium",
+                    })}
+                    {" · "}
+                    <span
+                      className={
+                        reg.status === "approved"
+                          ? "text-emerald-600"
+                          : reg.status === "pending"
+                            ? "text-amber-600"
+                            : ""
+                      }
+                    >
+                      {reg.status}
+                    </span>
+                  </span>
+                </li>
+              );
+            })}
+          </ul>
+        ) : (
+          <p className="mt-2 text-sm text-gray-600 dark:text-gray-300">
+            You have no event registrations yet.{" "}
+            <Link href="/events" className="underline underline-offset-4">
+              Browse events
+            </Link>
+          </p>
+        )}
+      </section>
     </main>
   );
 }
