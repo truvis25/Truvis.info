@@ -27,6 +27,15 @@ export async function getManagedOrg(supabase: SupabaseClient, userId: string) {
   };
 }
 
+// Compliance-sync staleness check (admin dashboard warning band).
+export function isSyncStale(
+  syncedAt: string | null | undefined,
+  hours: number,
+): boolean {
+  if (!syncedAt) return true;
+  return Date.parse(syncedAt) < Date.now() - hours * 60 * 60 * 1000;
+}
+
 export function slugifyText(text: string): string {
   return text
     .toLowerCase()

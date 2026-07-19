@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
+import { isSyncStale } from "@/lib/orgs/queries";
 import {
   setOrgSuspension,
   resolveReport,
@@ -102,7 +103,6 @@ export default async function AdminPage({
   const reportList = (reports ?? []) as unknown as ReportRow[];
   const subList = (subscriptions ?? []) as SubscriptionRow[];
   const auditList = (audit ?? []) as AuditRow[];
-  const staleThreshold = Date.now() - STALE_WARN_HOURS * 60 * 60 * 1000;
 
   return (
     <main className="mx-auto flex w-full max-w-5xl flex-1 flex-col gap-10 px-6 py-16">
@@ -124,8 +124,7 @@ export default async function AdminPage({
         </h2>
         {orgList.map((org) => {
           const standing = org.compliance_status;
-          const stale =
-            !standing || new Date(standing.synced_at).getTime() < staleThreshold;
+          const stale = isSyncStale(standing?.synced_at, STALE_WARN_HOURS);
           return (
             <div
               key={org.id}
