@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
+import { SITE_URL } from "@/lib/config";
 import "./globals.css";
 
 const geistSans = Geist({
@@ -19,9 +20,7 @@ export const metadata: Metadata = {
   },
   description:
     "Discover compliance-verified organizations, their products and services, events, and business opportunities.",
-  metadataBase: new URL(
-    process.env.NEXT_PUBLIC_SITE_URL ?? "https://truvis.info",
-  ),
+  metadataBase: new URL(SITE_URL),
 };
 
 export default function RootLayout({

@@ -20,17 +20,6 @@ type DirectoryOrg = {
 };
 
 export default async function DirectoryPage() {
-  if (!process.env.NEXT_PUBLIC_SUPABASE_URL) {
-    return (
-      <main className="mx-auto w-full max-w-4xl flex-1 px-6 py-16">
-        <h1 className="text-3xl font-semibold tracking-tight">Directory</h1>
-        <p className="mt-4 text-gray-600 dark:text-gray-300">
-          The directory backend is not configured in this environment.
-        </p>
-      </main>
-    );
-  }
-
   const supabase = await createClient();
   // RLS only returns orgs with is_visible = true to public readers (DIR-6).
   const { data: orgs } = await supabase

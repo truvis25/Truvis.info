@@ -2,10 +2,7 @@
 
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
-
-function siteUrl() {
-  return process.env.NEXT_PUBLIC_SITE_URL ?? "http://localhost:3000";
-}
+import { SITE_URL } from "@/lib/config";
 
 export async function signIn(formData: FormData) {
   const supabase = await createClient();
@@ -25,7 +22,7 @@ export async function signUp(formData: FormData) {
     email: String(formData.get("email") ?? ""),
     password: String(formData.get("password") ?? ""),
     options: {
-      emailRedirectTo: `${siteUrl()}/auth/callback`,
+      emailRedirectTo: `${SITE_URL}/auth/callback`,
       data: { display_name: String(formData.get("display_name") ?? "") },
     },
   });

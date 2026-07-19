@@ -7,6 +7,7 @@ import type { ContactPerson } from "@/types/domain";
 export const dynamic = "force-dynamic";
 
 type ProfileOrg = {
+  id: string;
   slug: string;
   legal_name: string;
   tagline: string | null;
@@ -21,13 +22,12 @@ type ProfileOrg = {
 };
 
 async function fetchOrg(slug: string): Promise<ProfileOrg | null> {
-  if (!process.env.NEXT_PUBLIC_SUPABASE_URL) return null;
   const supabase = await createClient();
   // RLS returns nothing for hidden orgs — public routes 404 them (DIR-6).
   const { data } = await supabase
     .from("organizations")
     .select(
-      "slug, legal_name, tagline, description, website, jurisdiction, trade_license_no, incorporation_year, industry_code, size_band, contact_person",
+      "id, slug, legal_name, tagline, description, website, jurisdiction, trade_license_no, incorporation_year, industry_code, size_band, contact_person",
     )
     .eq("slug", slug)
     .maybeSingle();
@@ -56,6 +56,24 @@ export default async function OrgProfilePage({
   const { slug } = await params;
   const org = await fetchOrg(slug);
   if (!org) notFound();
+
+  const supabase = await createClient();
+  const [{ data: catalog }, { data: posts }] = await Promise.all([
+    supabase
+      .from("catalog_items")
+      .select("slug, name, item_type, category, price_indication")
+      .eq("org_id", org.id)
+      .eq("status", "published")
+      .order("sort_order")
+      .order("name"),
+    supabase
+      .from("posts")
+      .select("id, title, body, published_at")
+      .eq("org_id", org.id)
+      .eq("status", "published")
+      .order("published_at", { ascending: false })
+      .limit(10),
+  ]);
 
   const contact = org.contact_person;
   const facts: Array<[string, string | number | null]> = [
@@ -114,6 +132,55 @@ export default async function OrgProfilePage({
               </p>
             </div>
           ) : null}
+          {catalog?.length ? (
+            <div>
+              <h2 className="mb-3 font-semibold">Products &amp; services</h2>
+              <ul className="grid gap-3 sm:grid-cols-2">
+                {catalog.map((item) => (
+                  <li key={item.slug}>
+                    <Link
+                      href={`/orgs/${org.slug}/catalog/${item.slug}`}
+                      className="flex h-full flex-col gap-1 rounded-xl border border-black/10 p-4 transition-colors hover:bg-black/5 dark:border-white/15 dark:hover:bg-white/5"
+                    >
+                      <span className="font-medium">{item.name}</span>
+                      <span className="text-xs text-gray-500 dark:text-gray-400">
+                        {[item.item_type, item.category, item.price_indication]
+                          .filter(Boolean)
+                          .join(" · ")}
+                      </span>
+                    </Link>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          ) : null}
+
+          {posts?.length ? (
+            <div>
+              <h2 className="mb-3 font-semibold">Latest updates</h2>
+              <ul className="flex flex-col gap-4">
+                {posts.map((post) => (
+                  <li
+                    key={post.id}
+                    className="rounded-xl border border-black/10 p-4 dark:border-white/15"
+                  >
+                    <p className="font-medium">{post.title}</p>
+                    {post.published_at ? (
+                      <p className="mt-0.5 text-xs text-gray-500 dark:text-gray-400">
+                        {new Date(post.published_at).toLocaleDateString("en-GB", {
+                          dateStyle: "medium",
+                        })}
+                      </p>
+                    ) : null}
+                    <p className="mt-2 whitespace-pre-line text-sm text-gray-700 dark:text-gray-300">
+                      {(post.body as { text?: string })?.text ?? ""}
+                    </p>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          ) : null}
+
           <div>
             <h2 className="mb-2 font-semibold">Company facts</h2>
             <dl className="grid grid-cols-2 gap-3 text-sm">
@@ -160,8 +227,7 @@ export default async function OrgProfilePage({
             </div>
           ) : null}
           <div className="rounded-2xl border border-dashed border-black/10 p-6 text-sm text-gray-500 dark:border-white/15 dark:text-gray-400">
-            Catalog, posts and events for this organization arrive in Phase
-            2–3.
+            Events by this organization arrive in Phase 3.
           </div>
         </aside>
       </section>

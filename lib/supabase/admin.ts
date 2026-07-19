@@ -1,12 +1,14 @@
 import "server-only";
 
 import { createClient as createSupabaseClient } from "@supabase/supabase-js";
+import { SUPABASE_URL } from "@/lib/config";
 
 // Service-role client — bypasses RLS. Use ONLY in webhook handlers, cron jobs,
-// and trusted server actions (compliance sync, Stripe entitlement sync).
+// and trusted server actions. The service key is a secret with no default;
+// callers must check for it and degrade gracefully when absent.
 export function createAdminClient() {
   return createSupabaseClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    SUPABASE_URL,
     process.env.SUPABASE_SERVICE_ROLE_KEY!,
     { auth: { persistSession: false } },
   );
