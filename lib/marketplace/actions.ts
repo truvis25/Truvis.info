@@ -67,6 +67,26 @@ export async function createListing(formData: FormData) {
   redirect("/dashboard/listings?saved=1");
 }
 
+// Edit an existing listing (MKT-1 completeness). Row scoping via the
+// "owner manages listings" RLS policy.
+export async function updateListing(formData: FormData) {
+  const id = String(formData.get("id") ?? "");
+  const { supabase } = await requireOwner(`/dashboard/listings/${id}`);
+  const fields = parseListingFields(formData);
+  if (!fields.teaser_headline) {
+    redirect(`/dashboard/listings/${id}?error=Headline%20is%20required`);
+  }
+
+  const { error } = await supabase
+    .from("marketplace_listings")
+    .update({ ...fields, updated_at: new Date().toISOString() })
+    .eq("id", id);
+
+  if (error) redirect(`/dashboard/listings/${id}?error=${encodeURIComponent(error.message)}`);
+  revalidatePath("/marketplace");
+  redirect(`/dashboard/listings/${id}?saved=1`);
+}
+
 export async function setListingStatus(formData: FormData) {
   const id = String(formData.get("id") ?? "");
   const status = String(formData.get("status") ?? "");

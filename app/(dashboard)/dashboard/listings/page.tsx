@@ -74,13 +74,13 @@ export default async function ListingsAdminPage({
   return (
     <main className="mx-auto flex w-full max-w-3xl flex-1 flex-col gap-8 px-6 py-16">
       <div>
-        <Link href="/dashboard" className="text-sm text-gray-500 underline underline-offset-4 dark:text-gray-400">
+        <Link href="/dashboard" className="text-sm text-muted-foreground underline underline-offset-4">
           ← Dashboard
         </Link>
-        <h1 className="mt-3 text-2xl font-semibold tracking-tight">
+        <h1 className="mt-3 font-display text-2xl font-bold tracking-tight text-petroleum dark:text-foreground">
           Marketplace listings
         </h1>
-        <p className="mt-1 text-sm text-gray-600 dark:text-gray-300">
+        <p className="mt-1 text-sm text-muted-foreground">
           Announce a fundraise, equity sale, or business sale. The public sees
           an anonymized teaser; full detail unlocks only for subscribers you
           approve.
@@ -90,7 +90,7 @@ export default async function ListingsAdminPage({
       <MarketplaceDisclaimer />
       <Notice error={error} saved={saved} />
 
-      <section className="rounded-2xl border border-black/10 p-6 dark:border-white/15">
+      <section className="rounded-2xl border border-border p-6">
         <h2 className="mb-4 font-semibold">Create a listing</h2>
         <form action={createListing} className="flex flex-col gap-4">
           <div className="grid gap-4 sm:grid-cols-2">
@@ -162,22 +162,25 @@ export default async function ListingsAdminPage({
       </section>
 
       <section className="flex flex-col gap-3">
-        <h2 className="font-semibold">Your listings ({listings.length})</h2>
+        <h2 className="font-display font-semibold">Your listings ({listings.length})</h2>
         {listings.map((listing) => (
           <div
             key={listing.id}
-            className="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-black/10 px-5 py-4 dark:border-white/15"
+            className="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-border px-5 py-4"
           >
             <div>
               <p className="font-medium">{listing.teaser_headline}</p>
-              <p className="text-xs text-gray-500 dark:text-gray-400">
+              <p className="text-xs text-muted-foreground">
                 {typeLabels[listing.listing_type]} ·{" "}
-                <span className={listing.status === "active" ? "text-emerald-600" : ""}>
+                <span className={listing.status === "active" ? "text-emerald-dark" : ""}>
                   {listing.status}
                 </span>
               </p>
             </div>
             <div className="flex items-center gap-2">
+              <Link href={`/dashboard/listings/${listing.id}`} className={buttonGhostCls}>
+                Edit
+              </Link>
               {listing.status === "draft" || listing.status === "paused" ? (
                 <form action={setListingStatus}>
                   <input type="hidden" name="id" value={listing.id} />
@@ -194,7 +197,7 @@ export default async function ListingsAdminPage({
                   <form action={setListingStatus}>
                     <input type="hidden" name="id" value={listing.id} />
                     <input type="hidden" name="status" value="closed" />
-                    <button className={`${buttonGhostCls} text-red-600 dark:text-red-400`}>
+                    <button className={`${buttonGhostCls} text-destructive`}>
                       Close
                     </button>
                   </form>
@@ -204,29 +207,29 @@ export default async function ListingsAdminPage({
           </div>
         ))}
         {!listings.length ? (
-          <p className="text-sm text-gray-500 dark:text-gray-400">No listings yet.</p>
+          <p className="text-sm text-muted-foreground">No listings yet.</p>
         ) : null}
       </section>
 
       <section className="flex flex-col gap-3">
-        <h2 className="font-semibold">Review applications ({apps.length})</h2>
+        <h2 className="font-display font-semibold">Review applications ({apps.length})</h2>
         {apps.map((app) => (
           <div
             key={app.id}
-            className="rounded-xl border border-black/10 px-5 py-4 dark:border-white/15"
+            className="rounded-xl border border-border px-5 py-4"
           >
             <div className="flex flex-wrap items-center justify-between gap-3">
               <div>
                 <p className="font-medium">
                   {app.user_profiles?.display_name || "Subscriber"}
                 </p>
-                <p className="text-xs text-gray-500 dark:text-gray-400">
+                <p className="text-xs text-muted-foreground">
                   {new Date(app.created_at).toLocaleString("en-GB", { dateStyle: "medium", timeStyle: "short" })}
                   {" · "}
                   <span
                     className={
                       app.status === "approved"
-                        ? "text-emerald-600"
+                        ? "text-emerald-dark"
                         : app.status === "pending"
                           ? "text-amber-600"
                           : ""
@@ -246,7 +249,7 @@ export default async function ListingsAdminPage({
                   <form action={decideApplication}>
                     <input type="hidden" name="application_id" value={app.id} />
                     <input type="hidden" name="decision" value="reject" />
-                    <button className={`${buttonGhostCls} text-red-600 dark:text-red-400`}>
+                    <button className={`${buttonGhostCls} text-destructive`}>
                       Reject
                     </button>
                   </form>
@@ -258,14 +261,14 @@ export default async function ListingsAdminPage({
               ) : null}
             </div>
             {app.intro_message ? (
-              <p className="mt-2 text-sm text-gray-600 dark:text-gray-300">
+              <p className="mt-2 text-sm text-muted-foreground">
                 “{app.intro_message}”
               </p>
             ) : null}
           </div>
         ))}
         {!apps.length ? (
-          <p className="text-sm text-gray-500 dark:text-gray-400">
+          <p className="text-sm text-muted-foreground">
             No applications yet.
           </p>
         ) : null}

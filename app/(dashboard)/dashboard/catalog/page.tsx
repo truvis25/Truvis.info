@@ -7,6 +7,7 @@ import {
   createCatalogItem,
   setCatalogItemStatus,
   deleteCatalogItem,
+  uploadCatalogImage,
 } from "@/lib/catalog/actions";
 import {
   Notice,
@@ -49,13 +50,13 @@ export default async function CatalogAdminPage({
   return (
     <main className="mx-auto flex w-full max-w-3xl flex-1 flex-col gap-8 px-6 py-16">
       <div>
-        <Link href="/dashboard" className="text-sm text-gray-500 underline underline-offset-4 dark:text-gray-400">
+        <Link href="/dashboard" className="text-sm text-muted-foreground underline underline-offset-4">
           ← Dashboard
         </Link>
-        <h1 className="mt-3 text-2xl font-semibold tracking-tight">
+        <h1 className="mt-3 font-display text-2xl font-bold tracking-tight text-petroleum dark:text-foreground">
           Products &amp; services
         </h1>
-        <p className="mt-1 text-sm text-gray-600 dark:text-gray-300">
+        <p className="mt-1 text-sm text-muted-foreground">
           Published items appear on your public profile while your organization
           is visible.
         </p>
@@ -63,7 +64,7 @@ export default async function CatalogAdminPage({
 
       <Notice error={error} saved={saved} />
 
-      <section className="rounded-2xl border border-black/10 p-6 dark:border-white/15">
+      <section className="rounded-2xl border border-border p-6">
         <h2 className="mb-4 font-semibold">Add an item</h2>
         <form action={createCatalogItem} className="flex flex-col gap-4">
           <div className="grid gap-4 sm:grid-cols-2">
@@ -98,22 +99,35 @@ export default async function CatalogAdminPage({
       </section>
 
       <section className="flex flex-col gap-3">
-        <h2 className="font-semibold">Items ({items?.length ?? 0})</h2>
+        <h2 className="font-display font-semibold">Items ({items?.length ?? 0})</h2>
         {(items as Item[] | null)?.map((item) => (
           <div
             key={item.id}
-            className="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-black/10 px-5 py-4 dark:border-white/15"
+            className="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-border px-5 py-4"
           >
             <div>
               <p className="font-medium">{item.name}</p>
-              <p className="text-xs text-gray-500 dark:text-gray-400">
+              <p className="text-xs text-muted-foreground">
                 {item.item_type}
                 {item.category ? ` · ${item.category}` : ""} ·{" "}
-                <span className={item.status === "published" ? "text-emerald-600" : ""}>
+                <span className={item.status === "published" ? "text-emerald-dark" : ""}>
                   {item.status}
                 </span>
               </p>
             </div>
+            <form action={uploadCatalogImage} className="flex items-center gap-2">
+              <input type="hidden" name="item_id" value={item.id} />
+              <label className="sr-only" htmlFor={`img-${item.id}`}>Add image to {item.name}</label>
+              <input
+                id={`img-${item.id}`}
+                type="file"
+                name="file"
+                accept="image/*"
+                required
+                className="w-44 text-xs file:mr-2 file:rounded-md file:border-0 file:bg-secondary file:px-2 file:py-1 file:text-xs"
+              />
+              <button className={buttonGhostCls}>Add image</button>
+            </form>
             <div className="flex items-center gap-2">
               <form action={setCatalogItemStatus}>
                 <input type="hidden" name="id" value={item.id} />
@@ -130,7 +144,7 @@ export default async function CatalogAdminPage({
                 action={deleteCatalogItem}
               >
                 <input type="hidden" name="id" value={item.id} />
-                <button className={`${buttonGhostCls} text-red-600 dark:text-red-400`}>
+                <button className={`${buttonGhostCls} text-destructive`}>
                   Delete
                 </button>
               </form>
@@ -138,7 +152,7 @@ export default async function CatalogAdminPage({
           </div>
         ))}
         {!items?.length ? (
-          <p className="text-sm text-gray-500 dark:text-gray-400">
+          <p className="text-sm text-muted-foreground">
             No items yet — add your first product or service above.
           </p>
         ) : null}

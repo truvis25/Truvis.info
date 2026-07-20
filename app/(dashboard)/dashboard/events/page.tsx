@@ -46,11 +46,11 @@ export default async function EventsAdminPage({
   return (
     <main className="mx-auto flex w-full max-w-3xl flex-1 flex-col gap-8 px-6 py-16">
       <div>
-        <Link href="/dashboard" className="text-sm text-gray-500 underline underline-offset-4 dark:text-gray-400">
+        <Link href="/dashboard" className="text-sm text-muted-foreground underline underline-offset-4">
           ← Dashboard
         </Link>
-        <h1 className="mt-3 text-2xl font-semibold tracking-tight">Events</h1>
-        <p className="mt-1 text-sm text-gray-600 dark:text-gray-300">
+        <h1 className="mt-3 font-display text-2xl font-bold tracking-tight text-petroleum dark:text-foreground">Events</h1>
+        <p className="mt-1 text-sm text-muted-foreground">
           Published events appear on the public events page while your
           organization is visible.
         </p>
@@ -58,7 +58,7 @@ export default async function EventsAdminPage({
 
       <Notice error={error} saved={saved} />
 
-      <section className="rounded-2xl border border-black/10 p-6 dark:border-white/15">
+      <section className="rounded-2xl border border-border p-6">
         <h2 className="mb-4 font-semibold">Create an event</h2>
         <form action={createEvent} className="flex flex-col gap-4">
           <label className="flex flex-col gap-1 text-sm font-medium">
@@ -109,20 +109,20 @@ export default async function EventsAdminPage({
       </section>
 
       <section className="flex flex-col gap-3">
-        <h2 className="font-semibold">Your events ({events?.length ?? 0})</h2>
+        <h2 className="font-display font-semibold">Your events ({events?.length ?? 0})</h2>
         {(events as EventRow[] | null)?.map((event) => (
           <div
             key={event.id}
-            className="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-black/10 px-5 py-4 dark:border-white/15"
+            className="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-border px-5 py-4"
           >
             <div>
               <Link href={`/dashboard/events/${event.id}`} className="font-medium underline-offset-4 hover:underline">
                 {event.title}
               </Link>
-              <p className="text-xs text-gray-500 dark:text-gray-400">
+              <p className="text-xs text-muted-foreground">
                 {new Date(event.starts_at).toLocaleString("en-GB", { dateStyle: "medium", timeStyle: "short" })}
                 {" · "}
-                <span className={event.status === "published" ? "text-emerald-600" : ""}>{event.status}</span>
+                <span className={event.status === "published" ? "text-emerald-dark" : ""}>{event.status}</span>
                 {" · "}
                 {event.registrations?.[0]?.count ?? 0} registration{(event.registrations?.[0]?.count ?? 0) === 1 ? "" : "s"}
               </p>
@@ -141,14 +141,14 @@ export default async function EventsAdminPage({
                 <form action={setEventStatus}>
                   <input type="hidden" name="id" value={event.id} />
                   <input type="hidden" name="status" value="cancelled" />
-                  <button className={`${buttonGhostCls} text-red-600 dark:text-red-400`}>Cancel</button>
+                  <button className={`${buttonGhostCls} text-destructive`}>Cancel</button>
                 </form>
               ) : null}
             </div>
           </div>
         ))}
         {!events?.length ? (
-          <p className="text-sm text-gray-500 dark:text-gray-400">No events yet.</p>
+          <p className="text-sm text-muted-foreground">No events yet.</p>
         ) : null}
       </section>
     </main>

@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { Check } from "lucide-react";
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/server";
 import { startTrial, getSubscription } from "@/lib/billing/actions";
@@ -40,28 +41,28 @@ export default async function PricingPage({
   return (
     <main className="mx-auto w-full max-w-4xl flex-1 px-6 py-16">
       <header className="mb-10 text-center">
-        <h1 className="text-3xl font-semibold tracking-tight">
+        <h1 className="font-display text-3xl font-bold tracking-tight text-petroleum dark:text-foreground">
           Access verified deal flow
         </h1>
-        <p className="mt-2 text-gray-600 dark:text-gray-300">
+        <p className="mt-2 text-muted-foreground">
           The directory, feed, and events are free. Marketplace access is for
           subscribed buyers and investors.
         </p>
       </header>
 
       {error ? (
-        <p className="mx-auto mb-6 max-w-md rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700 dark:border-red-900 dark:bg-red-950 dark:text-red-300">
+        <p className="mx-auto mb-6 max-w-md rounded-lg border border-destructive/30 bg-destructive/5 px-4 py-3 text-sm text-destructive">
           {error}
         </p>
       ) : null}
 
       <div className="grid gap-6 sm:grid-cols-2">
-        <div className="rounded-2xl border border-black/10 p-8 dark:border-white/15">
+        <div className="rounded-2xl border border-border p-8">
           <h2 className="text-lg font-semibold">Free</h2>
           <p className="mt-1 text-3xl font-semibold">AED 0</p>
-          <ul className="mt-6 flex flex-col gap-2 text-sm text-gray-600 dark:text-gray-300">
+          <ul className="mt-6 flex flex-col gap-2 text-sm text-muted-foreground">
             {freeFeatures.map((feature) => (
-              <li key={feature}>✓ {feature}</li>
+              <li key={feature} className="flex items-center gap-2"><Check className="size-4 shrink-0 text-emerald-dark" aria-hidden /> {feature}</li>
             ))}
           </ul>
         </div>
@@ -71,17 +72,17 @@ export default async function PricingPage({
           <p className="mt-1 text-3xl font-semibold">
             14-day free trial
           </p>
-          <p className="text-sm text-gray-500 dark:text-gray-400">
+          <p className="text-sm text-muted-foreground">
             Paid plans launch soon — early users get free trial access.
           </p>
-          <ul className="mt-6 flex flex-col gap-2 text-sm text-gray-600 dark:text-gray-300">
+          <ul className="mt-6 flex flex-col gap-2 text-sm text-muted-foreground">
             {proFeatures.map((feature) => (
-              <li key={feature}>✓ {feature}</li>
+              <li key={feature} className="flex items-center gap-2"><Check className="size-4 shrink-0 text-emerald-dark" aria-hidden /> {feature}</li>
             ))}
           </ul>
           <div className="mt-8">
             {subscription?.active ? (
-              <p className="text-sm font-medium text-emerald-600">
+              <p className="text-sm font-medium text-emerald-dark">
                 Your access is active
                 {subscription.status === "trialing" && subscription.current_period_end
                   ? ` (trial ends ${new Date(subscription.current_period_end).toLocaleDateString("en-GB", { dateStyle: "medium" })})`
@@ -92,7 +93,7 @@ export default async function PricingPage({
                 </Link>
               </p>
             ) : subscription ? (
-              <p className="text-sm text-gray-600 dark:text-gray-300">
+              <p className="text-sm text-muted-foreground">
                 Your {subscription.status === "trialing" ? "trial has ended" : `subscription is ${subscription.status}`}.
                 Paid plans are launching soon — contact info@truvis.ae to keep
                 access.
