@@ -36,7 +36,7 @@ export default async function ManageEventPage({
 
   const { data: event } = await supabase
     .from("events")
-    .select("id, slug, title, description, venue_address, online_url, status, starts_at, ends_at, capacity, registration_deadline, approval_mode")
+    .select("id, slug, title, description, venue_address, online_url, status, starts_at, ends_at, capacity, registration_deadline, approval_mode, luma_publish")
     .eq("id", id)
     .eq("org_id", org.id)
     .maybeSingle();
@@ -131,6 +131,18 @@ export default async function ManageEventPage({
               <option value="manual">Manual — I approve each attendee</option>
               <option value="auto">Automatic — first come, first served</option>
             </select>
+          </label>
+          <label className="flex items-start gap-2 text-sm">
+            <input
+              type="checkbox"
+              name="luma_publish"
+              defaultChecked={Boolean(event.luma_publish)}
+              className="mt-1"
+            />
+            <span>
+              Also publish on Luma (Truvis community calendar). Registration
+              stays on Truvis.
+            </span>
           </label>
           <button type="submit" className={`${buttonCls} self-start`}>Save changes</button>
         </form>

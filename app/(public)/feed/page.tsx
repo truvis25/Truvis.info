@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/server";
 import { reportPost } from "@/lib/moderation/actions";
+import { BrandArt } from "@/components/brand-art";
 
 export const metadata: Metadata = {
   title: "Feed",
@@ -68,9 +69,20 @@ export default async function FeedPage({
       ) : null}
 
       {list.length === 0 ? (
-        <p className="rounded-2xl border border-dashed border-border p-10 text-center text-muted-foreground">
-          No updates published yet.
-        </p>
+        <div className="relative overflow-hidden rounded-2xl border border-border p-10 text-center">
+          <BrandArt seed="empty-feed" variant="empty" />
+          <p className="relative z-10 text-muted-foreground">
+            No updates published yet.
+          </p>
+          <div className="relative z-10 mt-4">
+            <Link
+              href="/directory"
+              className="link-engraved text-sm font-semibold text-emerald-deeper dark:text-emerald-brand"
+            >
+              Follow organizations →
+            </Link>
+          </div>
+        </div>
       ) : (
         <ul className="flex flex-col gap-5">
           {list.map((post) => (

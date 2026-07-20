@@ -37,7 +37,13 @@ function Badge({
 // The platform's trust mark (replaces bare ✓ glyphs; accessible label included).
 function VerifiedBadge({ className, long = false }: { className?: string; long?: boolean }) {
   return (
-    <Badge variant="verified" className={className}>
+    <Badge
+      variant="verified"
+      className={cn(
+        "transition-transform duration-150 hover:scale-[1.06] hover:drop-shadow-[0_0_6px_rgba(16,185,129,0.35)] active:scale-95",
+        className,
+      )}
+    >
       <ShieldCheck aria-hidden />
       <span>{long ? "Verified via Truvis Compliance" : "Verified"}</span>
     </Badge>

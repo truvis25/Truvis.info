@@ -3,7 +3,7 @@ import Link from "next/link";
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { getManagedOrg } from "@/lib/orgs/queries";
-import { createEvent, setEventStatus } from "@/lib/events/actions";
+import { createEvent, setEventStatus, retryLumaSync } from "@/lib/events/actions";
 import {
   Notice,
   inputCls,
@@ -20,6 +20,10 @@ type EventRow = {
   starts_at: string;
   status: string;
   approval_mode: string;
+  luma_publish: boolean;
+  luma_event_url: string | null;
+  luma_sync_status: string | null;
+  luma_sync_error: string | null;
   registrations: { count: number }[];
 };
 
@@ -39,7 +43,7 @@ export default async function EventsAdminPage({
 
   const { data: events } = await supabase
     .from("events")
-    .select("id, slug, title, starts_at, status, approval_mode, registrations:event_registrations(count)")
+    .select("id, slug, title, starts_at, status, approval_mode, luma_publish, luma_event_url, luma_sync_status, luma_sync_error, registrations:event_registrations(count)")
     .eq("org_id", org.id)
     .order("starts_at", { ascending: false });
 
@@ -102,6 +106,14 @@ export default async function EventsAdminPage({
               <option value="auto">Automatic — first come, first served</option>
             </select>
           </label>
+          <label className="flex items-start gap-2 text-sm">
+            <input type="checkbox" name="luma_publish" className="mt-1" />
+            <span>
+              Also publish on Luma (Truvis community calendar). Your event will
+              appear on the public Truvis calendar on lu.ma — registration
+              stays on Truvis.
+            </span>
+          </label>
           <button type="submit" className={`${buttonCls} self-start`}>
             Create event (draft)
           </button>
@@ -125,9 +137,36 @@ export default async function EventsAdminPage({
                 <span className={event.status === "published" ? "text-emerald-dark" : ""}>{event.status}</span>
                 {" · "}
                 {event.registrations?.[0]?.count ?? 0} registration{(event.registrations?.[0]?.count ?? 0) === 1 ? "" : "s"}
+                {event.luma_publish || event.luma_sync_status ? (
+                  <>
+                    {" · "}
+                    {event.luma_sync_status === "synced" && event.luma_event_url ? (
+                      <a
+                        href={event.luma_event_url}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="text-emerald-dark underline-offset-4 hover:underline"
+                      >
+                        Luma: synced
+                      </a>
+                    ) : event.luma_sync_status === "failed" ? (
+                      <span className="text-destructive" title={event.luma_sync_error ?? undefined}>
+                        Luma: failed
+                      </span>
+                    ) : (
+                      <span>Luma: pending</span>
+                    )}
+                  </>
+                ) : null}
               </p>
             </div>
             <div className="flex items-center gap-2">
+              {event.luma_sync_status === "failed" ? (
+                <form action={retryLumaSync}>
+                  <input type="hidden" name="id" value={event.id} />
+                  <button className={buttonGhostCls}>Retry Luma sync</button>
+                </form>
+              ) : null}
               <Link href={`/dashboard/events/${event.id}`} className={buttonGhostCls}>
                 Manage
               </Link>

@@ -4,6 +4,7 @@ import { redirect } from "next/navigation";
 import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
 import { getManagedOrg, slugifyText } from "@/lib/orgs/queries";
+import { syncEventToLuma } from "@/lib/luma/sync";
 
 async function requireEventManager(nextPath: string) {
   const supabase = await createClient();
@@ -31,6 +32,7 @@ function parseEventFields(formData: FormData) {
     capacity: capacityRaw ? Number(capacityRaw) : null,
     registration_deadline: deadline ? new Date(deadline).toISOString() : null,
     approval_mode: formData.get("approval_mode") === "auto" ? "auto" : "manual",
+    luma_publish: formData.get("luma_publish") === "on",
   };
 }
 
@@ -56,13 +58,18 @@ export async function createEvent(formData: FormData) {
     slug = `${baseSlug}-${n}`;
   }
 
-  const { error } = await supabase.from("events").insert({
-    org_id: org.id,
-    slug,
-    ...fields,
-  });
+  const { data: inserted, error } = await supabase
+    .from("events")
+    .insert({
+      org_id: org.id,
+      slug,
+      ...fields,
+    })
+    .select("id")
+    .single();
 
   if (error) redirect(`/dashboard/events?error=${encodeURIComponent(error.message)}`);
+  if (inserted?.id) await syncEventToLuma(supabase, inserted.id);
   revalidatePath("/events");
   redirect("/dashboard/events?saved=1");
 }
@@ -82,6 +89,7 @@ export async function updateEvent(formData: FormData) {
     .eq("org_id", org.id);
 
   if (error) redirect(`/dashboard/events/${id}?error=${encodeURIComponent(error.message)}`);
+  await syncEventToLuma(supabase, id);
   revalidatePath("/events");
   redirect(`/dashboard/events/${id}?saved=1`);
 }
@@ -101,6 +109,16 @@ export async function setEventStatus(formData: FormData) {
     .eq("org_id", org.id);
 
   if (error) redirect(`/dashboard/events?error=${encodeURIComponent(error.message)}`);
+  await syncEventToLuma(supabase, id);
+  revalidatePath("/events");
+  redirect("/dashboard/events");
+}
+
+// Re-run a failed Luma push from the dashboard.
+export async function retryLumaSync(formData: FormData) {
+  const id = String(formData.get("id") ?? "");
+  const { supabase } = await requireEventManager("/dashboard/events");
+  await syncEventToLuma(supabase, id);
   revalidatePath("/events");
   redirect("/dashboard/events");
 }

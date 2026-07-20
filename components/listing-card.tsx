@@ -3,7 +3,12 @@ import Link from "next/link";
 import { Building2, Lock, PieChart, TrendingUp } from "lucide-react";
 import { Card } from "@/components/ui/card";
 import { VerifiedBadge } from "@/components/ui/badge";
+import { BrandArt } from "@/components/brand-art";
 import { cn } from "@/lib/utils";
+
+// Static engraved octagon frame for the "Identity protected" lock.
+const OCTAGON =
+  "M8.2 2h7.6l5.4 5.4v7.6l-5.4 5.4H8.2l-5.4-5.4V8.2z";
 
 // Row shape returned by the get_public_listings RPC. Identity fields are
 // null unless the listing owner opted into reveal_identity.
@@ -26,20 +31,26 @@ const TYPE_THEME = {
   fundraise: {
     label: "Raising funds",
     Icon: TrendingUp,
-    border: "border-l-emerald-brand",
+    border: "border-l-emerald-brand/40",
     badge: "bg-emerald-brand/10 text-emerald-deeper dark:text-emerald-brand",
+    strip: "text-emerald-brand",
+    accent: "emerald" as const,
   },
   equity_sale: {
     label: "Equity for sale",
     Icon: PieChart,
-    border: "border-l-cyan-accent",
+    border: "border-l-cyan-accent/40",
     badge: "bg-cyan-accent/10 text-cyan-700 dark:text-cyan-accent",
+    strip: "text-cyan-accent",
+    accent: "cyan" as const,
   },
   business_sale: {
     label: "Business for sale",
     Icon: Building2,
-    border: "border-l-petroleum",
+    border: "border-l-petroleum/40",
     badge: "bg-petroleum/10 text-petroleum dark:bg-white/10 dark:text-foreground",
+    strip: "text-petroleum dark:text-foreground/40",
+    accent: "line" as const,
   },
 } as const;
 
@@ -54,10 +65,25 @@ export function ListingCard({ listing }: { listing: PublicListing }) {
   return (
     <Card
       className={cn(
-        "relative border-l-4 p-6 transition duration-200 hover:-translate-y-0.5 hover:shadow-[0_12px_32px_-16px_rgba(2,48,89,0.3)]",
+        "relative overflow-hidden border-l-4 p-6 transition duration-200 hover:-translate-y-0.5 hover:shadow-[0_12px_32px_-16px_rgba(2,48,89,0.3)]",
         theme.border,
       )}
     >
+      {/* Perforated security strip along the accent edge */}
+      <span
+        aria-hidden
+        className={cn(
+          "pointer-events-none absolute inset-y-0 left-0 w-1 bg-[repeating-linear-gradient(180deg,currentColor_0_5px,transparent_5px_8px)]",
+          theme.strip,
+        )}
+      />
+      {/* Corner rosette stamp, clipped to an arc */}
+      <div
+        aria-hidden
+        className="pointer-events-none absolute -right-6 -top-6 size-[88px] opacity-[0.35] dark:opacity-[0.25]"
+      >
+        <BrandArt seed={listing.id} variant="medallion" rings={2} accent={theme.accent} />
+      </div>
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div className="flex flex-wrap items-center gap-3">
           <span
@@ -100,7 +126,21 @@ export function ListingCard({ listing }: { listing: PublicListing }) {
           </Link>
         ) : (
           <span className="flex items-center gap-1.5 text-xs text-muted-foreground">
-            <Lock aria-hidden className="size-3.5" />
+            <span className="relative inline-flex size-6 items-center justify-center">
+              <svg
+                viewBox="0 0 24 24"
+                aria-hidden
+                className="absolute inset-0"
+              >
+                <path
+                  d={OCTAGON}
+                  fill="none"
+                  stroke="var(--art-line-strong)"
+                  strokeWidth="1"
+                />
+              </svg>
+              <Lock aria-hidden className="size-3" />
+            </span>
             Identity protected
           </span>
         )}
