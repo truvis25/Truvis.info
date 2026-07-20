@@ -43,18 +43,18 @@ export default async function PostsAdminPage({
   return (
     <main className="mx-auto flex w-full max-w-3xl flex-1 flex-col gap-8 px-6 py-16">
       <div>
-        <Link href="/dashboard" className="text-sm text-gray-500 underline underline-offset-4 dark:text-gray-400">
+        <Link href="/dashboard" className="text-sm text-muted-foreground underline underline-offset-4">
           ← Dashboard
         </Link>
-        <h1 className="mt-3 text-2xl font-semibold tracking-tight">Posts</h1>
-        <p className="mt-1 text-sm text-gray-600 dark:text-gray-300">
+        <h1 className="mt-3 font-display text-2xl font-bold tracking-tight text-petroleum dark:text-foreground">Posts</h1>
+        <p className="mt-1 text-sm text-muted-foreground">
           Updates published here appear on your profile and in the public feed.
         </p>
       </div>
 
       <Notice error={error} saved={saved} />
 
-      <section className="rounded-2xl border border-black/10 p-6 dark:border-white/15">
+      <section className="rounded-2xl border border-border p-6">
         <h2 className="mb-4 font-semibold">Write a post</h2>
         <form action={createPost} className="flex flex-col gap-4">
           <label className="flex flex-col gap-1 text-sm font-medium">
@@ -77,16 +77,16 @@ export default async function PostsAdminPage({
       </section>
 
       <section className="flex flex-col gap-3">
-        <h2 className="font-semibold">Your posts ({posts?.length ?? 0})</h2>
+        <h2 className="font-display font-semibold">Your posts ({posts?.length ?? 0})</h2>
         {(posts as Post[] | null)?.map((post) => (
           <div
             key={post.id}
-            className="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-black/10 px-5 py-4 dark:border-white/15"
+            className="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-border px-5 py-4"
           >
             <div>
               <p className="font-medium">{post.title}</p>
-              <p className="text-xs text-gray-500 dark:text-gray-400">
-                <span className={post.status === "published" ? "text-emerald-600" : ""}>
+              <p className="text-xs text-muted-foreground">
+                <span className={post.status === "published" ? "text-emerald-dark" : ""}>
                   {post.status}
                 </span>
                 {post.published_at
@@ -108,7 +108,7 @@ export default async function PostsAdminPage({
               </form>
               <form action={deletePost}>
                 <input type="hidden" name="id" value={post.id} />
-                <button className={`${buttonGhostCls} text-red-600 dark:text-red-400`}>
+                <button className={`${buttonGhostCls} text-destructive`}>
                   Delete
                 </button>
               </form>
@@ -116,7 +116,7 @@ export default async function PostsAdminPage({
           </div>
         ))}
         {!posts?.length ? (
-          <p className="text-sm text-gray-500 dark:text-gray-400">
+          <p className="text-sm text-muted-foreground">
             No posts yet.
           </p>
         ) : null}

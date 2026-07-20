@@ -13,13 +13,13 @@ export default async function LoginPage({
   return (
     <div className="flex flex-col gap-6">
       <div>
-        <h1 className="text-2xl font-semibold tracking-tight">Sign in</h1>
-        <p className="mt-1 text-sm text-gray-600 dark:text-gray-300">
+        <h1 className="font-display text-2xl font-bold tracking-tight text-petroleum dark:text-foreground">Sign in</h1>
+        <p className="mt-1 text-sm text-muted-foreground">
           Access your organization dashboard.
         </p>
       </div>
       {error ? (
-        <p className="rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700 dark:border-red-900 dark:bg-red-950 dark:text-red-300">
+        <p className="rounded-lg border border-destructive/30 bg-destructive/5 px-4 py-3 text-sm text-destructive">
           {error}
         </p>
       ) : null}
@@ -32,7 +32,7 @@ export default async function LoginPage({
             type="email"
             required
             autoComplete="email"
-            className="rounded-lg border border-black/15 px-3 py-2 text-base font-normal dark:border-white/20 dark:bg-transparent"
+            className="rounded-lg border border-border px-3 py-2 text-base font-normal "
           />
         </label>
         <label className="flex flex-col gap-1 text-sm font-medium">
@@ -42,17 +42,17 @@ export default async function LoginPage({
             type="password"
             required
             autoComplete="current-password"
-            className="rounded-lg border border-black/15 px-3 py-2 text-base font-normal dark:border-white/20 dark:bg-transparent"
+            className="rounded-lg border border-border px-3 py-2 text-base font-normal "
           />
         </label>
         <button
           type="submit"
-          className="rounded-full bg-foreground px-6 py-2.5 text-sm font-medium text-background transition-opacity hover:opacity-85"
+          className="rounded-md bg-gradient-to-r from-emerald-dark to-emerald-deeper shadow-[0_6px_20px_-6px_rgba(16,185,129,0.45)] px-6 py-2.5 text-sm font-medium text-white transition-all hover:-translate-y-0.5"
         >
           Sign in
         </button>
       </form>
-      <p className="text-sm text-gray-600 dark:text-gray-300">
+      <p className="text-sm text-muted-foreground">
         No account?{" "}
         <Link href="/signup" className="font-medium underline underline-offset-4">
           Create one

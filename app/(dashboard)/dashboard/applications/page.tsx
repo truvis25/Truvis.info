@@ -34,13 +34,13 @@ export default async function ApplicationsPage() {
   return (
     <main className="mx-auto flex w-full max-w-3xl flex-1 flex-col gap-8 px-6 py-16">
       <div>
-        <Link href="/dashboard" className="text-sm text-gray-500 underline underline-offset-4 dark:text-gray-400">
+        <Link href="/dashboard" className="text-sm text-muted-foreground underline underline-offset-4">
           ← Dashboard
         </Link>
-        <h1 className="mt-3 text-2xl font-semibold tracking-tight">
+        <h1 className="mt-3 font-display text-2xl font-bold tracking-tight text-petroleum dark:text-foreground">
           My review applications
         </h1>
-        <p className="mt-1 text-sm text-gray-600 dark:text-gray-300">
+        <p className="mt-1 text-sm text-muted-foreground">
           {subscription?.active
             ? subscription.status === "trialing" && subscription.current_period_end
               ? `Subscription: trial, ends ${new Date(subscription.current_period_end).toLocaleDateString("en-GB", { dateStyle: "medium" })}.`
@@ -55,7 +55,7 @@ export default async function ApplicationsPage() {
       </div>
 
       {apps.length === 0 ? (
-        <p className="rounded-2xl border border-dashed border-black/15 p-10 text-center text-sm text-gray-500 dark:border-white/20 dark:text-gray-400">
+        <p className="rounded-2xl border border-dashed border-border p-10 text-center text-sm text-muted-foreground">
           You haven&apos;t applied to review any listings yet.{" "}
           <Link href="/marketplace" className="underline underline-offset-4">
             Browse the marketplace
@@ -66,7 +66,7 @@ export default async function ApplicationsPage() {
           {apps.map((app) => (
             <li
               key={app.id}
-              className="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-black/10 px-5 py-4 dark:border-white/15"
+              className="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-border px-5 py-4"
             >
               <div>
                 <Link
@@ -75,13 +75,13 @@ export default async function ApplicationsPage() {
                 >
                   {app.marketplace_listings?.teaser_headline ?? "Listing"}
                 </Link>
-                <p className="text-xs text-gray-500 dark:text-gray-400">
+                <p className="text-xs text-muted-foreground">
                   {new Date(app.created_at).toLocaleDateString("en-GB", { dateStyle: "medium" })}
                   {" · "}
                   <span
                     className={
                       app.status === "approved"
-                        ? "text-emerald-600"
+                        ? "text-emerald-dark"
                         : app.status === "pending"
                           ? "text-amber-600"
                           : ""
@@ -94,7 +94,7 @@ export default async function ApplicationsPage() {
               {app.status === "approved" ? (
                 <Link
                   href={`/dashboard/applications/${app.id}`}
-                  className="rounded-full border border-black/10 px-4 py-2 text-sm font-medium hover:bg-black/5 dark:border-white/20 dark:hover:bg-white/10"
+                  className="rounded-full border border-border px-4 py-2 text-sm font-medium hover:bg-secondary dark:hover:bg-secondary"
                 >
                   Open thread
                 </Link>

@@ -107,10 +107,10 @@ export default async function AdminPage({
   return (
     <main className="mx-auto flex w-full max-w-5xl flex-1 flex-col gap-10 px-6 py-16">
       <header>
-        <h1 className="text-3xl font-semibold tracking-tight">
+        <h1 className="font-display text-3xl font-bold tracking-tight text-petroleum dark:text-foreground">
           Platform administration
         </h1>
-        <p className="mt-1 text-sm text-gray-600 dark:text-gray-300">
+        <p className="mt-1 text-sm text-muted-foreground">
           Organizations, moderation, subscriptions, and the audit trail.
         </p>
       </header>
@@ -119,7 +119,7 @@ export default async function AdminPage({
 
       {/* Organizations & compliance sync health (DSH-4, ADM-2) */}
       <section className="flex flex-col gap-3">
-        <h2 className="text-xl font-semibold">
+        <h2 className="font-display text-xl font-bold">
           Organizations ({orgList.length})
         </h2>
         {orgList.map((org) => {
@@ -128,16 +128,16 @@ export default async function AdminPage({
           return (
             <div
               key={org.id}
-              className="rounded-xl border border-black/10 px-5 py-4 dark:border-white/15"
+              className="rounded-xl border border-border px-5 py-4"
             >
               <div className="flex flex-wrap items-center justify-between gap-3">
                 <div>
                   <Link href={`/orgs/${org.slug}`} className="font-medium underline-offset-4 hover:underline">
                     {org.legal_name}
                   </Link>
-                  <p className="text-xs text-gray-500 dark:text-gray-400">
+                  <p className="text-xs text-muted-foreground">
                     {org.is_visible ? (
-                      <span className="text-emerald-600">visible</span>
+                      <span className="text-emerald-dark">visible</span>
                     ) : (
                       <span className="text-amber-600">hidden</span>
                     )}
@@ -169,7 +169,7 @@ export default async function AdminPage({
                       placeholder="Suspension reason"
                       className={`${inputCls} w-44`}
                     />
-                    <button className={`${buttonGhostCls} text-red-600 dark:text-red-400`}>
+                    <button className={`${buttonGhostCls} text-destructive`}>
                       Suspend
                     </button>
                   </form>
@@ -182,19 +182,19 @@ export default async function AdminPage({
 
       {/* Moderation queue (ADM-3) */}
       <section className="flex flex-col gap-3">
-        <h2 className="text-xl font-semibold">
+        <h2 className="font-display text-xl font-bold">
           Moderation queue ({reportList.length})
         </h2>
         {reportList.map((report) => (
           <div
             key={report.id}
-            className="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-black/10 px-5 py-4 dark:border-white/15"
+            className="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-border px-5 py-4"
           >
             <div>
               <p className="font-medium">
                 {report.posts?.title ?? "Deleted post"}
               </p>
-              <p className="text-xs text-gray-500 dark:text-gray-400">
+              <p className="text-xs text-muted-foreground">
                 Reported by {report.user_profiles?.display_name ?? "user"} ·{" "}
                 {new Date(report.created_at).toLocaleString("en-GB", { dateStyle: "medium", timeStyle: "short" })}{" "}
                 · “{report.reason}”
@@ -205,7 +205,7 @@ export default async function AdminPage({
                 <input type="hidden" name="report_id" value={report.id} />
                 <input type="hidden" name="post_id" value={report.posts?.id ?? ""} />
                 <input type="hidden" name="action" value="remove" />
-                <button className={`${buttonGhostCls} text-red-600 dark:text-red-400`}>
+                <button className={`${buttonGhostCls} text-destructive`}>
                   Remove post
                 </button>
               </form>
@@ -219,7 +219,7 @@ export default async function AdminPage({
           </div>
         ))}
         {!reportList.length ? (
-          <p className="text-sm text-gray-500 dark:text-gray-400">
+          <p className="text-sm text-muted-foreground">
             No open reports.
           </p>
         ) : null}
@@ -227,7 +227,7 @@ export default async function AdminPage({
 
       {/* Subscriptions (SUB-5, payments deferred) */}
       <section className="flex flex-col gap-3">
-        <h2 className="text-xl font-semibold">
+        <h2 className="font-display text-xl font-bold">
           Subscriptions ({subList.length})
         </h2>
         <div className="flex flex-wrap gap-3">
@@ -249,7 +249,7 @@ export default async function AdminPage({
               placeholder="account email"
               className={`${inputCls} w-64`}
             />
-            <button className={`${buttonGhostCls} text-red-600 dark:text-red-400`}>
+            <button className={`${buttonGhostCls} text-destructive`}>
               Revoke
             </button>
           </form>
@@ -258,12 +258,12 @@ export default async function AdminPage({
           {subList.map((sub) => (
             <li
               key={sub.email}
-              className="flex flex-wrap justify-between gap-2 rounded-lg border border-black/10 px-4 py-2 dark:border-white/15"
+              className="flex flex-wrap justify-between gap-2 rounded-lg border border-border px-4 py-2"
             >
               <span className="font-medium">{sub.email}</span>
-              <span className="text-gray-500 dark:text-gray-400">
+              <span className="text-muted-foreground">
                 {sub.plan_id} ·{" "}
-                <span className={["active", "trialing"].includes(sub.status) ? "text-emerald-600" : ""}>
+                <span className={["active", "trialing"].includes(sub.status) ? "text-emerald-dark" : ""}>
                   {sub.status}
                 </span>
                 {sub.current_period_end
@@ -277,21 +277,21 @@ export default async function AdminPage({
 
       {/* Audit log (ADM-4) */}
       <section className="flex flex-col gap-3">
-        <h2 className="text-xl font-semibold">Audit log (last 30)</h2>
+        <h2 className="font-display text-xl font-bold">Audit log (last 30)</h2>
         <ul className="flex flex-col gap-1 text-sm">
           {auditList.map((entry) => (
             <li
               key={entry.id}
-              className="flex flex-wrap justify-between gap-2 border-b border-black/5 py-1.5 dark:border-white/10"
+              className="flex flex-wrap justify-between gap-2 border-b border-border/60 py-1.5"
             >
               <span>
                 <span className="font-medium">{entry.action}</span>
-                <span className="text-gray-500 dark:text-gray-400">
+                <span className="text-muted-foreground">
                   {" "}· {entry.entity_type} · {entry.actor_type}
                   {entry.reason ? ` · ${entry.reason}` : ""}
                 </span>
               </span>
-              <span className="text-xs text-gray-500 dark:text-gray-400">
+              <span className="text-xs text-muted-foreground">
                 {new Date(entry.created_at).toLocaleString("en-GB", { dateStyle: "short", timeStyle: "short" })}
               </span>
             </li>

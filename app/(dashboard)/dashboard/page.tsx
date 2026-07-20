@@ -59,20 +59,20 @@ export default async function DashboardPage({
     <main className="mx-auto flex w-full max-w-4xl flex-1 flex-col gap-10 px-6 py-16">
       <header className="flex items-center justify-between">
         <div>
-          <h1 className="text-3xl font-semibold tracking-tight">Dashboard</h1>
-          <p className="mt-1 text-sm text-gray-600 dark:text-gray-300">
+          <h1 className="font-display text-3xl font-bold tracking-tight text-petroleum dark:text-foreground">Dashboard</h1>
+          <p className="mt-1 text-sm text-muted-foreground">
             Signed in as {user.email}
           </p>
         </div>
         <form action={signOut}>
-          <button className="rounded-full border border-black/10 px-4 py-2 text-sm font-medium hover:bg-black/5 dark:border-white/20 dark:hover:bg-white/10">
+          <button className="rounded-full border border-border px-4 py-2 text-sm font-medium hover:bg-secondary dark:hover:bg-secondary">
             Sign out
           </button>
         </form>
       </header>
 
       {claimed ? (
-        <p className="rounded-lg border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-800 dark:border-emerald-900 dark:bg-emerald-950 dark:text-emerald-300">
+        <p className="rounded-lg border border-emerald-brand/30 bg-emerald-brand/5 px-4 py-3 text-sm text-emerald-deeper dark:text-emerald-brand">
           Organization claimed successfully. Public profile:{" "}
           <Link href={`/orgs/${claimed}`} className="font-medium underline">
             /orgs/{claimed}
@@ -80,15 +80,15 @@ export default async function DashboardPage({
         </p>
       ) : null}
       {claim_error ? (
-        <p className="rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700 dark:border-red-900 dark:bg-red-950 dark:text-red-300">
+        <p className="rounded-lg border border-destructive/30 bg-destructive/5 px-4 py-3 text-sm text-destructive">
           {claim_error}
         </p>
       ) : null}
 
       {orgs.length === 0 ? (
-        <section className="rounded-2xl border border-black/10 p-8 dark:border-white/15">
-          <h2 className="text-xl font-semibold">Claim your organization</h2>
-          <p className="mt-2 max-w-xl text-sm text-gray-600 dark:text-gray-300">
+        <section className="rounded-2xl border border-border p-8">
+          <h2 className="font-display text-xl font-bold">Claim your organization</h2>
+          <p className="mt-2 max-w-xl text-sm text-muted-foreground">
             If your organization is registered on{" "}
             <span className="font-medium">compliance.truvis.tech</span> and has
             authorized publication, enter its compliance organization ID to
@@ -99,9 +99,9 @@ export default async function DashboardPage({
               name="compliance_org_id"
               placeholder="e.g. org-demo-1"
               required
-              className="flex-1 rounded-lg border border-black/15 px-3 py-2 text-sm dark:border-white/20 dark:bg-transparent"
+              className="flex-1 rounded-lg border border-border px-3 py-2 text-sm "
             />
-            <button className="rounded-full bg-foreground px-5 py-2 text-sm font-medium text-background hover:opacity-85">
+            <button className="rounded-md bg-gradient-to-r from-emerald-dark to-emerald-deeper shadow-[0_6px_20px_-6px_rgba(16,185,129,0.45)] px-5 py-2 text-sm font-medium text-white transition-all hover:-translate-y-0.5">
               Claim
             </button>
           </form>
@@ -112,20 +112,20 @@ export default async function DashboardPage({
           return (
             <section
               key={org.id}
-              className="rounded-2xl border border-black/10 p-8 dark:border-white/15"
+              className="rounded-2xl border border-border p-8"
             >
               <div className="flex flex-wrap items-center justify-between gap-4">
                 <div>
-                  <h2 className="text-xl font-semibold">{org.legal_name}</h2>
-                  <p className="text-sm text-gray-600 dark:text-gray-300">
+                  <h2 className="font-display text-xl font-bold">{org.legal_name}</h2>
+                  <p className="text-sm text-muted-foreground">
                     /orgs/{org.slug}
                   </p>
                 </div>
                 <span
                   className={`rounded-full px-4 py-1.5 text-sm font-medium ${
                     org.is_visible
-                      ? "bg-emerald-100 text-emerald-800 dark:bg-emerald-950 dark:text-emerald-300"
-                      : "bg-amber-100 text-amber-800 dark:bg-amber-950 dark:text-amber-300"
+                      ? "bg-emerald-brand/10 text-emerald-deeper dark:text-emerald-brand"
+                      : "bg-amber-500/10 text-amber-700 dark:text-amber-400"
                   }`}
                 >
                   {org.is_visible ? "Publicly visible" : "Hidden from public"}
@@ -133,7 +133,7 @@ export default async function DashboardPage({
               </div>
 
               {!org.is_visible ? (
-                <p className="mt-4 rounded-lg border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-800 dark:border-amber-900 dark:bg-amber-950 dark:text-amber-300">
+                <p className="mt-4 rounded-lg border border-amber-500/30 bg-amber-500/5 px-4 py-3 text-sm text-amber-700 dark:text-amber-400">
                   Your profile is currently not shown in the public directory.
                   {org.admin_suspended
                     ? " It was suspended by platform administration."
@@ -145,23 +145,23 @@ export default async function DashboardPage({
 
               <dl className="mt-6 grid grid-cols-2 gap-4 text-sm sm:grid-cols-4">
                 <div>
-                  <dt className="text-gray-500 dark:text-gray-400">Standing</dt>
+                  <dt className="text-muted-foreground">Standing</dt>
                   <dd className="font-medium capitalize">
                     {standing?.state?.replace("_", " ") ?? "—"}
                   </dd>
                 </div>
                 <div>
-                  <dt className="text-gray-500 dark:text-gray-400">Risk</dt>
+                  <dt className="text-muted-foreground">Risk</dt>
                   <dd className="font-medium capitalize">
                     {standing?.risk_level ?? "—"}
                   </dd>
                 </div>
                 <div>
-                  <dt className="text-gray-500 dark:text-gray-400">Score</dt>
+                  <dt className="text-muted-foreground">Score</dt>
                   <dd className="font-medium">{standing?.score ?? "—"}</dd>
                 </div>
                 <div>
-                  <dt className="text-gray-500 dark:text-gray-400">
+                  <dt className="text-muted-foreground">
                     Last synced
                   </dt>
                   <dd className="font-medium">
@@ -178,37 +178,37 @@ export default async function DashboardPage({
               <div className="mt-6 flex flex-wrap gap-3 text-sm">
                 <Link
                   href={`/orgs/${org.slug}`}
-                  className="rounded-full border border-black/10 px-4 py-2 font-medium hover:bg-black/5 dark:border-white/20 dark:hover:bg-white/10"
+                  className="rounded-full border border-border px-4 py-2 font-medium hover:bg-secondary dark:hover:bg-secondary"
                 >
                   View public profile
                 </Link>
                 <Link
                   href="/dashboard/profile"
-                  className="rounded-full border border-black/10 px-4 py-2 font-medium hover:bg-black/5 dark:border-white/20 dark:hover:bg-white/10"
+                  className="rounded-full border border-border px-4 py-2 font-medium hover:bg-secondary dark:hover:bg-secondary"
                 >
                   Edit profile
                 </Link>
                 <Link
                   href="/dashboard/catalog"
-                  className="rounded-full border border-black/10 px-4 py-2 font-medium hover:bg-black/5 dark:border-white/20 dark:hover:bg-white/10"
+                  className="rounded-full border border-border px-4 py-2 font-medium hover:bg-secondary dark:hover:bg-secondary"
                 >
                   Catalog
                 </Link>
                 <Link
                   href="/dashboard/posts"
-                  className="rounded-full border border-black/10 px-4 py-2 font-medium hover:bg-black/5 dark:border-white/20 dark:hover:bg-white/10"
+                  className="rounded-full border border-border px-4 py-2 font-medium hover:bg-secondary dark:hover:bg-secondary"
                 >
                   Posts
                 </Link>
                 <Link
                   href="/dashboard/events"
-                  className="rounded-full border border-black/10 px-4 py-2 font-medium hover:bg-black/5 dark:border-white/20 dark:hover:bg-white/10"
+                  className="rounded-full border border-border px-4 py-2 font-medium hover:bg-secondary dark:hover:bg-secondary"
                 >
                   Events
                 </Link>
                 <Link
                   href="/dashboard/listings"
-                  className="rounded-full border border-black/10 px-4 py-2 font-medium hover:bg-black/5 dark:border-white/20 dark:hover:bg-white/10"
+                  className="rounded-full border border-border px-4 py-2 font-medium hover:bg-secondary dark:hover:bg-secondary"
                 >
                   Marketplace listings
                 </Link>
@@ -218,9 +218,9 @@ export default async function DashboardPage({
         })
       )}
 
-      <section className="rounded-2xl border border-black/10 p-8 dark:border-white/15">
-        <h2 className="text-xl font-semibold">Marketplace</h2>
-        <p className="mt-2 text-sm text-gray-600 dark:text-gray-300">
+      <section className="rounded-2xl border border-border p-8">
+        <h2 className="font-display text-xl font-bold">Marketplace</h2>
+        <p className="mt-2 text-sm text-muted-foreground">
           Track your review applications and seller threads under{" "}
           <Link href="/dashboard/applications" className="underline underline-offset-4">
             My applications
@@ -233,8 +233,8 @@ export default async function DashboardPage({
         </p>
       </section>
 
-      <section className="rounded-2xl border border-black/10 p-8 dark:border-white/15">
-        <h2 className="text-xl font-semibold">My events</h2>
+      <section className="rounded-2xl border border-border p-8">
+        <h2 className="font-display text-xl font-bold">My events</h2>
         {myRegistrations?.length ? (
           <ul className="mt-4 flex flex-col gap-3">
             {myRegistrations.map((reg) => {
@@ -255,7 +255,7 @@ export default async function DashboardPage({
                   >
                     {event.title}
                   </Link>
-                  <span className="text-gray-500 dark:text-gray-400">
+                  <span className="text-muted-foreground">
                     {new Date(event.starts_at).toLocaleDateString("en-GB", {
                       dateStyle: "medium",
                     })}
@@ -263,7 +263,7 @@ export default async function DashboardPage({
                     <span
                       className={
                         reg.status === "approved"
-                          ? "text-emerald-600"
+                          ? "text-emerald-dark"
                           : reg.status === "pending"
                             ? "text-amber-600"
                             : ""
@@ -277,7 +277,7 @@ export default async function DashboardPage({
             })}
           </ul>
         ) : (
-          <p className="mt-2 text-sm text-gray-600 dark:text-gray-300">
+          <p className="mt-2 text-sm text-muted-foreground">
             You have no event registrations yet.{" "}
             <Link href="/events" className="underline underline-offset-4">
               Browse events

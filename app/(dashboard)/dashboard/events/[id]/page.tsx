@@ -60,12 +60,12 @@ export default async function ManageEventPage({
   return (
     <main className="mx-auto flex w-full max-w-3xl flex-1 flex-col gap-8 px-6 py-16">
       <div>
-        <Link href="/dashboard/events" className="text-sm text-gray-500 underline underline-offset-4 dark:text-gray-400">
+        <Link href="/dashboard/events" className="text-sm text-muted-foreground underline underline-offset-4">
           ← Events
         </Link>
         <div className="mt-3 flex flex-wrap items-center justify-between gap-3">
-          <h1 className="text-2xl font-semibold tracking-tight">{event.title}</h1>
-          <span className="text-sm text-gray-500 dark:text-gray-400">
+          <h1 className="font-display text-2xl font-bold tracking-tight text-petroleum dark:text-foreground">{event.title}</h1>
+          <span className="text-sm text-muted-foreground">
             {event.status} ·{" "}
             {new Date(event.starts_at).toLocaleString("en-GB", { dateStyle: "medium", timeStyle: "short" })}
           </span>
@@ -137,26 +137,26 @@ export default async function ManageEventPage({
       </section>
 
       <section className="flex flex-col gap-3">
-        <h2 className="font-semibold">
+        <h2 className="font-display font-semibold">
           Registrations ({regs.length}) — approved {approvedCount}
           {event.capacity ? ` / ${event.capacity}` : ""}
         </h2>
         {regs.map((reg) => (
           <div
             key={reg.id}
-            className="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-black/10 px-5 py-4 dark:border-white/15"
+            className="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-border px-5 py-4"
           >
             <div>
               <p className="font-medium">
                 {reg.user_profiles?.display_name || "Registered user"}
               </p>
-              <p className="text-xs text-gray-500 dark:text-gray-400">
+              <p className="text-xs text-muted-foreground">
                 {new Date(reg.created_at).toLocaleString("en-GB", { dateStyle: "medium", timeStyle: "short" })}
                 {" · "}
                 <span
                   className={
                     reg.status === "approved"
-                      ? "text-emerald-600"
+                      ? "text-emerald-dark"
                       : reg.status === "pending"
                         ? "text-amber-600"
                         : ""
@@ -178,7 +178,7 @@ export default async function ManageEventPage({
                   <input type="hidden" name="registration_id" value={reg.id} />
                   <input type="hidden" name="event_id" value={event.id} />
                   <input type="hidden" name="decision" value="reject" />
-                  <button className={`${buttonGhostCls} text-red-600 dark:text-red-400`}>
+                  <button className={`${buttonGhostCls} text-destructive`}>
                     Reject
                   </button>
                 </form>
@@ -187,7 +187,7 @@ export default async function ManageEventPage({
           </div>
         ))}
         {!regs.length ? (
-          <p className="text-sm text-gray-500 dark:text-gray-400">
+          <p className="text-sm text-muted-foreground">
             No registrations yet.
           </p>
         ) : null}

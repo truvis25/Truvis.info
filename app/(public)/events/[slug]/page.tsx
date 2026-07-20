@@ -90,13 +90,13 @@ export default async function EventPage({
 
   return (
     <main className="mx-auto w-full max-w-3xl flex-1 px-6 py-16">
-      <Link href="/events" className="text-sm text-gray-500 underline underline-offset-4 dark:text-gray-400">
+      <Link href="/events" className="text-sm text-muted-foreground underline underline-offset-4">
         ← All events
       </Link>
 
       <header className="mt-6 flex flex-col gap-3">
-        <h1 className="text-3xl font-semibold tracking-tight">{event.title}</h1>
-        <p className="text-sm text-gray-600 dark:text-gray-300">
+        <h1 className="font-display text-3xl font-bold tracking-tight text-petroleum dark:text-foreground">{event.title}</h1>
+        <p className="text-sm text-muted-foreground">
           Hosted by{" "}
           <Link
             href={`/orgs/${event.organizations.slug}`}
@@ -104,7 +104,7 @@ export default async function EventPage({
           >
             {event.organizations.legal_name}
           </Link>{" "}
-          <span className="ml-1 rounded-full bg-emerald-100 px-2 py-0.5 text-[10px] font-medium text-emerald-800 dark:bg-emerald-950 dark:text-emerald-300">
+          <span className="ml-1 rounded-full bg-emerald-brand/10 px-2 py-0.5 text-[10px] font-medium text-emerald-deeper dark:text-emerald-brand">
             Verified
           </span>
         </p>
@@ -112,39 +112,39 @@ export default async function EventPage({
 
       <dl className="mt-8 grid grid-cols-1 gap-4 text-sm sm:grid-cols-2">
         <div>
-          <dt className="text-gray-500 dark:text-gray-400">Starts</dt>
+          <dt className="text-muted-foreground">Starts</dt>
           <dd className="font-medium">
             {new Date(event.starts_at).toLocaleString("en-GB", { dateStyle: "full", timeStyle: "short" })}
           </dd>
         </div>
         <div>
-          <dt className="text-gray-500 dark:text-gray-400">Ends</dt>
+          <dt className="text-muted-foreground">Ends</dt>
           <dd className="font-medium">
             {new Date(event.ends_at).toLocaleString("en-GB", { dateStyle: "full", timeStyle: "short" })}
           </dd>
         </div>
         {event.venue_address ? (
           <div>
-            <dt className="text-gray-500 dark:text-gray-400">Venue</dt>
+            <dt className="text-muted-foreground">Venue</dt>
             <dd className="font-medium">{event.venue_address}</dd>
           </div>
         ) : null}
         {event.online_url ? (
           <div>
-            <dt className="text-gray-500 dark:text-gray-400">Online</dt>
+            <dt className="text-muted-foreground">Online</dt>
             <dd className="font-medium">Link shared with approved attendees</dd>
           </div>
         ) : null}
         {event.registration_deadline ? (
           <div>
-            <dt className="text-gray-500 dark:text-gray-400">Register by</dt>
+            <dt className="text-muted-foreground">Register by</dt>
             <dd className="font-medium">
               {new Date(event.registration_deadline).toLocaleString("en-GB", { dateStyle: "medium", timeStyle: "short" })}
             </dd>
           </div>
         ) : null}
         <div>
-          <dt className="text-gray-500 dark:text-gray-400">Attendance</dt>
+          <dt className="text-muted-foreground">Attendance</dt>
           <dd className="font-medium">
             {event.approval_mode === "manual" ? "Organizer approval required" : "Open registration"}
           </dd>
@@ -152,25 +152,25 @@ export default async function EventPage({
       </dl>
 
       {event.description ? (
-        <p className="mt-8 whitespace-pre-line text-sm leading-6 text-gray-700 dark:text-gray-300">
+        <p className="mt-8 whitespace-pre-line text-sm leading-6 text-foreground/80">
           {event.description}
         </p>
       ) : null}
 
-      <section className="mt-10 rounded-2xl border border-black/10 p-6 dark:border-white/15">
+      <section className="mt-10 rounded-2xl border border-border p-6">
         {error ? (
-          <p className="mb-4 rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700 dark:border-red-900 dark:bg-red-950 dark:text-red-300">
+          <p className="mb-4 rounded-lg border border-destructive/30 bg-destructive/5 px-4 py-3 text-sm text-destructive">
             {error}
           </p>
         ) : null}
         {registered ? (
-          <p className="mb-4 rounded-lg border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-800 dark:border-emerald-900 dark:bg-emerald-950 dark:text-emerald-300">
+          <p className="mb-4 rounded-lg border border-emerald-brand/30 bg-emerald-brand/5 px-4 py-3 text-sm text-emerald-deeper dark:text-emerald-brand">
             Registration submitted.
           </p>
         ) : null}
 
         {!user ? (
-          <p className="text-sm text-gray-600 dark:text-gray-300">
+          <p className="text-sm text-muted-foreground">
             <Link href={`/login?next=/events/${event.slug}`} className="font-medium underline underline-offset-4">
               Sign in
             </Link>{" "}
@@ -185,7 +185,7 @@ export default async function EventPage({
               <form action={cancelRegistration}>
                 <input type="hidden" name="event_slug" value={event.slug} />
                 <input type="hidden" name="registration_id" value={registration.id} />
-                <button className="rounded-full border border-black/10 px-4 py-2 text-sm font-medium hover:bg-black/5 dark:border-white/20 dark:hover:bg-white/10">
+                <button className="rounded-full border border-border px-4 py-2 text-sm font-medium hover:bg-secondary dark:hover:bg-secondary">
                   Cancel registration
                 </button>
               </form>
@@ -194,12 +194,12 @@ export default async function EventPage({
         ) : canRegister ? (
           <form action={registerForEvent}>
             <input type="hidden" name="event_slug" value={event.slug} />
-            <button className="rounded-full bg-foreground px-6 py-2.5 text-sm font-medium text-background hover:opacity-85">
+            <button className="rounded-md bg-gradient-to-r from-emerald-dark to-emerald-deeper shadow-[0_6px_20px_-6px_rgba(16,185,129,0.45)] px-6 py-2.5 text-sm font-medium text-white transition-all hover:-translate-y-0.5">
               Register for this event
             </button>
           </form>
         ) : (
-          <p className="text-sm text-gray-600 dark:text-gray-300">
+          <p className="text-sm text-muted-foreground">
             Registration is closed{started ? " — the event has started" : deadlinePassed ? " — the deadline has passed" : ""}.
           </p>
         )}

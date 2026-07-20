@@ -70,14 +70,14 @@ export default async function CatalogItemPage({
     <main className="mx-auto w-full max-w-3xl flex-1 px-6 py-16">
       <Link
         href={`/orgs/${slug}`}
-        className="text-sm text-gray-500 underline underline-offset-4 dark:text-gray-400"
+        className="text-sm text-muted-foreground underline underline-offset-4"
       >
         ← {item.organizations.legal_name}
       </Link>
 
       <header className="mt-6 flex flex-col gap-2">
-        <h1 className="text-3xl font-semibold tracking-tight">{item.name}</h1>
-        <p className="text-sm text-gray-500 dark:text-gray-400">
+        <h1 className="font-display text-3xl font-bold tracking-tight text-petroleum dark:text-foreground">{item.name}</h1>
+        <p className="text-sm text-muted-foreground">
           {[item.item_type, item.category, item.price_indication]
             .filter(Boolean)
             .join(" · ")}
@@ -102,7 +102,7 @@ export default async function CatalogItemPage({
       ) : null}
 
       {item.description ? (
-        <p className="mt-8 whitespace-pre-line text-sm leading-6 text-gray-700 dark:text-gray-300">
+        <p className="mt-8 whitespace-pre-line text-sm leading-6 text-foreground/80">
           {item.description}
         </p>
       ) : null}
@@ -110,7 +110,7 @@ export default async function CatalogItemPage({
       {contactEmail ? (
         <a
           href={`mailto:${contactEmail}?subject=${encodeURIComponent(`Inquiry: ${item.name}`)}`}
-          className="mt-10 inline-block rounded-full bg-foreground px-6 py-3 text-sm font-medium text-background hover:opacity-85"
+          className="mt-10 inline-block rounded-md bg-gradient-to-r from-emerald-dark to-emerald-deeper shadow-[0_6px_20px_-6px_rgba(16,185,129,0.45)] px-6 py-3 text-sm font-medium text-white transition-all hover:-translate-y-0.5"
         >
           Contact this organization
         </a>

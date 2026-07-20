@@ -47,20 +47,20 @@ export default async function ApplicationThreadPage({
       <div>
         <Link
           href={isApplicant ? "/dashboard/applications" : "/dashboard/listings"}
-          className="text-sm text-gray-500 underline underline-offset-4 dark:text-gray-400"
+          className="text-sm text-muted-foreground underline underline-offset-4"
         >
           ← Back
         </Link>
-        <h1 className="mt-3 text-2xl font-semibold tracking-tight">
+        <h1 className="mt-3 font-display text-2xl font-bold tracking-tight text-petroleum dark:text-foreground">
           {listing?.teaser_headline ?? "Listing"}
         </h1>
-        <p className="mt-1 text-sm text-gray-600 dark:text-gray-300">
+        <p className="mt-1 text-sm text-muted-foreground">
           Private thread between the {isApplicant ? "seller and you" : "applicant and your organization"}.
         </p>
       </div>
 
       {error ? (
-        <p className="rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700 dark:border-red-900 dark:bg-red-950 dark:text-red-300">
+        <p className="rounded-lg border border-destructive/30 bg-destructive/5 px-4 py-3 text-sm text-destructive">
           {error}
         </p>
       ) : null}
@@ -71,8 +71,8 @@ export default async function ApplicationThreadPage({
             key={message.id}
             className={`max-w-[85%] rounded-xl px-4 py-2 text-sm ${
               message.sender_id === user.id
-                ? "self-end bg-foreground text-background"
-                : "self-start bg-black/5 dark:bg-white/10"
+                ? "self-end bg-petroleum text-white"
+                : "self-start bg-secondary"
             }`}
           >
             {message.body}
@@ -82,7 +82,7 @@ export default async function ApplicationThreadPage({
           </li>
         ))}
         {!messages?.length ? (
-          <li className="text-sm text-gray-500 dark:text-gray-400">
+          <li className="text-sm text-muted-foreground">
             No messages yet.
           </li>
         ) : null}
