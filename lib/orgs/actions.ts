@@ -94,16 +94,22 @@ export async function uploadOrgImage(formData: FormData) {
   redirect("/dashboard/profile?saved=1");
 }
 
-// Follow / unfollow (DIR-8) — RLS "user manages own follows".
+// Follow / unfollow (DIR-8) — RLS "user manages own follows". Optional
+// return_to (allow-listed) lets home-feed follow buttons round-trip to "/".
 export async function toggleFollow(formData: FormData) {
   const orgId = String(formData.get("org_id") ?? "");
   const orgSlug = String(formData.get("org_slug") ?? "");
   const following = formData.get("following") === "1";
+  const returnToRaw = String(formData.get("return_to") ?? "");
+  const returnTo =
+    returnToRaw === "/" || returnToRaw.startsWith("/orgs/")
+      ? returnToRaw
+      : `/orgs/${orgSlug}`;
   const supabase = await createClient();
   const {
     data: { user },
   } = await supabase.auth.getUser();
-  if (!user) redirect(`/login?next=/orgs/${orgSlug}`);
+  if (!user) redirect(`/login?next=${encodeURIComponent(returnTo)}`);
 
   if (following) {
     await supabase
@@ -119,5 +125,6 @@ export async function toggleFollow(formData: FormData) {
       .maybeSingle();
   }
   revalidatePath(`/orgs/${orgSlug}`);
-  redirect(`/orgs/${orgSlug}`);
+  revalidatePath("/");
+  redirect(returnTo);
 }

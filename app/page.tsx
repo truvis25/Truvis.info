@@ -1,432 +1,398 @@
 import Link from "next/link";
-import {
-  ShieldCheck,
-  Building2,
-  CalendarDays,
-  Handshake,
-  ArrowRight,
-  Search,
-  BadgeCheck,
-  EyeOff,
-} from "lucide-react";
+import { ShieldCheck, ArrowRight } from "lucide-react";
 import { createClient } from "@/lib/supabase/server";
+import { getManagedOrg } from "@/lib/orgs/queries";
+import { getHomeData } from "@/lib/home/data";
+import { mergeFeed, isFollowedFresh } from "@/lib/home/feed";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent } from "@/components/ui/card";
-import {
-  OrgBusinessCard,
-  type DirectoryOrg,
-} from "@/components/org-business-card";
-import { ListingCard, type PublicListing } from "@/components/listing-card";
+import { Input } from "@/components/ui/input";
+import { Card } from "@/components/ui/card";
 import { BrandArt } from "@/components/brand-art";
+import { SITE_URL } from "@/lib/config";
+import {
+  FeedItemCard,
+  NoticeCard,
+  SystemCard,
+} from "@/components/feed-item-card";
+import {
+  JoinCard,
+  ExploreCard,
+  IdentityCard,
+  FollowingCard,
+  NetworkLedger,
+  RailFooter,
+} from "@/components/home/left-rail";
+import {
+  OrgSpotlight,
+  EventsRail,
+  DealRoom,
+  TrustSeal,
+  GrowReach,
+} from "@/components/home/right-rail";
 
-// Numbered section eyebrow with the 14px rosette glyph.
-function Eyebrow({ index, label }: { index: string; label: string }) {
-  return (
-    <p className="mb-2 flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.2em] text-emerald-dark">
-      <span aria-hidden className="relative inline-block size-3.5">
-        <BrandArt seed="truvis-hero" variant="medallion" rings={1} accent="emerald" />
-      </span>
-      {index} — {label}
-    </p>
-  );
-}
-
-// Engraved divider between major sections.
-function SectionDivider() {
-  return (
-    <div aria-hidden className="relative mx-auto max-w-7xl px-6 lg:px-12">
-      <div className="rule-engraved" />
-      <span className="absolute left-1/2 top-1/2 size-2 -translate-x-1/2 -translate-y-1/2 rounded-full bg-emerald-brand/20 ring-1 ring-emerald-brand/40" />
-    </div>
-  );
-}
-
-export const revalidate = 300;
-
-const pillars = [
-  {
-    href: "/directory",
-    icon: Building2,
-    title: "Verified Directory",
-    description:
-      "Browse organizations that are vetted and continuously monitored through the Truvis compliance platform.",
-    cta: "Browse the directory",
-  },
-  {
-    href: "/events",
-    icon: CalendarDays,
-    title: "Business Events",
-    description:
-      "Discover events hosted by verified organizations — with organizer-approved attendance.",
-    cta: "See upcoming events",
-  },
-  {
-    href: "/marketplace",
-    icon: Handshake,
-    title: "Business Marketplace",
-    description:
-      "Fundraising, equity, and acquisition opportunities from compliance-verified businesses only.",
-    cta: "Explore opportunities",
-  },
-];
-
-const trust = [
-  {
-    icon: BadgeCheck,
-    title: "Verified identity",
-    text: "Company facts come from documents vetted on compliance.truvis.tech — never self-asserted.",
-  },
-  {
-    icon: EyeOff,
-    title: "Continuous enforcement",
-    text: "Organizations that fall out of compliance disappear from the network automatically.",
-  },
-  {
-    icon: Search,
-    title: "Diligence-ready deal flow",
-    text: "Marketplace sellers are pre-verified; full detail unlocks only with the seller's approval.",
-  },
-];
+export const dynamic = "force-dynamic";
 
 export default async function Home() {
   const supabase = await createClient();
-  const nowIso = new Date().toISOString();
-  const [
-    { count: orgCount },
-    { count: eventCount },
-    { count: listingCount },
-    { data: featuredOrgs },
-    { data: latestListings },
-    { data: upcomingEvents },
-  ] = await Promise.all([
-    supabase.from("organizations").select("*", { count: "exact", head: true }),
-    supabase
-      .from("events")
-      .select("*", { count: "exact", head: true })
-      .eq("status", "published"),
-    supabase
-      .from("marketplace_listings")
-      .select("*", { count: "exact", head: true })
-      .eq("status", "active"),
-    supabase.rpc("search_orgs", { p_limit: 6 }),
-    supabase.rpc("get_public_listings"),
-    supabase
-      .from("events")
-      .select("slug, title, starts_at, venue_address, organizations!inner(legal_name)")
-      .eq("status", "published")
-      .gte("starts_at", nowIso)
-      .order("starts_at")
-      .limit(3),
-  ]);
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  const signedIn = Boolean(user);
+  const nowMs = Date.parse(new Date().toISOString());
 
-  const featured = ((featuredOrgs ?? []) as DirectoryOrg[]).slice(0, 6);
-  const opportunities = ((latestListings ?? []) as PublicListing[]).slice(0, 3);
-  const events = (upcomingEvents ?? []) as unknown as Array<{
-    slug: string;
-    title: string;
-    starts_at: string;
-    venue_address: string | null;
-    organizations: { legal_name: string };
-  }>;
+  const data = await getHomeData(supabase);
 
-  const stats = [
-    { value: orgCount ?? 0, label: "Verified organizations" },
-    { value: eventCount ?? 0, label: "Published events" },
-    { value: listingCount ?? 0, label: "Live opportunities" },
+  // Per-request personalization (never cached).
+  let followedOrgIds = new Set<string>();
+  let following: Array<{ slug: string; legal_name: string; logo_url: string | null }> = [];
+  let managedOrg: Awaited<ReturnType<typeof getManagedOrg>> = null;
+  let ownCounts = { posts: 0, events: 0, listings: 0 };
+  if (user) {
+    const [{ data: follows }, managed] = await Promise.all([
+      supabase
+        .from("org_follows")
+        .select("org_id, organizations(slug, legal_name, logo_url)")
+        .eq("user_id", user.id)
+        .limit(5),
+      getManagedOrg(supabase, user.id),
+    ]);
+    followedOrgIds = new Set((follows ?? []).map((f) => f.org_id as string));
+    following = (follows ?? [])
+      .map((f) => f.organizations as unknown as { slug: string; legal_name: string; logo_url: string | null })
+      .filter(Boolean);
+    managedOrg = managed;
+    if (managed) {
+      const [{ count: p }, { count: e }, { count: l }] = await Promise.all([
+        supabase.from("posts").select("*", { count: "exact", head: true }).eq("org_id", managed.id),
+        supabase.from("events").select("*", { count: "exact", head: true }).eq("org_id", managed.id),
+        supabase.rpc("get_my_listings").then((res) => ({ count: (res.data ?? []).length })),
+      ]);
+      ownCounts = { posts: p ?? 0, events: e ?? 0, listings: l ?? 0 };
+    }
+  }
+
+  const feed = mergeFeed({
+    posts: data.posts,
+    members: data.members,
+    events: data.events,
+    listings: data.listings,
+    orgCount: data.orgCount,
+    followedOrgIds,
+    nowMs,
+  });
+
+  const managedMember = managedOrg
+    ? data.members.find((m) => m.slug === managedOrg.slug)
+    : undefined;
+
+  const stats: Array<[number, string]> = [
+    [data.orgCount, data.orgCount === 1 ? "Verified organization" : "Verified organizations"],
+    [data.eventCount, data.eventCount === 1 ? "Published event" : "Published events"],
+    [data.listingCount, data.listingCount === 1 ? "Live opportunity" : "Live opportunities"],
   ];
 
+  const upcomingSorted = [...data.events].sort((a, b) =>
+    a.starts_at < b.starts_at ? -1 : 1,
+  );
+
+  const jsonLd = {
+    "@context": "https://schema.org",
+    "@graph": [
+      {
+        "@type": "Organization",
+        name: "Truvis.info",
+        url: SITE_URL,
+        logo: `${SITE_URL}/brand/logo.png`,
+      },
+      {
+        "@type": "WebSite",
+        url: SITE_URL,
+        potentialAction: {
+          "@type": "SearchAction",
+          target: `${SITE_URL}/directory?q={search_term_string}`,
+          "query-input": "required name=search_term_string",
+        },
+      },
+      {
+        "@type": "ItemList",
+        itemListElement: data.members.map((member, index) => ({
+          "@type": "ListItem",
+          position: index + 1,
+          url: `${SITE_URL}/orgs/${member.slug}`,
+          name: member.legal_name,
+        })),
+      },
+      ...upcomingSorted.slice(0, 3).map((event) => ({
+        "@type": "Event",
+        name: event.title,
+        startDate: event.starts_at,
+        url:
+          event.external_source === "luma" && event.luma_event_url
+            ? event.luma_event_url
+            : `${SITE_URL}/events/${event.slug}`,
+        ...(event.venue_address
+          ? { location: { "@type": "Place", address: event.venue_address } }
+          : event.online_url
+            ? { location: { "@type": "VirtualLocation", url: `${SITE_URL}/events/${event.slug}` } }
+            : {}),
+        ...(event.organizations
+          ? { organizer: { "@type": "Organization", name: event.organizations.legal_name } }
+          : {}),
+      })),
+    ],
+  };
+
+  const FeedHeading = signedIn ? "h1" : "h2";
+
   return (
-    <main className="flex-1">
-      {/* Hero */}
-      <section className="art-on-petroleum relative overflow-hidden bg-gradient-to-br from-petroleum-deep via-petroleum to-[#03427a] text-white">
-        {/* Grand rosette seal — the site's only ambient animation */}
-        <div
-          aria-hidden
-          className="pointer-events-none absolute -right-40 -top-40 size-[720px] opacity-50 md:opacity-100 [mask-image:radial-gradient(closest-side,black_55%,transparent_100%)]"
-        >
-          <BrandArt
-            seed="truvis-hero"
-            variant="hero"
-            className="origin-center motion-safe:animate-[spin_240s_linear_infinite]"
+    <main className="flex-1 bg-secondary/40 dark:bg-background">
+      <script
+        type="application/ld+json"
+        // Escape < so org-authored titles can never break out of the script tag.
+        dangerouslySetInnerHTML={{
+          __html: JSON.stringify(jsonLd).replace(/</g, "\\u003c"),
+        }}
+      />
+
+      {/* Gate band — anonymous only */}
+      {!signedIn ? (
+        <section className="art-on-petroleum relative overflow-hidden bg-gradient-to-br from-petroleum-deep via-petroleum to-[#03427a] text-white">
+          <div
+            aria-hidden
+            className="pointer-events-none absolute -right-24 -top-24 size-[420px] opacity-50 md:opacity-80 [mask-image:radial-gradient(closest-side,black_55%,transparent_100%)]"
+          >
+            <BrandArt
+              seed="truvis-hero"
+              variant="hero"
+              className="origin-center motion-safe:animate-[spin_240s_linear_infinite]"
+            />
+          </div>
+          <div
+            aria-hidden
+            className="pointer-events-none absolute inset-x-0 bottom-0 h-24 [mask-image:linear-gradient(to_top,black,transparent)]"
+          >
+            <BrandArt seed="truvis-hero" variant="horizon" />
+          </div>
+          <div className="relative mx-auto flex max-w-7xl flex-col gap-8 px-6 py-12 lg:flex-row lg:items-end lg:justify-between lg:px-8 lg:py-16">
+            <div>
+              <p className="mb-4 inline-flex items-center gap-2 rounded-full border border-emerald-brand/40 bg-emerald-brand/10 px-4 py-1.5 text-xs font-semibold uppercase tracking-[0.2em] text-emerald-brand">
+                <ShieldCheck className="size-4" aria-hidden />
+                Trust by construction
+              </p>
+              <h1 className="max-w-2xl font-display text-3xl font-extrabold leading-tight tracking-tight sm:text-4xl">
+                The network where every business is{" "}
+                <span className="bg-gradient-to-r from-emerald-brand to-cyan-accent bg-clip-text text-transparent">
+                  verified
+                </span>
+                .
+              </h1>
+              <p className="mt-3 max-w-xl text-white/75">
+                Only organizations in good standing on the Truvis compliance
+                platform appear below — live, right now.
+              </p>
+              <div className="mt-6 flex flex-wrap gap-3">
+                <Button asChild size="lg">
+                  <Link href="/signup">
+                    Join the network
+                    <ArrowRight aria-hidden />
+                  </Link>
+                </Button>
+                <Button
+                  asChild
+                  size="lg"
+                  className="border border-white/25 bg-white/5 from-transparent to-transparent text-white shadow-none hover:bg-white/10 hover:shadow-none"
+                >
+                  <Link href="/directory">Browse the directory</Link>
+                </Button>
+              </div>
+            </div>
+            <dl className="flex gap-8 lg:pb-1">
+              {stats.map(([value, label]) => (
+                <div key={label} className="border-l border-white/15 pl-4 first:border-l-0 first:pl-0">
+                  <dd className="font-display text-2xl font-extrabold text-emerald-brand">
+                    {value}
+                  </dd>
+                  <dt className="mt-0.5 text-[11px] uppercase tracking-wider text-white/60">
+                    {label}
+                  </dt>
+                </div>
+              ))}
+            </dl>
+          </div>
+          <div aria-hidden className="rule-engraved absolute inset-x-0 bottom-0" />
+        </section>
+      ) : null}
+
+      {/* Hub grid */}
+      <section className="mx-auto grid w-full max-w-7xl grid-cols-1 gap-6 px-4 py-8 sm:px-6 lg:grid-cols-[240px_minmax(0,1fr)_320px] lg:items-start lg:px-8">
+        {/* Left rail */}
+        <aside aria-label="Your profile" className="order-2 flex flex-col gap-4 lg:order-1 lg:sticky lg:top-20">
+          {signedIn ? (
+            <>
+              {managedOrg ? (
+                <IdentityCard
+                  org={{
+                    slug: managedOrg.slug,
+                    legal_name: managedOrg.legal_name,
+                    cover_url: managedMember?.cover_url,
+                    logo_url: managedMember?.logo_url,
+                    avg_rating: managedMember?.avg_rating,
+                    review_count: managedMember?.review_count,
+                    follower_count: managedMember?.follower_count,
+                  }}
+                />
+              ) : (
+                <JoinCard />
+              )}
+              <FollowingCard following={following} />
+            </>
+          ) : (
+            <>
+              <JoinCard />
+              <ExploreCard
+                orgCount={data.orgCount}
+                eventCount={data.eventCount}
+                listingCount={data.listingCount}
+              />
+            </>
+          )}
+          <NetworkLedger
+            orgCount={data.orgCount}
+            eventCount={data.eventCount}
+            listingCount={data.listingCount}
           />
-        </div>
-        {/* Horizon lattice */}
-        <div
-          aria-hidden
-          className="pointer-events-none absolute inset-x-0 bottom-0 h-40 [mask-image:linear-gradient(to_top,black,transparent)]"
-        >
-          <BrandArt seed="truvis-hero" variant="horizon" />
-        </div>
-        {/* Plate frame */}
-        <div
-          aria-hidden
-          className="pointer-events-none absolute inset-4 hidden rounded-xl ring-1 ring-white/[0.07] lg:block"
-        />
-        <div className="relative mx-auto max-w-7xl px-6 py-24 lg:px-12 lg:py-32">
-          <p className="mb-5 inline-flex items-center gap-2 rounded-full border border-emerald-brand/40 bg-emerald-brand/10 px-4 py-1.5 text-xs font-semibold uppercase tracking-[0.2em] text-emerald-brand">
-            <ShieldCheck className="size-4" aria-hidden />
-            Trust by construction
-          </p>
-          <h1 className="max-w-3xl font-display text-4xl font-extrabold leading-tight tracking-tight sm:text-5xl lg:text-6xl">
-            The network where every business is{" "}
-            <span className="bg-gradient-to-r from-emerald-brand to-cyan-accent bg-clip-text text-transparent">
-              verified
-            </span>
-            .
-          </h1>
-          <p className="mt-6 max-w-2xl text-lg leading-relaxed text-white/75">
-            Truvis.info publishes only organizations in good standing on the
-            Truvis compliance platform — so the businesses you find, meet, and
-            deal with are exactly who they say they are.
-          </p>
-          <div className="mt-10 flex flex-wrap gap-4">
-            <Button asChild size="lg">
-              <Link href="/directory">
-                Browse the directory
-                <ArrowRight aria-hidden />
-              </Link>
-            </Button>
-            <Button
-              asChild
-              size="lg"
-              className="border border-white/25 bg-white/5 from-transparent to-transparent text-white shadow-none hover:bg-white/10 hover:shadow-none"
+          <RailFooter />
+        </aside>
+
+        {/* Center feed */}
+        <div className="order-1 flex min-w-0 flex-col gap-4 lg:order-2">
+          <div className="flex items-center justify-between px-1">
+            <FeedHeading className="flex items-center gap-2 font-display text-sm font-bold uppercase tracking-[0.2em] text-petroleum dark:text-foreground">
+              <span aria-hidden className="relative inline-block size-3.5">
+                <BrandArt seed="truvis-hero" variant="medallion" rings={1} accent="emerald" />
+              </span>
+              Network activity
+            </FeedHeading>
+            <Link
+              href="/feed"
+              className="link-engraved text-xs font-semibold text-emerald-deeper dark:text-emerald-brand"
             >
-              <Link href="/signup">Get your organization listed</Link>
-            </Button>
+              Full feed →
+            </Link>
           </div>
 
-          {/* Stats band */}
-          <div aria-hidden className="rule-engraved mt-16 mb-8 max-w-xl" />
-          <dl className="grid max-w-xl grid-cols-3 gap-6">
-            {stats.map((stat) => (
-              <div key={stat.label}>
-                <dd className="font-display text-3xl font-extrabold text-emerald-brand">
-                  {stat.value}
-                </dd>
-                <dt className="mt-1 text-xs uppercase tracking-wider text-white/60">
-                  {stat.label}
-                </dt>
-              </div>
+          {/* Composer slot */}
+          <Card className="p-3">
+            {signedIn && managedOrg ? (
+              <Link href="/dashboard/posts" className="flex items-center gap-3">
+                <span className="flex size-8 shrink-0 items-center justify-center rounded-lg bg-gradient-to-br from-petroleum to-petroleum-deep text-xs font-bold text-white">
+                  {managedOrg.legal_name.slice(0, 2).toUpperCase()}
+                </span>
+                <span className="flex-1 rounded-full border border-border bg-secondary/60 px-4 py-2.5 text-sm text-muted-foreground transition-colors hover:border-emerald-brand/40 hover:bg-emerald-brand/5">
+                  Share an update from {managedOrg.legal_name}…
+                </span>
+              </Link>
+            ) : (
+              <form action="/directory" method="get" className="flex gap-2">
+                <Input
+                  name="q"
+                  placeholder="Search verified organizations…"
+                  aria-label="Search verified organizations"
+                  className="flex-1"
+                />
+                <Button type="submit" variant="primary">Search</Button>
+              </form>
+            )}
+          </Card>
+
+          <ol className="flex flex-col gap-4">
+            {!signedIn ? (
+              <li>
+                <NoticeCard />
+              </li>
+            ) : null}
+            {feed.map((item) => (
+              <li key={`${item.kind}-${item.kind === "post" ? item.data.id : item.kind === "listing" ? item.data.id : item.data.slug}`}>
+                <article>
+                  <FeedItemCard
+                    item={item}
+                    signedIn={signedIn}
+                    followedOrgIds={followedOrgIds}
+                    followedAccent={isFollowedFresh(item, followedOrgIds, nowMs)}
+                  />
+                </article>
+              </li>
             ))}
-          </dl>
+            {feed.length < 6 ? (
+              <>
+                <li><SystemCard variant="founding" /></li>
+                {feed.length < 5 ? (
+                  <li><SystemCard variant="marketplace" /></li>
+                ) : null}
+              </>
+            ) : null}
+          </ol>
+
+          {/* Terminal colophon */}
+          <div className="relative py-6 text-center">
+            <div aria-hidden className="relative">
+              <div className="rule-engraved" />
+              <span className="absolute left-1/2 top-1/2 size-2 -translate-x-1/2 -translate-y-1/2 rounded-full bg-emerald-brand/20 ring-1 ring-emerald-brand/40" />
+            </div>
+            <p className="mt-4 text-xs text-muted-foreground">
+              End of current edition — {data.orgCount} organization
+              {data.orgCount === 1 ? "" : "s"} on the register ·{" "}
+              <Link href="/feed" className="link-engraved font-semibold text-emerald-deeper dark:text-emerald-brand">
+                Full feed →
+              </Link>{" "}
+              ·{" "}
+              <Link href="/directory" className="link-engraved font-semibold text-emerald-deeper dark:text-emerald-brand">
+                Browse directory →
+              </Link>
+            </p>
+          </div>
         </div>
+
+        {/* Right rail */}
+        <aside aria-label="Discovery" className="order-3 flex flex-col gap-4 lg:sticky lg:top-20">
+          <OrgSpotlight
+            orgs={data.members
+              .filter(
+                (m) =>
+                  !followedOrgIds.has(m.org_id) &&
+                  m.slug !== managedOrg?.slug,
+              )
+              .slice(0, 3)}
+            orgCount={data.orgCount}
+            followedOrgIds={followedOrgIds}
+            signedIn={signedIn}
+          />
+          <EventsRail events={data.events} signedIn={signedIn} />
+          <DealRoom listings={data.listings} />
+          {signedIn && managedOrg ? (
+            <GrowReach
+              postCount={ownCounts.posts}
+              eventCount={ownCounts.events}
+              listingCount={ownCounts.listings}
+            />
+          ) : (
+            <TrustSeal />
+          )}
+        </aside>
       </section>
 
-      {/* Pillars */}
-      <section className="mx-auto max-w-7xl px-6 py-20 lg:px-12">
-        <div className="mb-10 max-w-2xl">
-          <Eyebrow index="01" label="The network" />
-          <h2 className="font-display text-3xl font-bold tracking-tight text-petroleum dark:text-foreground">
-            One network, three pillars
-          </h2>
-          <p className="mt-3 text-muted-foreground">
-            A directory you can trust, events worth attending, and a
-            marketplace where the counterparty is never a mystery.
-          </p>
-        </div>
-        <div className="grid gap-6 md:grid-cols-3">
-          {pillars.map((pillar) => (
-            <Link key={pillar.href} href={pillar.href} className="group">
-              <Card className="h-full transition-all duration-300 hover:-translate-y-1 hover:shadow-[0_16px_40px_-16px_rgba(2,48,89,0.25)]">
-                <CardContent className="flex h-full flex-col p-7">
-                  <span className="mb-5 inline-flex size-12 items-center justify-center rounded-lg bg-gradient-to-br from-emerald-dark to-emerald-deeper text-white shadow-[0_6px_20px_-6px_rgba(16,185,129,0.45)]">
-                    <pillar.icon className="size-6" aria-hidden />
-                  </span>
-                  <h3 className="font-display text-lg font-bold text-petroleum dark:text-foreground">
-                    {pillar.title}
-                  </h3>
-                  <p className="mt-2 flex-1 text-sm leading-relaxed text-muted-foreground">
-                    {pillar.description}
-                  </p>
-                  <span className="mt-5 inline-flex items-center gap-1.5 text-sm font-semibold text-emerald-dark">
-                    {pillar.cta}
-                    <ArrowRight className="size-4 transition-transform duration-300 group-hover:translate-x-1" aria-hidden />
-                  </span>
-                </CardContent>
-              </Card>
-            </Link>
-          ))}
-        </div>
-      </section>
-
-      {/* Featured verified organizations */}
-      {featured.length ? (
-        <section className="mx-auto max-w-7xl px-6 pb-20 lg:px-12">
-          <div className="mb-8 flex flex-wrap items-end justify-between gap-4">
+      {/* Colophon CTA strip — anonymous only */}
+      {!signedIn ? (
+        <section className="border-t border-border bg-background">
+          <div className="mx-auto flex max-w-7xl flex-wrap items-center justify-between gap-6 px-6 py-12 lg:px-8">
             <div>
-              <Eyebrow index="02" label="Directory" />
-              <h2 className="font-display text-3xl font-bold tracking-tight text-petroleum dark:text-foreground">
-                Featured verified organizations
+              <h2 className="font-display text-xl font-bold text-petroleum dark:text-foreground">
+                Already verified on compliance.truvis.tech?
               </h2>
-              <p className="mt-3 text-muted-foreground">
-                Every card is backed by vetted records — not self-asserted
-                claims.
+              <p className="mt-1 text-sm text-muted-foreground">
+                Claiming your public profile takes one step.
               </p>
             </div>
-            <Button asChild variant="link" className="link-engraved px-0">
-              <Link href="/directory">
-                Browse all
-                <ArrowRight aria-hidden />
-              </Link>
-            </Button>
-          </div>
-          <ul className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
-            {featured.map((org) => (
-              <li key={org.slug}>
-                <OrgBusinessCard org={org} />
-              </li>
-            ))}
-          </ul>
-        </section>
-      ) : null}
-
-      {/* Live opportunities + upcoming events */}
-      {opportunities.length || events.length ? (
-        <>
-        <SectionDivider />
-        <section className="mx-auto grid max-w-7xl gap-12 px-6 py-20 lg:grid-cols-[2fr_1fr] lg:px-12">
-          {opportunities.length ? (
-            <div>
-              <div className="mb-6 flex flex-wrap items-end justify-between gap-4">
-                <div>
-                  <Eyebrow index="03" label="Marketplace & events" />
-                  <h2 className="font-display text-2xl font-bold tracking-tight text-petroleum dark:text-foreground">
-                    Latest opportunities
-                  </h2>
-                </div>
-                <Button asChild variant="link" className="link-engraved px-0">
-                  <Link href="/marketplace">
-                    Explore the marketplace
-                    <ArrowRight aria-hidden />
-                  </Link>
-                </Button>
-              </div>
-              <ul className="flex flex-col gap-4">
-                {opportunities.map((listing) => (
-                  <li key={listing.id}>
-                    <ListingCard listing={listing} />
-                  </li>
-                ))}
-              </ul>
-            </div>
-          ) : null}
-          {events.length ? (
-            <div>
-              <div className="mb-6 flex flex-wrap items-end justify-between gap-4">
-                <h2 className="font-display text-2xl font-bold tracking-tight text-petroleum dark:text-foreground">
-                  Upcoming events
-                </h2>
-                <Button asChild variant="link" className="link-engraved px-0">
-                  <Link href="/events">
-                    All events
-                    <ArrowRight aria-hidden />
-                  </Link>
-                </Button>
-              </div>
-              <ul className="flex flex-col gap-3">
-                {events.map((event) => (
-                  <li key={event.slug}>
-                    <Link
-                      href={`/events/${event.slug}`}
-                      className="flex items-center gap-4 rounded-xl border border-border bg-card p-4 transition-colors hover:bg-secondary"
-                    >
-                      <span className="flex size-10 shrink-0 items-center justify-center rounded-lg bg-petroleum text-emerald-brand">
-                        <CalendarDays className="size-5" aria-hidden />
-                      </span>
-                      <span className="min-w-0">
-                        <span className="block truncate font-semibold">
-                          {event.title}
-                        </span>
-                        <span className="block text-xs text-muted-foreground">
-                          {new Date(event.starts_at).toLocaleDateString("en-GB", {
-                            dateStyle: "medium",
-                          })}
-                          {" · "}
-                          {event.organizations.legal_name}
-                        </span>
-                      </span>
-                    </Link>
-                  </li>
-                ))}
-              </ul>
-            </div>
-          ) : null}
-        </section>
-        </>
-      ) : null}
-
-      {/* How it works */}
-      <section className="border-y border-border bg-secondary/60 dark:bg-secondary/30">
-        <div className="mx-auto max-w-7xl px-6 py-20 lg:px-12">
-          <Eyebrow index="04" label="How it works" />
-          <h2 className="font-display text-2xl font-bold tracking-tight text-petroleum dark:text-foreground">
-            How organizations join
-          </h2>
-          <ol className="mt-8 grid gap-8 md:grid-cols-3">
-            {[
-              {
-                title: "Verify on compliance.truvis.tech",
-                text: "Maintain your document vault and compliance standing on the Truvis compliance platform.",
-              },
-              {
-                title: "Claim your public profile",
-                text: "Authorize publication and your verified business card goes live in minutes.",
-              },
-              {
-                title: "Appear across the network",
-                text: "Directory, events, and marketplace — visible only while your standing holds.",
-              },
-            ].map((step, index) => (
-              <li key={step.title} className="flex gap-4">
-                <span className="flex size-9 shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-emerald-dark to-emerald-deeper font-display text-sm font-bold text-white shadow-[0_6px_20px_-6px_rgba(16,185,129,0.45)]">
-                  {index + 1}
-                </span>
-                <div>
-                  <h3 className="font-display text-sm font-bold uppercase tracking-wide text-petroleum dark:text-foreground">
-                    {step.title}
-                  </h3>
-                  <p className="mt-1.5 text-sm leading-relaxed text-muted-foreground">
-                    {step.text}
-                  </p>
-                </div>
-              </li>
-            ))}
-          </ol>
-        </div>
-      </section>
-
-      {/* Trust strip */}
-      <section className="border-b border-border">
-        <div className="mx-auto grid max-w-7xl gap-10 px-6 py-16 md:grid-cols-3 lg:px-12">
-          {trust.map((item) => (
-            <div key={item.title} className="flex gap-4">
-              <span className="mt-0.5 inline-flex size-9 shrink-0 items-center justify-center rounded-md bg-petroleum text-emerald-brand">
-                <item.icon className="size-5" aria-hidden />
-              </span>
-              <div>
-                <h3 className="font-display text-sm font-bold uppercase tracking-wide text-petroleum dark:text-foreground">
-                  {item.title}
-                </h3>
-                <p className="mt-1.5 text-sm leading-relaxed text-muted-foreground">
-                  {item.text}
-                </p>
-              </div>
-            </div>
-          ))}
-        </div>
-      </section>
-
-      {/* CTA band */}
-      <section className="mx-auto max-w-7xl px-6 py-20 lg:px-12">
-        <div className="relative overflow-hidden rounded-2xl bg-gradient-to-r from-petroleum-deep via-petroleum to-[#03427a] px-8 py-14 text-center text-white lg:px-16">
-          <h2 className="font-display text-2xl font-bold tracking-tight sm:text-3xl">
-            Your organization is already verified?
-          </h2>
-          <p className="mx-auto mt-3 max-w-xl text-white/70">
-            If your organization maintains its vault on compliance.truvis.tech,
-            claiming your public profile takes one step.
-          </p>
-          <div className="mt-8 flex justify-center gap-4">
             <Button asChild size="lg">
               <Link href="/signup">
                 Claim your profile
@@ -434,8 +400,8 @@ export default async function Home() {
               </Link>
             </Button>
           </div>
-        </div>
-      </section>
+        </section>
+      ) : null}
     </main>
   );
 }

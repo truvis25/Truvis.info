@@ -27,7 +27,7 @@ export type PublicListing = {
   org_logo_url: string | null;
 };
 
-const TYPE_THEME = {
+export const TYPE_THEME = {
   fundraise: {
     label: "Raising funds",
     Icon: TrendingUp,
@@ -35,6 +35,7 @@ const TYPE_THEME = {
     badge: "bg-emerald-brand/10 text-emerald-deeper dark:text-emerald-brand",
     strip: "text-emerald-brand",
     accent: "emerald" as const,
+    tileIcon: "text-emerald-brand",
   },
   equity_sale: {
     label: "Equity for sale",
@@ -43,6 +44,7 @@ const TYPE_THEME = {
     badge: "bg-cyan-accent/10 text-cyan-700 dark:text-cyan-accent",
     strip: "text-cyan-accent",
     accent: "cyan" as const,
+    tileIcon: "text-cyan-accent",
   },
   business_sale: {
     label: "Business for sale",
@@ -51,21 +53,34 @@ const TYPE_THEME = {
     badge: "bg-petroleum/10 text-petroleum dark:bg-white/10 dark:text-foreground",
     strip: "text-petroleum dark:text-foreground/40",
     accent: "line" as const,
+    tileIcon: "text-emerald-brand",
   },
 } as const;
 
-// Marketplace teaser card with a per-type accent. The card body links to the
-// listing; a revealed identity renders as a separate sibling link so the org
-// profile stays one click away without nesting anchors.
-export function ListingCard({ listing }: { listing: PublicListing }) {
+// Marketplace teaser card with a per-type accent and a prominent visual
+// tile: the org's real logo when identity is revealed, an engraved seal
+// stamp otherwise (anonymity preserved — the art is seeded from the listing
+// id, not the org). Card body links to the listing; a revealed identity
+// renders as a separate sibling link.
+export function ListingCard({
+  listing,
+  embedded = false,
+}: {
+  listing: PublicListing;
+  embedded?: boolean;
+}) {
   const theme = TYPE_THEME[listing.listing_type] ?? TYPE_THEME.fundraise;
   const meta = [listing.sector, listing.region, listing.size_band]
     .filter(Boolean)
     .join(" · ");
+  const Shell = embedded ? "div" : Card;
   return (
-    <Card
+    <Shell
       className={cn(
-        "relative overflow-hidden border-l-4 p-6 transition duration-200 hover:-translate-y-0.5 hover:shadow-[0_12px_32px_-16px_rgba(2,48,89,0.3)]",
+        "relative overflow-hidden border-l-4",
+        embedded
+          ? "rounded-lg bg-transparent p-4"
+          : "p-6 transition duration-200 hover:-translate-y-0.5 hover:shadow-[0_12px_32px_-16px_rgba(2,48,89,0.3)]",
         theme.border,
       )}
     >
@@ -77,87 +92,93 @@ export function ListingCard({ listing }: { listing: PublicListing }) {
           theme.strip,
         )}
       />
-      {/* Corner rosette stamp, clipped to an arc */}
-      <div
-        aria-hidden
-        className="pointer-events-none absolute -right-6 -top-6 size-[88px] opacity-[0.35] dark:opacity-[0.25]"
-      >
-        <BrandArt seed={listing.id} variant="medallion" rings={2} accent={theme.accent} />
-      </div>
-      <div className="flex flex-wrap items-center justify-between gap-3">
-        <div className="flex flex-wrap items-center gap-3">
-          <span
-            className={cn(
-              "inline-flex items-center gap-1.5 rounded-full px-2.5 py-0.5 text-xs font-semibold",
-              theme.badge,
-            )}
-          >
-            <theme.Icon aria-hidden className="size-3.5" />
-            {theme.label}
-          </span>
-          {meta ? (
-            <span className="text-xs text-muted-foreground">{meta}</span>
-          ) : null}
-        </div>
-        {listing.org_slug && listing.org_legal_name ? (
-          <Link
-            href={`/orgs/${listing.org_slug}`}
-            className="relative z-10 flex items-center gap-2 rounded-lg border border-border/60 px-2.5 py-1.5 transition-colors hover:border-emerald-brand/40 hover:bg-emerald-brand/5"
-          >
-            {listing.org_logo_url ? (
-              <Image
-                src={listing.org_logo_url}
-                alt=""
-                width={28}
-                height={28}
-                className="size-7 rounded bg-card object-contain"
+      <div className="flex gap-5">
+        {/* Visual tile: real logo when revealed, engraved seal otherwise */}
+        <div className="art-on-petroleum relative hidden size-20 shrink-0 items-center justify-center overflow-hidden rounded-xl bg-gradient-to-br from-petroleum to-petroleum-deep shadow-[inset_0_0_0_1px_rgba(255,255,255,0.12)] sm:flex">
+          {listing.org_logo_url ? (
+            <Image
+              src={listing.org_logo_url}
+              alt=""
+              fill
+              sizes="80px"
+              className="bg-card object-contain p-1.5"
+            />
+          ) : (
+            <>
+              <BrandArt
+                seed={listing.id}
+                variant="medallion"
+                accent={theme.accent}
+                className="scale-[1.15] opacity-90"
               />
+              <theme.Icon
+                aria-hidden
+                className={cn("relative z-10 size-6", theme.tileIcon)}
+              />
+            </>
+          )}
+        </div>
+
+        <div className="min-w-0 flex-1">
+          <div className="flex flex-wrap items-center justify-between gap-3">
+            <div className="flex flex-wrap items-center gap-3">
+              <span
+                className={cn(
+                  "inline-flex items-center gap-1.5 rounded-full px-2.5 py-0.5 text-xs font-semibold",
+                  theme.badge,
+                )}
+              >
+                <theme.Icon aria-hidden className="size-3.5" />
+                {theme.label}
+              </span>
+              {meta ? (
+                <span className="text-xs text-muted-foreground">{meta}</span>
+              ) : null}
+            </div>
+            {listing.org_slug && listing.org_legal_name ? (
+              <Link
+                href={`/orgs/${listing.org_slug}`}
+                className="relative z-10 flex items-center gap-2 rounded-lg border border-border/60 px-2.5 py-1.5 transition-colors hover:border-emerald-brand/40 hover:bg-emerald-brand/5"
+              >
+                <span className="text-xs font-semibold">{listing.org_legal_name}</span>
+                <VerifiedBadge />
+              </Link>
             ) : (
-              <span className="flex size-7 items-center justify-center rounded bg-gradient-to-br from-petroleum to-petroleum-deep text-[10px] font-bold text-white">
-                {listing.org_legal_name
-                  .split(/\s+/)
-                  .slice(0, 2)
-                  .map((word) => word[0]?.toUpperCase() ?? "")
-                  .join("")}
+              <span className="flex items-center gap-1.5 text-xs text-muted-foreground">
+                <span className="relative inline-flex size-6 items-center justify-center">
+                  <svg
+                    viewBox="0 0 24 24"
+                    aria-hidden
+                    className="absolute inset-0"
+                  >
+                    <path
+                      d={OCTAGON}
+                      fill="none"
+                      stroke="var(--art-line-strong)"
+                      strokeWidth="1"
+                    />
+                  </svg>
+                  <Lock aria-hidden className="size-3" />
+                </span>
+                Identity protected
               </span>
             )}
-            <span className="text-xs font-semibold">{listing.org_legal_name}</span>
-            <VerifiedBadge />
-          </Link>
-        ) : (
-          <span className="flex items-center gap-1.5 text-xs text-muted-foreground">
-            <span className="relative inline-flex size-6 items-center justify-center">
-              <svg
-                viewBox="0 0 24 24"
-                aria-hidden
-                className="absolute inset-0"
-              >
-                <path
-                  d={OCTAGON}
-                  fill="none"
-                  stroke="var(--art-line-strong)"
-                  strokeWidth="1"
-                />
-              </svg>
-              <Lock aria-hidden className="size-3" />
-            </span>
-            Identity protected
-          </span>
-        )}
+          </div>
+          <h2 className="mt-3 font-display text-lg font-bold leading-snug">
+            <Link
+              href={`/marketplace/${listing.id}`}
+              className="after:absolute after:inset-0 after:content-[''] hover:text-emerald-deeper dark:hover:text-emerald-brand"
+            >
+              {listing.teaser_headline}
+            </Link>
+          </h2>
+          {listing.teaser_summary ? (
+            <p className="mt-1.5 text-sm leading-6 text-muted-foreground line-clamp-2">
+              {listing.teaser_summary}
+            </p>
+          ) : null}
+        </div>
       </div>
-      <h2 className="mt-3 font-display text-lg font-bold leading-snug">
-        <Link
-          href={`/marketplace/${listing.id}`}
-          className="after:absolute after:inset-0 after:content-[''] hover:text-emerald-deeper dark:hover:text-emerald-brand"
-        >
-          {listing.teaser_headline}
-        </Link>
-      </h2>
-      {listing.teaser_summary ? (
-        <p className="mt-1.5 text-sm leading-6 text-muted-foreground line-clamp-2">
-          {listing.teaser_summary}
-        </p>
-      ) : null}
-    </Card>
+    </Shell>
   );
 }
