@@ -8,6 +8,7 @@ import { VerifiedBadge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input, Select } from "@/components/ui/input";
 import { BrandArt } from "@/components/brand-art";
+import { EventDateTile } from "@/components/event-date-tile";
 
 export const metadata: Metadata = {
   title: "Events",
@@ -130,19 +131,7 @@ export default async function EventsPage({
                   <Card className="overflow-hidden transition-all group-hover:-translate-y-0.5 group-hover:shadow-[0_16px_40px_-16px_rgba(2,48,89,0.25)]">
                     <CardContent className="flex items-stretch gap-5 p-0">
                       <div className="flex flex-1 items-center gap-5 p-6">
-                        <div className="art-on-petroleum relative flex size-16 shrink-0 flex-col items-center justify-center overflow-hidden rounded-xl bg-gradient-to-br from-petroleum to-petroleum-deep text-white shadow-[inset_0_0_0_1px_rgba(255,255,255,0.12)]">
-                          <BrandArt
-                            seed={event.slug}
-                            variant="medallion"
-                            className="[mask-image:radial-gradient(closest-side,black,transparent)]"
-                          />
-                          <span className="relative z-10 font-display text-xl font-extrabold leading-none">
-                            {date.getDate()}
-                          </span>
-                          <span className="relative z-10 text-[10px] font-semibold uppercase tracking-wide text-emerald-brand">
-                            {date.toLocaleString("en-GB", { month: "short" })}
-                          </span>
-                        </div>
+                        <EventDateTile date={date} seed={event.slug} />
                         <div className="min-w-0 flex-1">
                           <h2 className="font-display text-lg font-bold text-petroleum transition-colors group-hover:text-emerald-deeper dark:text-foreground">
                             {event.title}

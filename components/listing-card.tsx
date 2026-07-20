@@ -27,7 +27,7 @@ export type PublicListing = {
   org_logo_url: string | null;
 };
 
-const TYPE_THEME = {
+export const TYPE_THEME = {
   fundraise: {
     label: "Raising funds",
     Icon: TrendingUp,
@@ -62,15 +62,25 @@ const TYPE_THEME = {
 // stamp otherwise (anonymity preserved — the art is seeded from the listing
 // id, not the org). Card body links to the listing; a revealed identity
 // renders as a separate sibling link.
-export function ListingCard({ listing }: { listing: PublicListing }) {
+export function ListingCard({
+  listing,
+  embedded = false,
+}: {
+  listing: PublicListing;
+  embedded?: boolean;
+}) {
   const theme = TYPE_THEME[listing.listing_type] ?? TYPE_THEME.fundraise;
   const meta = [listing.sector, listing.region, listing.size_band]
     .filter(Boolean)
     .join(" · ");
+  const Shell = embedded ? "div" : Card;
   return (
-    <Card
+    <Shell
       className={cn(
-        "relative overflow-hidden border-l-4 p-6 transition duration-200 hover:-translate-y-0.5 hover:shadow-[0_12px_32px_-16px_rgba(2,48,89,0.3)]",
+        "relative overflow-hidden border-l-4",
+        embedded
+          ? "rounded-lg bg-transparent p-4"
+          : "p-6 transition duration-200 hover:-translate-y-0.5 hover:shadow-[0_12px_32px_-16px_rgba(2,48,89,0.3)]",
         theme.border,
       )}
     >
@@ -169,6 +179,6 @@ export function ListingCard({ listing }: { listing: PublicListing }) {
           ) : null}
         </div>
       </div>
-    </Card>
+    </Shell>
   );
 }
