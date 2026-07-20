@@ -42,15 +42,26 @@ export async function resolveReport(formData: FormData) {
   const { supabase, userId } = await requireAdmin();
   const reportId = String(formData.get("report_id") ?? "");
   const postId = String(formData.get("post_id") ?? "");
+  const reviewId = String(formData.get("review_id") ?? "");
   const action = String(formData.get("action") ?? "");
+  const target = String(formData.get("target") ?? "post");
 
   if (action === "remove") {
-    // Archive the offending post, then mark the report resolved.
-    const { error: postError } = await supabase
-      .from("posts")
-      .update({ status: "archived", updated_at: new Date().toISOString() })
-      .eq("id", postId);
-    if (postError) redirect(`/admin?error=${encodeURIComponent(postError.message)}`);
+    if (target === "review") {
+      // Archive the review through the audit-logged RPC.
+      const { error: reviewError } = await supabase.rpc("admin_remove_review", {
+        p_review_id: reviewId,
+        p_reason: "Removed via moderation queue",
+      });
+      if (reviewError) redirect(`/admin?error=${encodeURIComponent(reviewError.message)}`);
+    } else {
+      // Archive the offending post, then mark the report resolved.
+      const { error: postError } = await supabase
+        .from("posts")
+        .update({ status: "archived", updated_at: new Date().toISOString() })
+        .eq("id", postId);
+      if (postError) redirect(`/admin?error=${encodeURIComponent(postError.message)}`);
+    }
   }
 
   const { error } = await supabase
@@ -63,6 +74,7 @@ export async function resolveReport(formData: FormData) {
     .eq("id", reportId);
   if (error) redirect(`/admin?error=${encodeURIComponent(error.message)}`);
   revalidatePath("/feed");
+  revalidatePath("/directory");
   redirect("/admin?saved=1");
 }
 

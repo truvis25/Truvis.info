@@ -4,7 +4,10 @@ import { notFound } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { applyToReview, sendListingMessage } from "@/lib/marketplace/actions";
 import { getSubscription } from "@/lib/billing/actions";
+import Image from "next/image";
 import { MarketplaceDisclaimer } from "@/components/marketplace-disclaimer";
+import { VerifiedBadge } from "@/components/ui/badge";
+import type { PublicListing } from "@/components/listing-card";
 import { inputCls, buttonCls } from "@/components/form-field";
 
 export const dynamic = "force-dynamic";
@@ -43,12 +46,18 @@ export default async function ListingPage({
   const { error, applied } = await searchParams;
   const supabase = await createClient();
 
-  const { data: teaser } = await supabase
-    .from("marketplace_listings")
-    .select("id, listing_type, status, teaser_headline, sector, region, size_band, teaser_summary")
-    .eq("id", id)
-    .maybeSingle();
+  const [{ data: teaser }, { data: publicRows }] = await Promise.all([
+    supabase
+      .from("marketplace_listings")
+      .select("id, listing_type, status, teaser_headline, sector, region, size_band, teaser_summary")
+      .eq("id", id)
+      .maybeSingle(),
+    // Opt-in identity reveal: org fields are non-null only when the owner
+    // enabled reveal_identity on this listing.
+    supabase.rpc("get_public_listings", { p_listing_id: id }),
+  ]);
   if (!teaser || teaser.status !== "active") notFound();
+  const identity = ((publicRows ?? []) as PublicListing[])[0] ?? null;
 
   const {
     data: { user },
@@ -97,6 +106,31 @@ export default async function ListingPage({
             {[teaser.sector, teaser.region, teaser.size_band].filter(Boolean).join(" · ")}
           </span>
         </div>
+        {identity?.org_slug && identity.org_legal_name ? (
+          <Link
+            href={`/orgs/${identity.org_slug}`}
+            className="flex w-fit items-center gap-2.5 rounded-xl border border-border px-3 py-2 transition-colors hover:border-emerald-brand/40 hover:bg-emerald-brand/5"
+          >
+            {identity.org_logo_url ? (
+              <Image
+                src={identity.org_logo_url}
+                alt=""
+                width={32}
+                height={32}
+                className="size-8 rounded bg-card object-contain"
+              />
+            ) : (
+              <span className="flex size-8 items-center justify-center rounded bg-gradient-to-br from-petroleum to-petroleum-deep text-xs font-bold text-white">
+                {identity.org_legal_name.slice(0, 2).toUpperCase()}
+              </span>
+            )}
+            <span className="text-sm">
+              <span className="block text-xs text-muted-foreground">Listed by</span>
+              <span className="font-semibold">{identity.org_legal_name}</span>
+            </span>
+            <VerifiedBadge />
+          </Link>
+        ) : null}
         <h1 className="font-display text-3xl font-bold tracking-tight text-petroleum dark:text-foreground">
           {teaser.teaser_headline}
         </h1>

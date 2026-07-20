@@ -11,10 +11,18 @@ import {
   UserCheck,
 } from "lucide-react";
 import { createClient } from "@/lib/supabase/server";
+import { MEDIA_BASE } from "@/lib/config";
 import { toggleFollow } from "@/lib/orgs/actions";
 import { VerifiedBadge, Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import { RatingStars } from "@/components/ui/rating-stars";
+import {
+  OrgReviewsSection,
+  type OrgRating,
+} from "@/components/org-reviews-section";
+import type { OrgReview } from "@/components/review-card";
+import { Notice } from "@/components/form-field";
 import type { ContactPerson } from "@/types/domain";
 
 export const dynamic = "force-dynamic";
@@ -70,10 +78,13 @@ export async function generateMetadata({
 
 export default async function OrgProfilePage({
   params,
+  searchParams,
 }: {
   params: Promise<{ slug: string }>;
+  searchParams: Promise<{ error?: string; reviewed?: string; reported?: string }>;
 }) {
   const { slug } = await params;
+  const { error, reviewed, reported } = await searchParams;
   const org = await fetchOrg(slug);
   if (!org) notFound();
 
@@ -81,6 +92,7 @@ export default async function OrgProfilePage({
   const {
     data: { user },
   } = await supabase.auth.getUser();
+  const nowIso = new Date().toISOString();
 
   const [
     { data: catalog },
@@ -88,10 +100,16 @@ export default async function OrgProfilePage({
     { data: events },
     { data: followerCount },
     followingRes,
+    { data: ratingData },
+    { data: reviews },
+    membershipRes,
+    ownReviewRes,
   ] = await Promise.all([
     supabase
       .from("catalog_items")
-      .select("slug, name, item_type, category, price_indication")
+      .select(
+        "slug, name, item_type, category, price_indication, catalog_media(storage_path, media_type)",
+      )
       .eq("org_id", org.id)
       .eq("status", "published")
       .order("sort_order")
@@ -108,7 +126,7 @@ export default async function OrgProfilePage({
       .select("slug, title, starts_at, venue_address")
       .eq("org_id", org.id)
       .eq("status", "published")
-      .gte("starts_at", new Date().toISOString())
+      .gte("starts_at", nowIso)
       .order("starts_at")
       .limit(4),
     supabase.rpc("get_follower_count", { p_org_id: org.id }),
@@ -120,9 +138,34 @@ export default async function OrgProfilePage({
           .eq("user_id", user.id)
           .maybeSingle()
       : Promise.resolve({ data: null }),
+    supabase.rpc("get_org_rating", { p_org_id: org.id }),
+    supabase.rpc("get_org_reviews", { p_org_id: org.id, p_limit: 10 }),
+    user
+      ? supabase
+          .from("org_members")
+          .select("org_id")
+          .eq("org_id", org.id)
+          .eq("user_id", user.id)
+          .maybeSingle()
+      : Promise.resolve({ data: null }),
+    user
+      ? supabase
+          .from("org_reviews")
+          .select("rating, comment")
+          .eq("org_id", org.id)
+          .eq("reviewer_id", user.id)
+          .eq("status", "published")
+          .maybeSingle()
+      : Promise.resolve({ data: null }),
   ]);
 
   const isFollowing = Boolean(followingRes.data);
+  const rating = (ratingData ?? { avg: null, count: 0, dist: null }) as OrgRating;
+  const reviewList = (reviews ?? []) as OrgReview[];
+  const viewerIsMember = Boolean(membershipRes.data);
+  const viewerReview =
+    (ownReviewRes.data as { rating: number; comment: string | null } | null) ??
+    null;
   const contact = org.contact_person;
   const socials = org.social_links ?? {};
   const facts: Array<[string, string | number | null]> = [
@@ -141,6 +184,16 @@ export default async function OrgProfilePage({
     logo: org.logo_url ?? undefined,
     description: org.tagline ?? undefined,
     sameAs: [socials.linkedin, socials.x, socials.instagram, org.website].filter(Boolean),
+    aggregateRating:
+      rating.count > 0
+        ? {
+            "@type": "AggregateRating",
+            ratingValue: rating.avg,
+            reviewCount: rating.count,
+            bestRating: 5,
+            worstRating: 1,
+          }
+        : undefined,
   };
 
   return (
@@ -189,6 +242,18 @@ export default async function OrgProfilePage({
           </div>
 
           <div className="flex items-center gap-3 pb-1">
+            {rating.count > 0 ? (
+              <a
+                href="#reviews"
+                className="flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground"
+              >
+                <RatingStars value={rating.avg} count={rating.count} size="sm" />
+                <span className="font-semibold text-foreground">{rating.avg}</span>
+                <span>
+                  ({rating.count} review{rating.count === 1 ? "" : "s"})
+                </span>
+              </a>
+            ) : null}
             <span className="text-sm text-muted-foreground">
               {Number(followerCount ?? 0)} follower{Number(followerCount ?? 0) === 1 ? "" : "s"}
             </span>
@@ -207,6 +272,15 @@ export default async function OrgProfilePage({
         {/* Body */}
         <section className="mt-10 grid gap-10 pb-20 lg:grid-cols-[2fr_1fr]">
           <div className="flex flex-col gap-10">
+            <Notice error={error} saved={reviewed} />
+            {reported ? (
+              <p
+                role="status"
+                className="rounded-md border border-emerald-brand/30 bg-emerald-brand/5 px-4 py-3 text-sm text-emerald-deeper dark:text-emerald-brand"
+              >
+                Report received — our moderation team will take a look.
+              </p>
+            ) : null}
             {org.description ? (
               <div>
                 <h2 className="mb-3 font-display text-lg font-bold text-petroleum dark:text-foreground">About</h2>
@@ -222,22 +296,43 @@ export default async function OrgProfilePage({
                   Products &amp; Services
                 </h2>
                 <ul className="grid gap-4 sm:grid-cols-2">
-                  {catalog.map((item) => (
-                    <li key={item.slug}>
-                      <Link href={`/orgs/${org.slug}/catalog/${item.slug}`} className="group block h-full">
-                        <Card className="h-full transition-all group-hover:-translate-y-0.5 group-hover:shadow-md">
-                          <CardContent className="p-5">
-                            <p className="font-semibold text-petroleum group-hover:text-emerald-deeper dark:text-foreground">
-                              {item.name}
-                            </p>
-                            <p className="mt-1 text-xs text-muted-foreground">
-                              {[item.item_type, item.category, item.price_indication].filter(Boolean).join(" · ")}
-                            </p>
-                          </CardContent>
-                        </Card>
-                      </Link>
-                    </li>
-                  ))}
+                  {catalog.map((item) => {
+                    const media = (item.catalog_media ?? []).find(
+                      (m: { storage_path: string | null; media_type: string }) =>
+                        m.media_type === "image" && m.storage_path,
+                    );
+                    return (
+                      <li key={item.slug}>
+                        <Link href={`/orgs/${org.slug}/catalog/${item.slug}`} className="group block h-full">
+                          <Card className="h-full overflow-hidden transition-all group-hover:-translate-y-0.5 group-hover:shadow-md">
+                            <div className="relative aspect-[4/3] bg-gradient-to-br from-secondary to-secondary/40">
+                              {media ? (
+                                <Image
+                                  src={`${MEDIA_BASE}${media.storage_path}`}
+                                  alt=""
+                                  fill
+                                  sizes="(min-width: 640px) 320px, 100vw"
+                                  className="object-cover transition-transform duration-300 group-hover:scale-[1.03]"
+                                />
+                              ) : (
+                                <span className="absolute inset-0 flex items-center justify-center font-display text-3xl font-bold text-border">
+                                  {item.name.slice(0, 1).toUpperCase()}
+                                </span>
+                              )}
+                            </div>
+                            <CardContent className="p-5">
+                              <p className="font-semibold text-petroleum group-hover:text-emerald-deeper dark:text-foreground">
+                                {item.name}
+                              </p>
+                              <p className="mt-1 text-xs text-muted-foreground">
+                                {[item.item_type, item.category, item.price_indication].filter(Boolean).join(" · ")}
+                              </p>
+                            </CardContent>
+                          </Card>
+                        </Link>
+                      </li>
+                    );
+                  })}
                 </ul>
               </div>
             ) : null}
@@ -297,6 +392,15 @@ export default async function OrgProfilePage({
                 </ul>
               </div>
             ) : null}
+
+            <OrgReviewsSection
+              org={{ id: org.id, slug: org.slug, legal_name: org.legal_name }}
+              rating={rating}
+              reviews={reviewList}
+              viewerId={user?.id ?? null}
+              viewerIsMember={viewerIsMember}
+              viewerReview={viewerReview}
+            />
           </div>
 
           {/* Sidebar */}

@@ -1,10 +1,9 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { ArrowRight, Handshake, Lock } from "lucide-react";
+import { ArrowRight, Handshake } from "lucide-react";
 import { createClient } from "@/lib/supabase/server";
 import { MarketplaceDisclaimer } from "@/components/marketplace-disclaimer";
-import { Card, CardContent } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
+import { ListingCard, type PublicListing } from "@/components/listing-card";
 import { Button } from "@/components/ui/button";
 
 export const metadata: Metadata = {
@@ -15,22 +14,6 @@ export const metadata: Metadata = {
 
 export const dynamic = "force-dynamic";
 
-const typeLabels: Record<string, string> = {
-  fundraise: "Raising funds",
-  equity_sale: "Equity for sale",
-  business_sale: "Business for sale",
-};
-
-type Teaser = {
-  id: string;
-  listing_type: string;
-  teaser_headline: string;
-  sector: string | null;
-  region: string | null;
-  size_band: string | null;
-  teaser_summary: string | null;
-};
-
 export default async function MarketplacePage({
   searchParams,
 }: {
@@ -38,13 +21,11 @@ export default async function MarketplacePage({
 }) {
   const { trial } = await searchParams;
   const supabase = await createClient();
-  const { data: listings } = await supabase
-    .from("marketplace_listings")
-    .select("id, listing_type, teaser_headline, sector, region, size_band, teaser_summary")
-    .eq("status", "active")
-    .order("created_at", { ascending: false });
+  // Anonymity-safe listing feed: identity fields come back non-null only for
+  // listings whose owner opted into reveal_identity.
+  const { data: listings } = await supabase.rpc("get_public_listings");
 
-  const list = (listings ?? []) as Teaser[];
+  const list = (listings ?? []) as PublicListing[];
 
   return (
     <main className="mx-auto w-full max-w-5xl flex-1 px-6 py-14 lg:px-12">
@@ -55,7 +36,7 @@ export default async function MarketplacePage({
         <p className="mt-2 text-muted-foreground">
           Opportunities from compliance-verified organizations. Identities and
           full details unlock with a subscription and the seller&apos;s
-          approval.
+          approval — some sellers choose to disclose their identity up front.
         </p>
         <Button asChild variant="link" className="mt-1 px-0">
           <Link href="/pricing">
@@ -83,29 +64,7 @@ export default async function MarketplacePage({
         <ul className="flex flex-col gap-4">
           {list.map((listing) => (
             <li key={listing.id}>
-              <Link href={`/marketplace/${listing.id}`} className="group block">
-                <Card className="transition-all group-hover:-translate-y-0.5 group-hover:shadow-[0_16px_40px_-16px_rgba(2,48,89,0.25)]">
-                  <CardContent className="p-6">
-                    <div className="flex flex-wrap items-center gap-2">
-                      <Badge>{typeLabels[listing.listing_type] ?? listing.listing_type}</Badge>
-                      <span className="text-xs text-muted-foreground">
-                        {[listing.sector, listing.region, listing.size_band].filter(Boolean).join(" · ")}
-                      </span>
-                      <span className="ml-auto inline-flex items-center gap-1 text-xs text-muted-foreground">
-                        <Lock className="size-3.5" aria-hidden /> Identity protected
-                      </span>
-                    </div>
-                    <h2 className="mt-3 font-display text-lg font-bold text-petroleum transition-colors group-hover:text-emerald-deeper dark:text-foreground">
-                      {listing.teaser_headline}
-                    </h2>
-                    {listing.teaser_summary ? (
-                      <p className="mt-1.5 text-sm leading-relaxed text-muted-foreground">
-                        {listing.teaser_summary}
-                      </p>
-                    ) : null}
-                  </CardContent>
-                </Card>
-              </Link>
+              <ListingCard listing={listing} />
             </li>
           ))}
         </ul>
