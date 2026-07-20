@@ -4,6 +4,7 @@ import { Users } from "lucide-react";
 import { Card } from "@/components/ui/card";
 import { Badge, VerifiedBadge } from "@/components/ui/badge";
 import { RatingStars } from "@/components/ui/rating-stars";
+import { BrandArt } from "@/components/brand-art";
 
 // Row shape returned by the search_orgs RPC (directory + home featured strip).
 export type DirectoryOrg = {
@@ -38,15 +39,7 @@ export function OrgBusinessCard({ org }: { org: DirectoryOrg }) {
   return (
     <Link href={`/orgs/${org.slug}`} className="group block h-full">
       <Card className="flex h-full flex-col overflow-hidden transition duration-200 group-hover:-translate-y-1 group-hover:shadow-[0_16px_40px_-16px_rgba(2,48,89,0.35)]">
-        <div className="relative h-20 shrink-0 bg-gradient-to-r from-petroleum-deep via-petroleum to-[#03427a]">
-          <div
-            aria-hidden
-            className="absolute inset-0"
-            style={{
-              backgroundImage:
-                "radial-gradient(circle at 85% 20%, rgba(16,185,129,0.35), transparent 55%), radial-gradient(circle at 15% 90%, rgba(6,182,212,0.3), transparent 45%)",
-            }}
-          />
+        <div className="art-on-petroleum relative h-20 shrink-0 bg-gradient-to-r from-petroleum-deep via-petroleum to-[#03427a] shadow-[inset_0_0_0_1px_rgba(255,255,255,0.12)] transition-shadow duration-300 group-hover:shadow-[inset_0_0_0_1px_rgba(255,255,255,0.22)]">
           {org.cover_url ? (
             <>
               <Image
@@ -58,7 +51,14 @@ export function OrgBusinessCard({ org }: { org: DirectoryOrg }) {
               />
               <div className="absolute inset-0 bg-gradient-to-t from-petroleum-deep/60 to-transparent" />
             </>
-          ) : null}
+          ) : (
+            <BrandArt
+              seed={org.slug}
+              variant="card"
+              className="opacity-80 transition-opacity duration-300 group-hover:opacity-100"
+            />
+          )}
+          <div aria-hidden className="rule-engraved absolute inset-x-0 bottom-0" />
         </div>
         <div className="-mt-7 px-5">
           {org.logo_url ? (
@@ -70,8 +70,14 @@ export function OrgBusinessCard({ org }: { org: DirectoryOrg }) {
               className="size-14 rounded-lg bg-card object-contain shadow-md ring-4 ring-card"
             />
           ) : (
-            <span className="flex size-14 items-center justify-center rounded-lg bg-gradient-to-br from-petroleum to-petroleum-deep font-display text-lg font-bold text-white shadow-md ring-4 ring-card">
-              {initials(org.legal_name)}
+            <span className="art-on-petroleum relative flex size-14 items-center justify-center overflow-hidden rounded-lg bg-gradient-to-br from-petroleum to-petroleum-deep font-display text-lg font-bold text-white shadow-md ring-4 ring-card">
+              <BrandArt
+                seed={org.slug}
+                variant="medallion"
+                rings={1}
+                className="scale-[1.4] opacity-60"
+              />
+              <span className="relative z-10">{initials(org.legal_name)}</span>
             </span>
           )}
         </div>

@@ -23,6 +23,7 @@ import {
 } from "@/components/org-reviews-section";
 import type { OrgReview } from "@/components/review-card";
 import { Notice } from "@/components/form-field";
+import { BrandArt } from "@/components/brand-art";
 import type { ContactPerson } from "@/types/domain";
 
 export const dynamic = "force-dynamic";
@@ -204,11 +205,16 @@ export default async function OrgProfilePage({
       />
 
       {/* Cover band */}
-      <div className="relative h-44 bg-gradient-to-r from-petroleum-deep via-petroleum to-[#03427a] sm:h-56">
+      <div className="art-on-petroleum relative h-44 bg-gradient-to-r from-petroleum-deep via-petroleum to-[#03427a] shadow-[inset_0_0_0_1px_rgba(255,255,255,0.12)] sm:h-56">
         {org.cover_url ? (
-          <Image src={org.cover_url} alt="" fill className="object-cover opacity-70" />
-        ) : null}
-        <div className="absolute inset-0 bg-gradient-to-t from-petroleum-deep/60 to-transparent" aria-hidden />
+          <>
+            <Image src={org.cover_url} alt="" fill className="object-cover opacity-70" />
+            <div className="absolute inset-0 bg-gradient-to-t from-petroleum-deep/60 to-transparent" aria-hidden />
+          </>
+        ) : (
+          <BrandArt seed={org.slug} variant="card" />
+        )}
+        <div aria-hidden className="rule-engraved absolute inset-x-0 bottom-0" />
       </div>
 
       <div className="mx-auto w-full max-w-6xl px-6 lg:px-12">
@@ -269,6 +275,32 @@ export default async function OrgProfilePage({
           </div>
         </div>
 
+        {/* Zero-JS anchor nav */}
+        <nav
+          aria-label="Profile sections"
+          className="mt-8 flex flex-wrap gap-1 border-b border-border text-sm"
+        >
+          {(
+            [
+              org.description ? ["#about", "About"] : null,
+              catalog?.length ? ["#catalog", "Products & Services"] : null,
+              events?.length ? ["#org-events", "Events"] : null,
+              posts?.length ? ["#updates", "Updates"] : null,
+              ["#reviews", "Reviews"],
+            ] as Array<[string, string] | null>
+          )
+            .filter((entry): entry is [string, string] => entry !== null)
+            .map(([href, label]) => (
+              <a
+                key={href}
+                href={href}
+                className="link-engraved rounded-t-md px-3 py-2 text-muted-foreground hover:text-foreground"
+              >
+                {label}
+              </a>
+            ))}
+        </nav>
+
         {/* Body */}
         <section className="mt-10 grid gap-10 pb-20 lg:grid-cols-[2fr_1fr]">
           <div className="flex flex-col gap-10">
@@ -282,7 +314,7 @@ export default async function OrgProfilePage({
               </p>
             ) : null}
             {org.description ? (
-              <div>
+              <div id="about" className="scroll-mt-24">
                 <h2 className="mb-3 font-display text-lg font-bold text-petroleum dark:text-foreground">About</h2>
                 <p className="whitespace-pre-line text-sm leading-7 text-foreground/80">
                   {org.description}
@@ -291,7 +323,7 @@ export default async function OrgProfilePage({
             ) : null}
 
             {catalog?.length ? (
-              <div>
+              <div id="catalog" className="scroll-mt-24">
                 <h2 className="mb-4 font-display text-lg font-bold text-petroleum dark:text-foreground">
                   Products &amp; Services
                 </h2>
@@ -338,7 +370,7 @@ export default async function OrgProfilePage({
             ) : null}
 
             {events?.length ? (
-              <div>
+              <div id="org-events" className="scroll-mt-24">
                 <h2 className="mb-4 font-display text-lg font-bold text-petroleum dark:text-foreground">
                   Upcoming Events
                 </h2>
@@ -367,7 +399,7 @@ export default async function OrgProfilePage({
             ) : null}
 
             {posts?.length ? (
-              <div>
+              <div id="updates" className="scroll-mt-24">
                 <h2 className="mb-4 font-display text-lg font-bold text-petroleum dark:text-foreground">
                   Latest Updates
                 </h2>
@@ -404,7 +436,7 @@ export default async function OrgProfilePage({
           </div>
 
           {/* Sidebar */}
-          <aside className="flex flex-col gap-6">
+          <aside className="flex flex-col gap-6 lg:sticky lg:top-24 lg:self-start">
             {contact ? (
               <Card>
                 <CardContent className="p-6">
@@ -427,11 +459,17 @@ export default async function OrgProfilePage({
               </Card>
             ) : null}
 
-            <Card>
-              <CardContent className="p-6">
-                <h2 className="mb-3 font-display text-sm font-bold uppercase tracking-wide text-petroleum dark:text-foreground">
-                  Company Facts
+            <Card className="relative overflow-hidden outline outline-1 outline-offset-4 outline-border/50">
+              <BrandArt
+                seed={org.slug}
+                variant="medallion"
+                className="scale-[2.5] opacity-[0.04]"
+              />
+              <CardContent className="relative p-6">
+                <h2 className="font-display text-sm font-bold uppercase tracking-wide text-petroleum dark:text-foreground">
+                  Certificate of Standing
                 </h2>
+                <div aria-hidden className="rule-engraved mb-4 mt-2" />
                 <dl className="flex flex-col gap-3 text-sm">
                   {facts
                     .filter(([, v]) => v != null && v !== "")
@@ -442,7 +480,13 @@ export default async function OrgProfilePage({
                       </div>
                     ))}
                 </dl>
-                <p className="mt-4 text-xs leading-5 text-muted-foreground">
+                <div className="mt-4 flex items-center gap-2">
+                  <VerifiedBadge />
+                  <span className="text-xs text-muted-foreground">
+                    In good standing · monitored continuously
+                  </span>
+                </div>
+                <p className="mt-3 text-xs leading-5 text-muted-foreground">
                   Sourced from verified records on the Truvis compliance
                   platform.
                 </p>

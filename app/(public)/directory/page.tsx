@@ -8,6 +8,7 @@ import {
 } from "@/components/org-business-card";
 import { Input, Select } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
+import { BrandArt } from "@/components/brand-art";
 
 export const metadata: Metadata = {
   title: "Directory",
@@ -87,16 +88,20 @@ export default async function DirectoryPage({
       </form>
 
       {list.length === 0 ? (
-        <div className="flex flex-col items-center gap-3 rounded-2xl border border-dashed border-border py-20 text-center">
-          <Building2 className="size-10 text-muted-foreground/50" aria-hidden />
-          <p className="font-medium">No organizations match your search.</p>
-          <p className="text-sm text-muted-foreground">
+        <div className="relative flex flex-col items-center gap-3 overflow-hidden rounded-2xl border border-border py-20 text-center">
+          <BrandArt seed="empty-directory" variant="empty" />
+          <Building2 className="relative z-10 size-10 text-muted-foreground/50" aria-hidden />
+          <p className="relative z-10 font-medium">No organizations match your search.</p>
+          <p className="relative z-10 text-sm text-muted-foreground">
             Try different keywords, or{" "}
             <Link href="/directory" className="font-medium text-emerald-dark underline underline-offset-4">
               clear the filters
             </Link>
             .
           </p>
+          <Button asChild variant="outline" size="sm" className="relative z-10">
+            <Link href="/signup">List your organization</Link>
+          </Button>
         </div>
       ) : (
         <ul className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">

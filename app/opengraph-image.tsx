@@ -1,4 +1,5 @@
 import { ImageResponse } from "next/og";
+import { ogLattice, ogSeal, ogRule } from "@/lib/og-art";
 
 export const runtime = "edge";
 export const alt = "Truvis.info — Verified Business Network";
@@ -20,8 +21,16 @@ export default function OpengraphImage() {
           background: "linear-gradient(135deg, #01203f 0%, #023059 55%, #03427a 100%)",
           color: "white",
           fontFamily: "sans-serif",
+          position: "relative",
+          overflow: "hidden",
         }}
       >
+        {ogLattice("truvis-hero").map((style, i) => (
+          <div key={`l${i}`} style={style} />
+        ))}
+        {ogSeal("truvis-hero").map((style, i) => (
+          <div key={`s${i}`} style={style} />
+        ))}
         <div style={{ display: "flex", alignItems: "center", gap: 16 }}>
           <div
             style={{
@@ -31,7 +40,7 @@ export default function OpengraphImage() {
               borderRadius: 4,
             }}
           />
-          <div style={{ fontSize: 64, fontWeight: 800, letterSpacing: 4 }}>
+          <div style={{ display: "flex", fontSize: 64, fontWeight: 800, letterSpacing: 4 }}>
             TRUVIS<span style={{ color: "#10b981" }}>.info</span>
           </div>
         </div>
@@ -47,9 +56,12 @@ export default function OpengraphImage() {
         >
           Directory · Events · Marketplace — continuously vetted via Truvis Compliance
         </div>
+        <div style={{ marginTop: 40, display: "flex", maxWidth: 720 }}>
+          <div style={ogRule()} />
+        </div>
         <div
           style={{
-            marginTop: 48,
+            marginTop: 20,
             display: "flex",
             alignItems: "center",
             gap: 10,

@@ -5,6 +5,7 @@ import { createClient } from "@/lib/supabase/server";
 import { MarketplaceDisclaimer } from "@/components/marketplace-disclaimer";
 import { ListingCard, type PublicListing } from "@/components/listing-card";
 import { Button } from "@/components/ui/button";
+import { BrandArt } from "@/components/brand-art";
 
 export const metadata: Metadata = {
   title: "Marketplace",
@@ -56,9 +57,13 @@ export default async function MarketplacePage({
       </div>
 
       {list.length === 0 ? (
-        <div className="flex flex-col items-center gap-3 rounded-2xl border border-dashed border-border py-20 text-center">
-          <Handshake className="size-10 text-muted-foreground/50" aria-hidden />
-          <p className="font-medium">No active listings right now.</p>
+        <div className="relative flex flex-col items-center gap-3 overflow-hidden rounded-2xl border border-border py-20 text-center">
+          <BrandArt seed="empty-marketplace" variant="empty" />
+          <Handshake className="relative z-10 size-10 text-muted-foreground/50" aria-hidden />
+          <p className="relative z-10 font-medium">No active listings right now.</p>
+          <Button asChild variant="outline" size="sm" className="relative z-10">
+            <Link href="/signup">Post an opportunity</Link>
+          </Button>
         </div>
       ) : (
         <ul className="flex flex-col gap-4">

@@ -17,6 +17,29 @@ import {
   type DirectoryOrg,
 } from "@/components/org-business-card";
 import { ListingCard, type PublicListing } from "@/components/listing-card";
+import { BrandArt } from "@/components/brand-art";
+
+// Numbered section eyebrow with the 14px rosette glyph.
+function Eyebrow({ index, label }: { index: string; label: string }) {
+  return (
+    <p className="mb-2 flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.2em] text-emerald-dark">
+      <span aria-hidden className="relative inline-block size-3.5">
+        <BrandArt seed="truvis-hero" variant="medallion" rings={1} accent="emerald" />
+      </span>
+      {index} — {label}
+    </p>
+  );
+}
+
+// Engraved divider between major sections.
+function SectionDivider() {
+  return (
+    <div aria-hidden className="relative mx-auto max-w-7xl px-6 lg:px-12">
+      <div className="rule-engraved" />
+      <span className="absolute left-1/2 top-1/2 size-2 -translate-x-1/2 -translate-y-1/2 rounded-full bg-emerald-brand/20 ring-1 ring-emerald-brand/40" />
+    </div>
+  );
+}
 
 export const revalidate = 300;
 
@@ -115,14 +138,29 @@ export default async function Home() {
   return (
     <main className="flex-1">
       {/* Hero */}
-      <section className="relative overflow-hidden bg-gradient-to-br from-petroleum-deep via-petroleum to-[#03427a] text-white">
+      <section className="art-on-petroleum relative overflow-hidden bg-gradient-to-br from-petroleum-deep via-petroleum to-[#03427a] text-white">
+        {/* Grand rosette seal — the site's only ambient animation */}
         <div
           aria-hidden
-          className="pointer-events-none absolute inset-0 opacity-[0.07]"
-          style={{
-            backgroundImage:
-              "radial-gradient(circle at 20% 20%, #10b981 0, transparent 40%), radial-gradient(circle at 80% 70%, #06b6d4 0, transparent 45%)",
-          }}
+          className="pointer-events-none absolute -right-40 -top-40 size-[720px] opacity-50 md:opacity-100 [mask-image:radial-gradient(closest-side,black_55%,transparent_100%)]"
+        >
+          <BrandArt
+            seed="truvis-hero"
+            variant="hero"
+            className="origin-center motion-safe:animate-[spin_240s_linear_infinite]"
+          />
+        </div>
+        {/* Horizon lattice */}
+        <div
+          aria-hidden
+          className="pointer-events-none absolute inset-x-0 bottom-0 h-40 [mask-image:linear-gradient(to_top,black,transparent)]"
+        >
+          <BrandArt seed="truvis-hero" variant="horizon" />
+        </div>
+        {/* Plate frame */}
+        <div
+          aria-hidden
+          className="pointer-events-none absolute inset-4 hidden rounded-xl ring-1 ring-white/[0.07] lg:block"
         />
         <div className="relative mx-auto max-w-7xl px-6 py-24 lg:px-12 lg:py-32">
           <p className="mb-5 inline-flex items-center gap-2 rounded-full border border-emerald-brand/40 bg-emerald-brand/10 px-4 py-1.5 text-xs font-semibold uppercase tracking-[0.2em] text-emerald-brand">
@@ -158,7 +196,8 @@ export default async function Home() {
           </div>
 
           {/* Stats band */}
-          <dl className="mt-16 grid max-w-xl grid-cols-3 gap-6 border-t border-white/15 pt-8">
+          <div aria-hidden className="rule-engraved mt-16 mb-8 max-w-xl" />
+          <dl className="grid max-w-xl grid-cols-3 gap-6">
             {stats.map((stat) => (
               <div key={stat.label}>
                 <dd className="font-display text-3xl font-extrabold text-emerald-brand">
@@ -176,6 +215,7 @@ export default async function Home() {
       {/* Pillars */}
       <section className="mx-auto max-w-7xl px-6 py-20 lg:px-12">
         <div className="mb-10 max-w-2xl">
+          <Eyebrow index="01" label="The network" />
           <h2 className="font-display text-3xl font-bold tracking-tight text-petroleum dark:text-foreground">
             One network, three pillars
           </h2>
@@ -214,6 +254,7 @@ export default async function Home() {
         <section className="mx-auto max-w-7xl px-6 pb-20 lg:px-12">
           <div className="mb-8 flex flex-wrap items-end justify-between gap-4">
             <div>
+              <Eyebrow index="02" label="Directory" />
               <h2 className="font-display text-3xl font-bold tracking-tight text-petroleum dark:text-foreground">
                 Featured verified organizations
               </h2>
@@ -222,7 +263,7 @@ export default async function Home() {
                 claims.
               </p>
             </div>
-            <Button asChild variant="link" className="px-0">
+            <Button asChild variant="link" className="link-engraved px-0">
               <Link href="/directory">
                 Browse all
                 <ArrowRight aria-hidden />
@@ -241,14 +282,19 @@ export default async function Home() {
 
       {/* Live opportunities + upcoming events */}
       {opportunities.length || events.length ? (
-        <section className="mx-auto grid max-w-7xl gap-12 px-6 pb-20 lg:grid-cols-[2fr_1fr] lg:px-12">
+        <>
+        <SectionDivider />
+        <section className="mx-auto grid max-w-7xl gap-12 px-6 py-20 lg:grid-cols-[2fr_1fr] lg:px-12">
           {opportunities.length ? (
             <div>
               <div className="mb-6 flex flex-wrap items-end justify-between gap-4">
-                <h2 className="font-display text-2xl font-bold tracking-tight text-petroleum dark:text-foreground">
-                  Latest opportunities
-                </h2>
-                <Button asChild variant="link" className="px-0">
+                <div>
+                  <Eyebrow index="03" label="Marketplace & events" />
+                  <h2 className="font-display text-2xl font-bold tracking-tight text-petroleum dark:text-foreground">
+                    Latest opportunities
+                  </h2>
+                </div>
+                <Button asChild variant="link" className="link-engraved px-0">
                   <Link href="/marketplace">
                     Explore the marketplace
                     <ArrowRight aria-hidden />
@@ -270,7 +316,7 @@ export default async function Home() {
                 <h2 className="font-display text-2xl font-bold tracking-tight text-petroleum dark:text-foreground">
                   Upcoming events
                 </h2>
-                <Button asChild variant="link" className="px-0">
+                <Button asChild variant="link" className="link-engraved px-0">
                   <Link href="/events">
                     All events
                     <ArrowRight aria-hidden />
@@ -306,11 +352,13 @@ export default async function Home() {
             </div>
           ) : null}
         </section>
+        </>
       ) : null}
 
       {/* How it works */}
       <section className="border-y border-border bg-secondary/60 dark:bg-secondary/30">
-        <div className="mx-auto max-w-7xl px-6 py-16 lg:px-12">
+        <div className="mx-auto max-w-7xl px-6 py-20 lg:px-12">
+          <Eyebrow index="04" label="How it works" />
           <h2 className="font-display text-2xl font-bold tracking-tight text-petroleum dark:text-foreground">
             How organizations join
           </h2>
