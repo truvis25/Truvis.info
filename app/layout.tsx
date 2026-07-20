@@ -1,5 +1,7 @@
 import type { Metadata } from "next";
 import { Inter, Montserrat } from "next/font/google";
+import { Analytics } from "@vercel/analytics/next";
+import { SpeedInsights } from "@vercel/speed-insights/next";
 import { SITE_URL } from "@/lib/config";
 import { SiteHeader } from "@/components/site-header";
 import { SiteFooter } from "@/components/site-footer";
@@ -46,6 +48,8 @@ export default function RootLayout({
           {children}
         </div>
         <SiteFooter />
+        <Analytics />
+        <SpeedInsights />
       </body>
     </html>
   );

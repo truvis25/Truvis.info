@@ -78,7 +78,7 @@ export default async function AdminPage({
     .maybeSingle();
   if (!profile?.platform_admin) redirect("/dashboard");
 
-  const [{ data: orgs }, { data: reports }, { data: subscriptions }, { data: audit }] =
+  const [{ data: orgs }, { data: reports }, { data: subscriptions }, { data: audit }, { data: metrics }] =
     await Promise.all([
       supabase
         .from("organizations")
@@ -97,12 +97,24 @@ export default async function AdminPage({
         .select("id, action, entity_type, actor_type, reason, created_at")
         .order("id", { ascending: false })
         .limit(30),
+      supabase.rpc("admin_metrics"),
     ]);
 
   const orgList = (orgs ?? []) as unknown as OrgRow[];
   const reportList = (reports ?? []) as unknown as ReportRow[];
   const subList = (subscriptions ?? []) as SubscriptionRow[];
   const auditList = (audit ?? []) as AuditRow[];
+  const kpis = (metrics ?? {}) as Record<string, number>;
+  const kpiTiles: Array<[string, string]> = [
+    ["Users", "users"],
+    ["Visible orgs", "orgs_visible"],
+    ["Active listings", "listings_active"],
+    ["Applications", "listing_applications"],
+    ["Events live", "events_published"],
+    ["Registrations", "event_registrations"],
+    ["Subscribers", "subscriptions_active"],
+    ["Open reports", "reports_open"],
+  ];
 
   return (
     <main className="mx-auto flex w-full max-w-5xl flex-1 flex-col gap-10 px-6 py-16">
@@ -116,6 +128,20 @@ export default async function AdminPage({
       </header>
 
       <Notice error={error} saved={saved} />
+
+      {/* KPI overview (BRD §9) */}
+      <section aria-label="Platform metrics" className="grid grid-cols-2 gap-4 sm:grid-cols-4">
+        {kpiTiles.map(([label, key]) => (
+          <div key={key} className="rounded-xl border border-border bg-card p-4">
+            <p className="font-display text-2xl font-extrabold text-petroleum dark:text-foreground">
+              {kpis[key] ?? 0}
+            </p>
+            <p className="mt-1 text-xs uppercase tracking-wide text-muted-foreground">
+              {label}
+            </p>
+          </div>
+        ))}
+      </section>
 
       {/* Organizations & compliance sync health (DSH-4, ADM-2) */}
       <section className="flex flex-col gap-3">
