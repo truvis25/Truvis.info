@@ -152,7 +152,9 @@ function ActorRow({
 }
 
 function timeLabel(ts: string) {
-  return new Date(ts).toLocaleDateString("en-GB", { dateStyle: "medium" });
+  const date = new Date(ts);
+  if (Number.isNaN(date.getTime())) return "recently";
+  return date.toLocaleDateString("en-GB", { dateStyle: "medium" });
 }
 
 // One feed entry on the home network hub. Server-rendered; five bodies.

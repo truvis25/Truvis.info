@@ -107,7 +107,14 @@ export function OrgSpotlight({
                   type="submit"
                   className="h-7 rounded-full px-3 text-xs"
                 >
-                  {followedOrgIds.has(org.org_id) ? "✓" : "+ Follow"}
+                  {followedOrgIds.has(org.org_id) ? (
+                    <>
+                      <span aria-hidden>✓</span>
+                      <span className="sr-only">Following</span>
+                    </>
+                  ) : (
+                    "+ Follow"
+                  )}
                 </Button>
               </form>
             ) : (

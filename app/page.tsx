@@ -148,7 +148,10 @@ export default async function Home() {
     <main className="flex-1 bg-secondary/40 dark:bg-background">
       <script
         type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+        // Escape < so org-authored titles can never break out of the script tag.
+        dangerouslySetInnerHTML={{
+          __html: JSON.stringify(jsonLd).replace(/</g, "\\u003c"),
+        }}
       />
 
       {/* Gate band — anonymous only */}
