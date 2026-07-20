@@ -29,6 +29,7 @@ function parseListingFields(formData: FormData) {
     region: String(formData.get("region") ?? "").trim() || null,
     size_band: String(formData.get("size_band") ?? "").trim() || null,
     teaser_summary: String(formData.get("teaser_summary") ?? "").trim() || null,
+    reveal_identity: formData.get("reveal_identity") === "on",
     detail_memorandum: {
       text: String(formData.get("detail_memorandum") ?? "").trim(),
     },

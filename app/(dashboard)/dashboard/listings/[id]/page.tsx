@@ -41,7 +41,7 @@ export default async function EditListingPage({
   const [{ data: teaser }, { data: detailRows }] = await Promise.all([
     supabase
       .from("marketplace_listings")
-      .select("id, listing_type, status, teaser_headline, sector, region, size_band, teaser_summary")
+      .select("id, listing_type, status, teaser_headline, sector, region, size_band, teaser_summary, reveal_identity")
       .eq("id", id)
       .maybeSingle(),
     supabase.rpc("get_listing_detail", { p_listing_id: id }),
@@ -122,6 +122,14 @@ export default async function EditListingPage({
         <label className="flex items-start gap-2 text-sm">
           <input type="checkbox" name="profitable" defaultChecked={Boolean(detail?.financial_snapshot?.profitable)} className="mt-1" />
           <span>The business is currently profitable</span>
+        </label>
+        <label className="flex items-start gap-2 text-sm">
+          <input type="checkbox" name="reveal_identity" defaultChecked={Boolean(teaser.reveal_identity)} className="mt-1" />
+          <span>
+            Reveal our identity on the public teaser (shows your logo, name,
+            and a link to your verified profile — leave off to stay anonymous
+            until you approve a reviewer)
+          </span>
         </label>
         <button type="submit" className={`${buttonCls} self-start`}>Save changes</button>
       </form>

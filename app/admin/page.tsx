@@ -41,6 +41,12 @@ type ReportRow = {
   reason: string;
   created_at: string;
   posts: { id: string; title: string } | null;
+  org_reviews: {
+    id: string;
+    rating: number;
+    comment: string | null;
+    organizations: { legal_name: string } | null;
+  } | null;
   user_profiles: { display_name: string } | null;
 };
 
@@ -88,7 +94,9 @@ export default async function AdminPage({
         .order("legal_name"),
       supabase
         .from("content_reports")
-        .select("id, reason, created_at, posts(id, title), user_profiles!content_reports_reporter_id_fkey(display_name)")
+        .select(
+          "id, reason, created_at, posts(id, title), org_reviews(id, rating, comment, organizations(legal_name)), user_profiles!content_reports_reporter_id_fkey(display_name)",
+        )
         .eq("status", "open")
         .order("created_at"),
       supabase.rpc("admin_list_subscriptions"),
@@ -113,6 +121,7 @@ export default async function AdminPage({
     ["Events live", "events_published"],
     ["Registrations", "event_registrations"],
     ["Subscribers", "subscriptions_active"],
+    ["Reviews", "reviews_published"],
     ["Open reports", "reports_open"],
   ];
 
@@ -211,39 +220,51 @@ export default async function AdminPage({
         <h2 className="font-display text-xl font-bold">
           Moderation queue ({reportList.length})
         </h2>
-        {reportList.map((report) => (
-          <div
-            key={report.id}
-            className="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-border px-5 py-4"
-          >
-            <div>
-              <p className="font-medium">
-                {report.posts?.title ?? "Deleted post"}
-              </p>
-              <p className="text-xs text-muted-foreground">
-                Reported by {report.user_profiles?.display_name ?? "user"} ·{" "}
-                {new Date(report.created_at).toLocaleString("en-GB", { dateStyle: "medium", timeStyle: "short" })}{" "}
-                · “{report.reason}”
-              </p>
+        {reportList.map((report) => {
+          const isReview = Boolean(report.org_reviews);
+          const review = report.org_reviews;
+          return (
+            <div
+              key={report.id}
+              className="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-border px-5 py-4"
+            >
+              <div>
+                <p className="font-medium">
+                  {isReview
+                    ? `Review of ${review?.organizations?.legal_name ?? "organization"} — ${review?.rating}★${
+                        review?.comment ? ` “${review.comment.slice(0, 80)}${review.comment.length > 80 ? "…" : ""}”` : ""
+                      }`
+                    : report.posts?.title ?? "Deleted post"}
+                </p>
+                <p className="text-xs text-muted-foreground">
+                  Reported by {report.user_profiles?.display_name ?? "user"} ·{" "}
+                  {new Date(report.created_at).toLocaleString("en-GB", { dateStyle: "medium", timeStyle: "short" })}{" "}
+                  · “{report.reason}”
+                </p>
+              </div>
+              <div className="flex items-center gap-2">
+                <form action={resolveReport}>
+                  <input type="hidden" name="report_id" value={report.id} />
+                  <input type="hidden" name="target" value={isReview ? "review" : "post"} />
+                  <input type="hidden" name="post_id" value={report.posts?.id ?? ""} />
+                  <input type="hidden" name="review_id" value={review?.id ?? ""} />
+                  <input type="hidden" name="action" value="remove" />
+                  <button className={`${buttonGhostCls} text-destructive`}>
+                    {isReview ? "Remove review" : "Remove post"}
+                  </button>
+                </form>
+                <form action={resolveReport}>
+                  <input type="hidden" name="report_id" value={report.id} />
+                  <input type="hidden" name="target" value={isReview ? "review" : "post"} />
+                  <input type="hidden" name="post_id" value={report.posts?.id ?? ""} />
+                  <input type="hidden" name="review_id" value={review?.id ?? ""} />
+                  <input type="hidden" name="action" value="dismiss" />
+                  <button className={buttonGhostCls}>Dismiss</button>
+                </form>
+              </div>
             </div>
-            <div className="flex items-center gap-2">
-              <form action={resolveReport}>
-                <input type="hidden" name="report_id" value={report.id} />
-                <input type="hidden" name="post_id" value={report.posts?.id ?? ""} />
-                <input type="hidden" name="action" value="remove" />
-                <button className={`${buttonGhostCls} text-destructive`}>
-                  Remove post
-                </button>
-              </form>
-              <form action={resolveReport}>
-                <input type="hidden" name="report_id" value={report.id} />
-                <input type="hidden" name="post_id" value={report.posts?.id ?? ""} />
-                <input type="hidden" name="action" value="dismiss" />
-                <button className={buttonGhostCls}>Dismiss</button>
-              </form>
-            </div>
-          </div>
-        ))}
+          );
+        })}
         {!reportList.length ? (
           <p className="text-sm text-muted-foreground">
             No open reports.

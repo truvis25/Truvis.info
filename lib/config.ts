@@ -14,6 +14,10 @@ export const SUPABASE_ANON_KEY =
   process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY ??
   "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imh5em90d3h0cXNzZWZzZ3J5YXdsIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODQ0Njk0NjUsImV4cCI6MjEwMDA0NTQ2NX0.eL3ytBDBflMRCekhXCjTaBj3sR3qOcdQV55JLm91BgA";
 
+// Public CDN base for the public-media storage bucket (org branding and
+// catalog images). Public by design — reads are open on the bucket.
+export const MEDIA_BASE = `${SUPABASE_URL}/storage/v1/object/public/public-media/`;
+
 export const SITE_URL =
   process.env.NEXT_PUBLIC_SITE_URL ??
   (process.env.VERCEL_ENV === "preview" && process.env.VERCEL_URL

@@ -1,10 +1,11 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import Image from "next/image";
 import { Search, Building2 } from "lucide-react";
 import { createClient } from "@/lib/supabase/server";
-import { VerifiedBadge } from "@/components/ui/badge";
-import { Card, CardContent } from "@/components/ui/card";
+import {
+  OrgBusinessCard,
+  type DirectoryOrg,
+} from "@/components/org-business-card";
 import { Input, Select } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 
@@ -14,16 +15,6 @@ export const metadata: Metadata = {
 };
 
 export const dynamic = "force-dynamic";
-
-type DirectoryOrg = {
-  slug: string;
-  legal_name: string;
-  tagline: string | null;
-  jurisdiction: string | null;
-  industry_code: string | null;
-  size_band: string | null;
-  logo_url: string | null;
-};
 
 export default async function DirectoryPage({
   searchParams,
@@ -111,43 +102,7 @@ export default async function DirectoryPage({
         <ul className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
           {list.map((org) => (
             <li key={org.slug}>
-              <Link href={`/orgs/${org.slug}`} className="group block h-full">
-                <Card className="h-full transition-all duration-300 group-hover:-translate-y-1 group-hover:shadow-[0_16px_40px_-16px_rgba(2,48,89,0.25)]">
-                  <CardContent className="flex h-full flex-col p-6">
-                    <div className="mb-4 flex items-center gap-3">
-                      {org.logo_url ? (
-                        <Image
-                          src={org.logo_url}
-                          alt=""
-                          width={44}
-                          height={44}
-                          className="size-11 rounded-lg border border-border object-contain"
-                        />
-                      ) : (
-                        <span className="flex size-11 items-center justify-center rounded-lg bg-gradient-to-br from-petroleum to-petroleum-deep font-display text-sm font-bold text-white">
-                          {org.legal_name.slice(0, 2).toUpperCase()}
-                        </span>
-                      )}
-                      <VerifiedBadge />
-                    </div>
-                    <h2 className="font-display text-base font-bold text-petroleum transition-colors group-hover:text-emerald-deeper dark:text-foreground">
-                      {org.legal_name}
-                    </h2>
-                    {org.tagline ? (
-                      <p className="mt-1.5 line-clamp-2 flex-1 text-sm text-muted-foreground">
-                        {org.tagline}
-                      </p>
-                    ) : (
-                      <span className="flex-1" />
-                    )}
-                    <p className="mt-4 text-xs text-muted-foreground">
-                      {[org.jurisdiction, org.industry_code, org.size_band]
-                        .filter(Boolean)
-                        .join(" · ")}
-                    </p>
-                  </CardContent>
-                </Card>
-              </Link>
+              <OrgBusinessCard org={org} />
             </li>
           ))}
         </ul>

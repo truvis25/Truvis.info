@@ -4,6 +4,7 @@ import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { claimOrganization } from "@/lib/compliance/actions";
 import { signOut } from "@/lib/auth/actions";
+import { RatingStars } from "@/components/ui/rating-stars";
 
 export const metadata: Metadata = { title: "Dashboard" };
 
@@ -54,6 +55,22 @@ export default async function DashboardPage({
   const orgs = (memberships ?? [])
     .map((m) => m.organizations as unknown as OrgRow)
     .filter(Boolean);
+
+  // Community reputation per managed org (usually one).
+  const ratings = new Map<string, { avg: number | null; count: number }>(
+    await Promise.all(
+      orgs.map(async (org) => {
+        const { data } = await supabase.rpc("get_org_rating", {
+          p_org_id: org.id,
+        });
+        const rating = (data ?? { avg: null, count: 0 }) as {
+          avg: number | null;
+          count: number;
+        };
+        return [org.id, rating] as const;
+      }),
+    ),
+  );
 
   return (
     <main className="mx-auto flex w-full max-w-4xl flex-1 flex-col gap-10 px-6 py-16">
@@ -109,6 +126,7 @@ export default async function DashboardPage({
       ) : (
         orgs.map((org) => {
           const standing = org.compliance_status;
+          const reputation = ratings.get(org.id);
           return (
             <section
               key={org.id}
@@ -174,6 +192,31 @@ export default async function DashboardPage({
                   </dd>
                 </div>
               </dl>
+
+              <div className="mt-5 flex flex-wrap items-center gap-2 rounded-lg border border-border/60 bg-secondary/40 px-4 py-2.5 text-sm dark:bg-secondary/20">
+                <span className="font-medium">Reputation:</span>
+                {reputation && reputation.count > 0 ? (
+                  <>
+                    <RatingStars
+                      value={reputation.avg}
+                      count={reputation.count}
+                      size="sm"
+                    />
+                    <span className="font-semibold">{reputation.avg}</span>
+                    <Link
+                      href={`/orgs/${org.slug}#reviews`}
+                      className="text-emerald-deeper underline-offset-4 hover:underline dark:text-emerald-brand"
+                    >
+                      {reputation.count} community review
+                      {reputation.count === 1 ? "" : "s"}
+                    </Link>
+                  </>
+                ) : (
+                  <span className="text-muted-foreground">
+                    No community reviews yet.
+                  </span>
+                )}
+              </div>
 
               <div className="mt-6 flex flex-wrap gap-3 text-sm">
                 <Link

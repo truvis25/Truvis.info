@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
+import { MEDIA_BASE } from "@/lib/config";
 
 export const dynamic = "force-dynamic";
 
@@ -19,9 +20,6 @@ type CatalogDetail = {
     contact_person: { email?: string } | null;
   };
 };
-
-const MEDIA_BASE =
-  "https://hyzotwxtqssefsgryawl.supabase.co/storage/v1/object/public/public-media/";
 
 async function fetchItem(
   slug: string,

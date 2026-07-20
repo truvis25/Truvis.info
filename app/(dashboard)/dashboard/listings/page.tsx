@@ -61,13 +61,24 @@ export default async function ListingsAdminPage({
   const listings = (listingsData ?? []) as ListingRow[];
 
   const listingIds = listings.map((l) => l.id);
-  const { data: applications } = listingIds.length
-    ? await supabase
-        .from("listing_applications")
-        .select("id, listing_id, status, intro_message, created_at, user_profiles(display_name)")
-        .in("listing_id", listingIds)
-        .order("created_at", { ascending: false })
-    : { data: [] };
+  const [{ data: applications }, { data: revealRows }] = listingIds.length
+    ? await Promise.all([
+        supabase
+          .from("listing_applications")
+          .select("id, listing_id, status, intro_message, created_at, user_profiles(display_name)")
+          .in("listing_id", listingIds)
+          .order("created_at", { ascending: false }),
+        supabase
+          .from("marketplace_listings")
+          .select("id, reveal_identity")
+          .in("id", listingIds),
+      ])
+    : [{ data: [] }, { data: [] }];
+  const revealed = new Set(
+    (revealRows ?? [])
+      .filter((row) => row.reveal_identity)
+      .map((row) => row.id as string),
+  );
 
   const apps = (applications ?? []) as unknown as ApplicationRow[];
 
@@ -148,6 +159,14 @@ export default async function ListingsAdminPage({
             <span>The business is currently profitable</span>
           </label>
           <label className="flex items-start gap-2 text-sm">
+            <input type="checkbox" name="reveal_identity" className="mt-1" />
+            <span>
+              Reveal our identity on the public teaser (shows your logo, name,
+              and a link to your verified profile — leave off to stay
+              anonymous until you approve a reviewer)
+            </span>
+          </label>
+          <label className="flex items-start gap-2 text-sm">
             <input type="checkbox" name="attestation" required className="mt-1" />
             <span>
               I attest on behalf of the organization that the information
@@ -175,6 +194,7 @@ export default async function ListingsAdminPage({
                 <span className={listing.status === "active" ? "text-emerald-dark" : ""}>
                   {listing.status}
                 </span>
+                {revealed.has(listing.id) ? " · identity revealed" : " · anonymous"}
               </p>
             </div>
             <div className="flex items-center gap-2">

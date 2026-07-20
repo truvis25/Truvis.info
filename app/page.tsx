@@ -12,6 +12,11 @@ import {
 import { createClient } from "@/lib/supabase/server";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
+import {
+  OrgBusinessCard,
+  type DirectoryOrg,
+} from "@/components/org-business-card";
+import { ListingCard, type PublicListing } from "@/components/listing-card";
 
 export const revalidate = 300;
 
@@ -62,18 +67,44 @@ const trust = [
 
 export default async function Home() {
   const supabase = await createClient();
-  const [{ count: orgCount }, { count: eventCount }, { count: listingCount }] =
-    await Promise.all([
-      supabase.from("organizations").select("*", { count: "exact", head: true }),
-      supabase
-        .from("events")
-        .select("*", { count: "exact", head: true })
-        .eq("status", "published"),
-      supabase
-        .from("marketplace_listings")
-        .select("*", { count: "exact", head: true })
-        .eq("status", "active"),
-    ]);
+  const nowIso = new Date().toISOString();
+  const [
+    { count: orgCount },
+    { count: eventCount },
+    { count: listingCount },
+    { data: featuredOrgs },
+    { data: latestListings },
+    { data: upcomingEvents },
+  ] = await Promise.all([
+    supabase.from("organizations").select("*", { count: "exact", head: true }),
+    supabase
+      .from("events")
+      .select("*", { count: "exact", head: true })
+      .eq("status", "published"),
+    supabase
+      .from("marketplace_listings")
+      .select("*", { count: "exact", head: true })
+      .eq("status", "active"),
+    supabase.rpc("search_orgs", { p_limit: 6 }),
+    supabase.rpc("get_public_listings"),
+    supabase
+      .from("events")
+      .select("slug, title, starts_at, venue_address, organizations!inner(legal_name)")
+      .eq("status", "published")
+      .gte("starts_at", nowIso)
+      .order("starts_at")
+      .limit(3),
+  ]);
+
+  const featured = ((featuredOrgs ?? []) as DirectoryOrg[]).slice(0, 6);
+  const opportunities = ((latestListings ?? []) as PublicListing[]).slice(0, 3);
+  const events = (upcomingEvents ?? []) as unknown as Array<{
+    slug: string;
+    title: string;
+    starts_at: string;
+    venue_address: string | null;
+    organizations: { legal_name: string };
+  }>;
 
   const stats = [
     { value: orgCount ?? 0, label: "Verified organizations" },
@@ -178,8 +209,146 @@ export default async function Home() {
         </div>
       </section>
 
-      {/* Trust strip */}
+      {/* Featured verified organizations */}
+      {featured.length ? (
+        <section className="mx-auto max-w-7xl px-6 pb-20 lg:px-12">
+          <div className="mb-8 flex flex-wrap items-end justify-between gap-4">
+            <div>
+              <h2 className="font-display text-3xl font-bold tracking-tight text-petroleum dark:text-foreground">
+                Featured verified organizations
+              </h2>
+              <p className="mt-3 text-muted-foreground">
+                Every card is backed by vetted records — not self-asserted
+                claims.
+              </p>
+            </div>
+            <Button asChild variant="link" className="px-0">
+              <Link href="/directory">
+                Browse all
+                <ArrowRight aria-hidden />
+              </Link>
+            </Button>
+          </div>
+          <ul className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
+            {featured.map((org) => (
+              <li key={org.slug}>
+                <OrgBusinessCard org={org} />
+              </li>
+            ))}
+          </ul>
+        </section>
+      ) : null}
+
+      {/* Live opportunities + upcoming events */}
+      {opportunities.length || events.length ? (
+        <section className="mx-auto grid max-w-7xl gap-12 px-6 pb-20 lg:grid-cols-[2fr_1fr] lg:px-12">
+          {opportunities.length ? (
+            <div>
+              <div className="mb-6 flex flex-wrap items-end justify-between gap-4">
+                <h2 className="font-display text-2xl font-bold tracking-tight text-petroleum dark:text-foreground">
+                  Latest opportunities
+                </h2>
+                <Button asChild variant="link" className="px-0">
+                  <Link href="/marketplace">
+                    Explore the marketplace
+                    <ArrowRight aria-hidden />
+                  </Link>
+                </Button>
+              </div>
+              <ul className="flex flex-col gap-4">
+                {opportunities.map((listing) => (
+                  <li key={listing.id}>
+                    <ListingCard listing={listing} />
+                  </li>
+                ))}
+              </ul>
+            </div>
+          ) : null}
+          {events.length ? (
+            <div>
+              <div className="mb-6 flex flex-wrap items-end justify-between gap-4">
+                <h2 className="font-display text-2xl font-bold tracking-tight text-petroleum dark:text-foreground">
+                  Upcoming events
+                </h2>
+                <Button asChild variant="link" className="px-0">
+                  <Link href="/events">
+                    All events
+                    <ArrowRight aria-hidden />
+                  </Link>
+                </Button>
+              </div>
+              <ul className="flex flex-col gap-3">
+                {events.map((event) => (
+                  <li key={event.slug}>
+                    <Link
+                      href={`/events/${event.slug}`}
+                      className="flex items-center gap-4 rounded-xl border border-border bg-card p-4 transition-colors hover:bg-secondary"
+                    >
+                      <span className="flex size-10 shrink-0 items-center justify-center rounded-lg bg-petroleum text-emerald-brand">
+                        <CalendarDays className="size-5" aria-hidden />
+                      </span>
+                      <span className="min-w-0">
+                        <span className="block truncate font-semibold">
+                          {event.title}
+                        </span>
+                        <span className="block text-xs text-muted-foreground">
+                          {new Date(event.starts_at).toLocaleDateString("en-GB", {
+                            dateStyle: "medium",
+                          })}
+                          {" · "}
+                          {event.organizations.legal_name}
+                        </span>
+                      </span>
+                    </Link>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          ) : null}
+        </section>
+      ) : null}
+
+      {/* How it works */}
       <section className="border-y border-border bg-secondary/60 dark:bg-secondary/30">
+        <div className="mx-auto max-w-7xl px-6 py-16 lg:px-12">
+          <h2 className="font-display text-2xl font-bold tracking-tight text-petroleum dark:text-foreground">
+            How organizations join
+          </h2>
+          <ol className="mt-8 grid gap-8 md:grid-cols-3">
+            {[
+              {
+                title: "Verify on compliance.truvis.tech",
+                text: "Maintain your document vault and compliance standing on the Truvis compliance platform.",
+              },
+              {
+                title: "Claim your public profile",
+                text: "Authorize publication and your verified business card goes live in minutes.",
+              },
+              {
+                title: "Appear across the network",
+                text: "Directory, events, and marketplace — visible only while your standing holds.",
+              },
+            ].map((step, index) => (
+              <li key={step.title} className="flex gap-4">
+                <span className="flex size-9 shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-emerald-dark to-emerald-deeper font-display text-sm font-bold text-white shadow-[0_6px_20px_-6px_rgba(16,185,129,0.45)]">
+                  {index + 1}
+                </span>
+                <div>
+                  <h3 className="font-display text-sm font-bold uppercase tracking-wide text-petroleum dark:text-foreground">
+                    {step.title}
+                  </h3>
+                  <p className="mt-1.5 text-sm leading-relaxed text-muted-foreground">
+                    {step.text}
+                  </p>
+                </div>
+              </li>
+            ))}
+          </ol>
+        </div>
+      </section>
+
+      {/* Trust strip */}
+      <section className="border-b border-border">
         <div className="mx-auto grid max-w-7xl gap-10 px-6 py-16 md:grid-cols-3 lg:px-12">
           {trust.map((item) => (
             <div key={item.title} className="flex gap-4">
