@@ -1,5 +1,11 @@
 import Link from "next/link";
-import { ShieldCheck, ArrowRight } from "lucide-react";
+import {
+  ShieldCheck,
+  ArrowRight,
+  Building2,
+  CalendarDays,
+  Handshake,
+} from "lucide-react";
 import { createClient } from "@/lib/supabase/server";
 import { getManagedOrg } from "@/lib/orgs/queries";
 import { getHomeData } from "@/lib/home/data";
@@ -29,6 +35,13 @@ import {
   TrustSeal,
   GrowReach,
 } from "@/components/home/right-rail";
+import {
+  HeroShowcase,
+  PillarTriptych,
+  HowItWorks,
+  PhotoBand,
+  LiveNetworkHeading,
+} from "@/components/home/showcase";
 
 export const dynamic = "force-dynamic";
 
@@ -174,13 +187,13 @@ export default async function Home() {
           >
             <BrandArt seed="truvis-hero" variant="horizon" draw />
           </div>
-          <div className="relative mx-auto flex max-w-7xl flex-col gap-8 px-6 py-12 lg:flex-row lg:items-end lg:justify-between lg:px-8 lg:py-16">
-            <div>
+          <div className="relative mx-auto flex max-w-7xl flex-col gap-10 px-6 py-12 lg:flex-row lg:items-center lg:justify-between lg:gap-16 lg:px-8 lg:py-16">
+            <div className="max-w-2xl">
               <p className="mb-4 inline-flex items-center gap-2 rounded-full border border-emerald-brand/40 bg-emerald-brand/10 px-4 py-1.5 text-xs font-semibold uppercase tracking-[0.2em] text-emerald-brand">
                 <ShieldCheck className="size-4" aria-hidden />
                 Trust by construction
               </p>
-              <h1 className="max-w-2xl font-display text-3xl font-extrabold leading-tight tracking-tight sm:text-4xl">
+              <h1 className="font-display text-3xl font-extrabold leading-tight tracking-tight sm:text-4xl">
                 The network where every business is{" "}
                 <span className="bg-gradient-to-r from-emerald-brand to-cyan-accent bg-clip-text text-transparent">
                   verified
@@ -188,9 +201,29 @@ export default async function Home() {
                 .
               </h1>
               <p className="mt-3 max-w-xl text-white/75">
-                Only organizations in good standing on the Truvis compliance
-                platform appear below — live, right now.
+                A public business directory, an events calendar and a
+                private-deal marketplace — open only to organizations in
+                continuous good standing on Truvis Compliance.
               </p>
+              {/* The three registers, named up front */}
+              <nav aria-label="Platform sections" className="mt-5 flex flex-wrap gap-2">
+                {(
+                  [
+                    ["/directory", "Directory", Building2],
+                    ["/events", "Events", CalendarDays],
+                    ["/marketplace", "Marketplace", Handshake],
+                  ] as const
+                ).map(([href, label, Icon]) => (
+                  <Link
+                    key={href}
+                    href={href}
+                    className="inline-flex items-center gap-2 rounded-full border border-white/20 bg-white/5 px-3.5 py-1.5 text-sm font-medium text-white/85 transition-colors hover:border-emerald-brand/60 hover:bg-emerald-brand/10 hover:text-white"
+                  >
+                    <Icon className="size-4 text-emerald-brand" aria-hidden />
+                    {label}
+                  </Link>
+                ))}
+              </nav>
               <div className="mt-6 flex flex-wrap gap-3">
                 <Button asChild size="lg">
                   <Link href="/signup">
@@ -206,19 +239,20 @@ export default async function Home() {
                   <Link href="/directory">Browse the directory</Link>
                 </Button>
               </div>
+              <dl className="mt-8 flex gap-8 border-t border-white/10 pt-6">
+                {stats.map(([value, label]) => (
+                  <div key={label} className="border-l border-white/15 pl-4 first:border-l-0 first:pl-0">
+                    <dd className="font-display text-2xl font-extrabold text-emerald-brand">
+                      {value}
+                    </dd>
+                    <dt className="mt-0.5 text-[11px] uppercase tracking-wider text-white/60">
+                      {label}
+                    </dt>
+                  </div>
+                ))}
+              </dl>
             </div>
-            <dl className="flex gap-8 lg:pb-1">
-              {stats.map(([value, label]) => (
-                <div key={label} className="border-l border-white/15 pl-4 first:border-l-0 first:pl-0">
-                  <dd className="font-display text-2xl font-extrabold text-emerald-brand">
-                    {value}
-                  </dd>
-                  <dt className="mt-0.5 text-[11px] uppercase tracking-wider text-white/60">
-                    {label}
-                  </dt>
-                </div>
-              ))}
-            </dl>
+            <HeroShowcase orgCount={data.orgCount} />
           </div>
           <div aria-hidden className="rule-engraved absolute inset-x-0 bottom-0" />
         </section>
@@ -270,6 +304,23 @@ export default async function Home() {
             ))}
           </div>
         </div>
+      ) : null}
+
+      {/* Explainer narrative — anonymous only: what it is, how it works */}
+      {!signedIn ? (
+        <>
+          <PillarTriptych
+            topOrg={data.members[0]}
+            nextEvent={upcomingSorted[0]}
+            topListing={data.listings[0]}
+            orgCount={data.orgCount}
+            eventCount={data.eventCount}
+            listingCount={data.listingCount}
+          />
+          <HowItWorks />
+          <PhotoBand />
+          <LiveNetworkHeading />
+        </>
       ) : null}
 
       {/* Hub grid */}
