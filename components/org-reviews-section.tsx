@@ -35,7 +35,8 @@ export function OrgReviewsSection({
 
   return (
     <div id="reviews" className="scroll-mt-24">
-      <h2 className="mb-4 font-display text-lg font-bold text-petroleum dark:text-foreground">
+      <h2 className="mb-4 flex items-center gap-2.5 font-display text-lg font-bold text-petroleum dark:text-foreground">
+        <span aria-hidden className="h-5 w-1 shrink-0 rounded-full bg-emerald-brand" />
         Community Reviews
       </h2>
 
@@ -96,7 +97,8 @@ export function OrgReviewsSection({
       {viewerId && !viewerIsMember ? (
         <Card className="mt-6">
           <CardContent className="p-6">
-            <h3 className="font-display text-sm font-bold uppercase tracking-wide text-petroleum dark:text-foreground">
+            <h3 className="flex items-center gap-2 font-display text-sm font-bold uppercase tracking-[0.16em] text-petroleum dark:text-foreground">
+              <span aria-hidden className="h-3.5 w-1 shrink-0 rounded-full bg-emerald-brand" />
               {viewerReview ? "Update your review" : "Write a review"}
             </h3>
             <form action={submitReview} className="mt-4 flex flex-col gap-4">

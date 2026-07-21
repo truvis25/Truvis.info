@@ -318,7 +318,10 @@ export default async function OrgProfilePage({
             ) : null}
             {org.description ? (
               <div id="about" className="scroll-mt-24">
-                <h2 className="mb-3 font-display text-lg font-bold text-petroleum dark:text-foreground">About</h2>
+                <h2 className="mb-3 flex items-center gap-2.5 font-display text-lg font-bold text-petroleum dark:text-foreground">
+                  <span aria-hidden className="h-5 w-1 shrink-0 rounded-full bg-emerald-brand" />
+                  About
+                </h2>
                 <p className="whitespace-pre-line text-sm leading-7 text-foreground/80">
                   {org.description}
                 </p>
@@ -327,7 +330,8 @@ export default async function OrgProfilePage({
 
             {catalog?.length ? (
               <div id="catalog" className="scroll-mt-24">
-                <h2 className="mb-4 font-display text-lg font-bold text-petroleum dark:text-foreground">
+                <h2 className="mb-4 flex items-center gap-2.5 font-display text-lg font-bold text-petroleum dark:text-foreground">
+                  <span aria-hidden className="h-5 w-1 shrink-0 rounded-full bg-emerald-brand" />
                   Products &amp; Services
                 </h2>
                 <ul className="grid gap-4 sm:grid-cols-2">
@@ -374,7 +378,8 @@ export default async function OrgProfilePage({
 
             {events?.length ? (
               <div id="org-events" className="scroll-mt-24">
-                <h2 className="mb-4 font-display text-lg font-bold text-petroleum dark:text-foreground">
+                <h2 className="mb-4 flex items-center gap-2.5 font-display text-lg font-bold text-petroleum dark:text-foreground">
+                  <span aria-hidden className="h-5 w-1 shrink-0 rounded-full bg-emerald-brand" />
                   Upcoming Events
                 </h2>
                 <ul className="flex flex-col gap-3">
@@ -403,7 +408,8 @@ export default async function OrgProfilePage({
 
             {posts?.length ? (
               <div id="updates" className="scroll-mt-24">
-                <h2 className="mb-4 font-display text-lg font-bold text-petroleum dark:text-foreground">
+                <h2 className="mb-4 flex items-center gap-2.5 font-display text-lg font-bold text-petroleum dark:text-foreground">
+                  <span aria-hidden className="h-5 w-1 shrink-0 rounded-full bg-emerald-brand" />
                   Latest Updates
                 </h2>
                 <ul className="flex flex-col gap-4">
@@ -443,7 +449,8 @@ export default async function OrgProfilePage({
             {contact ? (
               <Card>
                 <CardContent className="p-6">
-                  <h2 className="mb-3 font-display text-sm font-bold uppercase tracking-wide text-petroleum dark:text-foreground">
+                  <h2 className="mb-3 flex items-center gap-2 font-display text-sm font-bold uppercase tracking-[0.16em] text-petroleum dark:text-foreground">
+                    <span aria-hidden className="h-3.5 w-1 shrink-0 rounded-full bg-emerald-brand" />
                     Contact Person
                   </h2>
                   <p className="font-semibold">{contact.name}</p>
@@ -469,7 +476,8 @@ export default async function OrgProfilePage({
                 className="scale-[2.5] opacity-[0.04]"
               />
               <CardContent className="relative p-6">
-                <h2 className="font-display text-sm font-bold uppercase tracking-wide text-petroleum dark:text-foreground">
+                <h2 className="flex items-center gap-2 font-display text-sm font-bold uppercase tracking-[0.16em] text-petroleum dark:text-foreground">
+                  <span aria-hidden className="h-3.5 w-1 shrink-0 rounded-full bg-emerald-brand" />
                   Certificate of Standing
                 </h2>
                 <div aria-hidden className="rule-engraved mb-4 mt-2" />
