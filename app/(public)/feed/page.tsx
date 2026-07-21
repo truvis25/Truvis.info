@@ -1,7 +1,10 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import Image from "next/image";
 import { createClient } from "@/lib/supabase/server";
 import { reportPost } from "@/lib/moderation/actions";
+import { Card } from "@/components/ui/card";
+import { VerifiedBadge } from "@/components/ui/badge";
 import { BrandArt } from "@/components/brand-art";
 
 export const metadata: Metadata = {
@@ -16,8 +19,16 @@ type FeedPost = {
   title: string;
   body: { text?: string } | null;
   published_at: string | null;
-  organizations: { slug: string; legal_name: string };
+  organizations: { slug: string; legal_name: string; logo_url: string | null };
 };
+
+function initials(name: string) {
+  return name
+    .split(/\s+/)
+    .slice(0, 2)
+    .map((word) => word[0]?.toUpperCase() ?? "")
+    .join("");
+}
 
 export default async function FeedPage({
   searchParams,
@@ -33,7 +44,9 @@ export default async function FeedPage({
   const [{ data: posts }, { data: follows }] = await Promise.all([
     supabase
       .from("posts")
-      .select("id, title, body, published_at, org_id, organizations!inner(slug, legal_name)")
+      .select(
+        "id, title, body, published_at, org_id, organizations!inner(slug, legal_name, logo_url)",
+      )
       .eq("status", "published")
       .order("published_at", { ascending: false })
       .limit(50),
@@ -51,14 +64,29 @@ export default async function FeedPage({
   return (
     <main className="mx-auto w-full max-w-3xl flex-1 px-6 py-16">
       <header className="mb-10">
-        <h1 className="font-display text-3xl font-bold tracking-tight text-petroleum dark:text-foreground">Feed</h1>
+        <p className="inline-flex items-center gap-2 text-[11px] font-semibold uppercase tracking-[0.25em] text-emerald-deeper dark:text-emerald-brand">
+          <span aria-hidden className="relative inline-block size-3">
+            <BrandArt seed="truvis-hero" variant="medallion" rings={1} accent="emerald" />
+          </span>
+          Live from the network
+        </p>
+        <h1 className="mt-3 font-display text-3xl font-bold tracking-tight text-petroleum dark:text-foreground">
+          Updates Feed
+        </h1>
         <p className="mt-2 text-muted-foreground">
-          Updates from verified organizations.
+          Every update below is published by a compliance-verified
+          organization.{" "}
+          <Link
+            href="/#network"
+            className="link-engraved font-semibold text-emerald-deeper dark:text-emerald-brand"
+          >
+            Back to the network hub →
+          </Link>
         </p>
       </header>
 
       {reported ? (
-        <p className="mb-6 rounded-lg border border-emerald-brand/30 bg-emerald-brand/5 px-4 py-3 text-sm text-emerald-deeper dark:text-emerald-brand">
+        <p role="status" className="mb-6 rounded-lg border border-emerald-brand/30 bg-emerald-brand/5 px-4 py-3 text-sm text-emerald-deeper dark:text-emerald-brand">
           Thanks — the post was reported for review.
         </p>
       ) : null}
@@ -84,50 +112,87 @@ export default async function FeedPage({
           </div>
         </div>
       ) : (
-        <ul className="flex flex-col gap-5">
-          {list.map((post) => (
-            <li
-              key={post.id}
-              className="rounded-2xl border border-border p-6"
-            >
-              <div className="flex items-center gap-2 text-sm">
-                <Link
-                  href={`/orgs/${post.organizations.slug}`}
-                  className="font-medium underline-offset-4 hover:underline"
-                >
-                  {post.organizations.legal_name}
-                </Link>
-                <span className="rounded-full bg-emerald-brand/10 px-2 py-0.5 text-[10px] font-medium text-emerald-deeper dark:text-emerald-brand">
-                  Verified
-                </span>
-                {post.published_at ? (
-                  <span className="text-xs text-muted-foreground">
-                    {new Date(post.published_at).toLocaleDateString("en-GB", {
-                      dateStyle: "medium",
-                    })}
-                  </span>
-                ) : null}
-              </div>
-              <h2 className="mt-2 font-semibold">{post.title}</h2>
-              <p className="mt-1 whitespace-pre-line text-sm text-foreground/80">
-                {post.body?.text ?? ""}
-              </p>
-              {user ? (
-                <form action={reportPost} className="mt-3 flex items-center gap-2">
-                  <input type="hidden" name="post_id" value={post.id} />
-                  <input
-                    name="reason"
-                    placeholder="Reason (optional)"
-                    maxLength={300}
-                    className="rounded-lg border border-border px-2 py-1 text-xs "
-                  />
-                  <button className="text-xs text-muted-foreground underline underline-offset-4">
-                    Report
-                  </button>
-                </form>
-              ) : null}
-            </li>
-          ))}
+        <ul className="flex flex-col gap-4">
+          {list.map((post) => {
+            const org = post.organizations;
+            return (
+              <li key={post.id} className="reveal">
+                <Card className="overflow-hidden p-0">
+                  <div className="flex items-start gap-3 p-5 pb-3">
+                    {org.logo_url ? (
+                      <Image
+                        src={org.logo_url}
+                        alt=""
+                        width={40}
+                        height={40}
+                        className="size-10 rounded-lg bg-card object-contain ring-1 ring-border"
+                      />
+                    ) : (
+                      <span className="art-on-petroleum relative flex size-10 shrink-0 items-center justify-center overflow-hidden rounded-lg bg-gradient-to-br from-petroleum to-petroleum-deep font-display text-sm font-bold text-white">
+                        <BrandArt seed={org.slug} variant="medallion" rings={1} className="scale-[1.3] opacity-60" />
+                        <span className="relative z-10">{initials(org.legal_name)}</span>
+                      </span>
+                    )}
+                    <div className="min-w-0 flex-1">
+                      <div className="flex items-center gap-2 text-sm font-semibold">
+                        <Link
+                          href={`/orgs/${org.slug}`}
+                          className="truncate hover:underline"
+                        >
+                          {org.legal_name}
+                        </Link>
+                        <VerifiedBadge />
+                      </div>
+                      <p className="mt-0.5 text-xs text-muted-foreground">
+                        posted an update
+                        {post.published_at ? (
+                          <>
+                            {" · "}
+                            <time dateTime={post.published_at}>
+                              {new Date(post.published_at).toLocaleDateString("en-GB", {
+                                dateStyle: "medium",
+                              })}
+                            </time>
+                          </>
+                        ) : null}
+                      </p>
+                    </div>
+                  </div>
+                  <div aria-hidden className="rule-engraved ml-5 max-w-[60%]" />
+                  <div className="px-5 pb-4 pt-3">
+                    <h2 className="font-display text-base font-bold leading-snug">
+                      {post.title}
+                    </h2>
+                    <p className="mt-1 whitespace-pre-line text-sm leading-6 text-foreground/80">
+                      {post.body?.text ?? ""}
+                    </p>
+                  </div>
+                  <div className="flex items-center gap-4 border-t border-border/60 px-5 py-2.5 text-xs">
+                    <Link
+                      href={`/orgs/${org.slug}`}
+                      className="link-engraved font-semibold text-emerald-deeper dark:text-emerald-brand"
+                    >
+                      View organization →
+                    </Link>
+                    {user ? (
+                      <form action={reportPost} className="ml-auto flex items-center gap-2">
+                        <input type="hidden" name="post_id" value={post.id} />
+                        <input
+                          name="reason"
+                          placeholder="Reason (optional)"
+                          maxLength={300}
+                          className="rounded-lg border border-border bg-background px-2 py-1 text-xs"
+                        />
+                        <button className="text-muted-foreground underline underline-offset-4 hover:text-foreground">
+                          Report
+                        </button>
+                      </form>
+                    ) : null}
+                  </div>
+                </Card>
+              </li>
+            );
+          })}
         </ul>
       )}
     </main>

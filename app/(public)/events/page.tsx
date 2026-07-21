@@ -60,37 +60,66 @@ export default async function EventsPage({
   const list = (events ?? []) as unknown as EventRow[];
 
   return (
-    <main className="mx-auto w-full max-w-5xl flex-1 px-6 py-14 lg:px-12">
-      <header className="mb-8 flex flex-wrap items-end justify-between gap-6">
-        <div className="max-w-2xl">
-          <h1 className="font-display text-3xl font-bold tracking-tight text-petroleum dark:text-foreground">
-            Events
-          </h1>
-          <p className="mt-2 text-muted-foreground">
-            Upcoming events hosted by verified organizations and the Truvis
-            community calendar.
-          </p>
+    <main className="flex-1">
+      {/* Calendar band — the section's dark signature surface with photography */}
+      <header className="art-on-petroleum relative overflow-hidden bg-gradient-to-br from-petroleum-deep via-petroleum to-[#035a54] text-white">
+        <div
+          aria-hidden
+          className="pointer-events-none absolute inset-y-0 right-0 w-2/3 opacity-25 [mask-image:linear-gradient(to_left,black,transparent)]"
+        >
+          <Image
+            src="/photos/network-forum.jpg"
+            alt=""
+            fill
+            sizes="66vw"
+            className="object-cover grayscale"
+          />
         </div>
-        {/* Overlapping medallion cluster — the section's signature mark */}
-        <div aria-hidden className="hidden items-center sm:flex">
-          {["truvis-events-1", "truvis-events-2", "truvis-events-3"].map(
-            (seed, index) => (
-              <span
-                key={seed}
-                className={`relative size-12 overflow-hidden rounded-full border border-border bg-card ${index > 0 ? "-ml-4" : ""}`}
-                style={{ zIndex: 3 - index }}
-              >
-                <BrandArt seed={seed} variant="medallion" rings={3} accent={index === 1 ? "cyan" : "emerald"} />
+        <div
+          aria-hidden
+          className="pointer-events-none absolute inset-x-0 bottom-0 h-24 [mask-image:linear-gradient(to_top,black,transparent)]"
+        >
+          <BrandArt seed="truvis-events" variant="horizon" draw />
+        </div>
+        <div className="relative mx-auto flex max-w-5xl flex-wrap items-end justify-between gap-6 px-6 pb-16 pt-12 lg:px-12">
+          <div className="max-w-2xl">
+            <h1 className="font-display text-3xl font-bold tracking-tight">Events</h1>
+            <p className="mt-2 text-white/70">
+              Summits, forums and open days by verified hosts — plus the Truvis
+              community calendar via Lu.ma.
+            </p>
+          </div>
+          <div className="flex items-center gap-5">
+            {/* Overlapping medallion cluster — the section's signature mark */}
+            <div aria-hidden className="hidden items-center sm:flex">
+              {["truvis-events-1", "truvis-events-2", "truvis-events-3"].map(
+                (seed, index) => (
+                  <span
+                    key={seed}
+                    className={`relative size-12 overflow-hidden rounded-full border border-white/25 bg-petroleum-deep ${index > 0 ? "-ml-4" : ""}`}
+                    style={{ zIndex: 3 - index }}
+                  >
+                    <BrandArt seed={seed} variant="medallion" rings={3} accent={index === 1 ? "cyan" : "emerald"} />
+                  </span>
+                ),
+              )}
+            </div>
+            <p className="font-display text-6xl font-extrabold tabular-nums text-emerald-brand">
+              {list.length}
+              <span className="ml-3 align-middle text-xs font-semibold uppercase tracking-[0.2em] text-white/60">
+                on the calendar
               </span>
-            ),
-          )}
+            </p>
+          </div>
         </div>
+        <div aria-hidden className="rule-engraved absolute inset-x-0 bottom-0" />
       </header>
 
-      {/* Search */}
+      <div className="mx-auto w-full max-w-5xl px-6 pb-14 lg:px-12">
+      {/* Search — floats over the band edge */}
       <form
         method="GET"
-        className="mb-8 flex flex-col gap-3 rounded-xl border border-border bg-card p-4 sm:flex-row sm:items-center"
+        className="-mt-8 mb-8 flex flex-col gap-3 rounded-xl border border-border bg-card p-4 shadow-[0_16px_40px_-24px_rgba(2,48,89,0.4)] sm:flex-row sm:items-center"
         role="search"
         aria-label="Search events"
       >
@@ -218,6 +247,7 @@ export default async function EventsPage({
           })}
         </ul>
       )}
+      </div>
     </main>
   );
 }

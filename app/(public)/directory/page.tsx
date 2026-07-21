@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import Image from "next/image";
 import { Search, Building2 } from "lucide-react";
 import { createClient } from "@/lib/supabase/server";
 import {
@@ -43,6 +44,18 @@ export default async function DirectoryPage({
     <main className="flex-1">
       {/* Registry band — the directory's dark signature surface */}
       <header className="art-on-petroleum relative overflow-hidden bg-gradient-to-br from-petroleum-deep via-petroleum to-[#03427a] text-white">
+        <div
+          aria-hidden
+          className="pointer-events-none absolute inset-y-0 right-0 w-2/3 opacity-25 [mask-image:linear-gradient(to_left,black,transparent)]"
+        >
+          <Image
+            src="/photos/network-harbour.jpg"
+            alt=""
+            fill
+            sizes="66vw"
+            className="object-cover grayscale"
+          />
+        </div>
         <div
           aria-hidden
           className="pointer-events-none absolute inset-x-0 bottom-0 h-24 [mask-image:linear-gradient(to_top,black,transparent)]"
