@@ -67,14 +67,8 @@ function SectionHeading({
 }) {
   return (
     <div className="mx-auto max-w-2xl text-center">
-      <p className="inline-flex items-center gap-2 text-[11px] font-semibold uppercase tracking-[0.25em] text-emerald-deeper dark:text-emerald-brand">
-        <span aria-hidden className="relative inline-block size-3">
-          <BrandArt seed="truvis-hero" variant="medallion" rings={1} accent="emerald" />
-        </span>
+      <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-emerald-deeper dark:text-emerald-brand">
         {eyebrow}
-        <span aria-hidden className="relative inline-block size-3">
-          <BrandArt seed="truvis-hero" variant="medallion" rings={1} accent="emerald" />
-        </span>
       </p>
       <h2 className="mt-3 font-display text-2xl font-bold tracking-tight text-petroleum dark:text-foreground sm:text-3xl">
         {title}
@@ -320,10 +314,7 @@ export function HowItWorks() {
     <section aria-labelledby="how-title" className="border-t border-border">
       <div className="mx-auto grid max-w-7xl items-center gap-12 px-6 py-16 lg:grid-cols-2 lg:px-8">
         <div>
-          <p className="inline-flex items-center gap-2 text-[11px] font-semibold uppercase tracking-[0.25em] text-emerald-deeper dark:text-emerald-brand">
-            <span aria-hidden className="relative inline-block size-3">
-              <BrandArt seed="truvis-hero" variant="medallion" rings={1} accent="emerald" />
-            </span>
+          <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-emerald-deeper dark:text-emerald-brand">
             How admission works
           </p>
           <h2
@@ -441,19 +432,5 @@ export function PhotoBand() {
         </Button>
       </div>
     </section>
-  );
-}
-
-/* ------------------------- Hub section heading -------------------------- */
-
-export function LiveNetworkHeading() {
-  return (
-    <div className="mx-auto max-w-7xl px-6 pt-12 lg:px-8">
-      <SectionHeading
-        eyebrow="Live from the network"
-        title="The register, right now"
-        copy="Real posts, events and opportunities from verified organizations — updated continuously."
-      />
-    </div>
   );
 }

@@ -225,41 +225,6 @@ h1, h2, h3, .font-display {
   }
 }
 
-/* Live network ticker: duplicated content scrolls; static row when reduced. */
-.ticker {
-  overflow: hidden;
-  -webkit-mask-image: linear-gradient(90deg, transparent, black 5%, black 95%, transparent);
-  mask-image: linear-gradient(90deg, transparent, black 5%, black 95%, transparent);
-}
-
-.ticker-track {
-  display: inline-flex;
-  white-space: nowrap;
-}
-
-.ticker-track > * {
-  flex-shrink: 0;
-}
-
-@media (prefers-reduced-motion: no-preference) {
-  @keyframes ticker-scroll {
-    from { transform: translateX(0); }
-    to { transform: translateX(-50%); }
-  }
-  .ticker-track {
-    animation: ticker-scroll 45s linear infinite;
-  }
-  .ticker:hover .ticker-track {
-    animation-play-state: paused;
-  }
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .ticker-track > [data-ticker-copy] {
-    display: none;
-  }
-}
-
 /* Pressed-paper emboss for seals and ledger numerals. */
 .embossed {
   box-shadow:
