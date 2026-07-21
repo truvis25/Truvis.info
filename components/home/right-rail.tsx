@@ -65,7 +65,7 @@ export function OrgSpotlight({
   signedIn: boolean;
 }) {
   return (
-    <RailModule title="Verified organizations" moreHref="/directory" moreLabel={`Browse all ${orgCount} →`}>
+    <RailModule title="Businesses to follow" moreHref="/directory" moreLabel={`Browse all ${orgCount} →`}>
       <ul>
         {orgs.map((org) => (
           <li key={org.slug} className="flex items-center gap-3 px-4 py-3">
