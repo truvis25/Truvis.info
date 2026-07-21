@@ -233,10 +233,8 @@ export function NetworkLedger({
   ];
   return (
     <Card className="p-4">
-      <p className="flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.2em] text-emerald-dark">
-        <span aria-hidden className="relative inline-block size-3.5">
-          <BrandArt seed="truvis-hero" variant="medallion" rings={1} accent="emerald" />
-        </span>
+      <p className="flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.16em] text-emerald-dark">
+        <span aria-hidden className="h-3.5 w-1 rounded-full bg-emerald-brand" />
         Network ledger
       </p>
       <dl className="mt-2 flex flex-col divide-y divide-border/60">

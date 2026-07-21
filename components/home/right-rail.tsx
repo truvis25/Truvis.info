@@ -34,10 +34,8 @@ function RailModule({
   return (
     <Card className="p-0">
       <div className="flex items-center justify-between px-4 pb-2 pt-4">
-        <h2 className="flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.2em] text-emerald-dark">
-          <span aria-hidden className="relative inline-block size-3.5">
-            <BrandArt seed="truvis-hero" variant="medallion" rings={1} accent="emerald" />
-          </span>
+        <h2 className="flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.16em] text-emerald-dark">
+          <span aria-hidden className="h-3.5 w-1 rounded-full bg-emerald-brand" />
           {title}
         </h2>
         <Link
