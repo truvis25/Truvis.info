@@ -1,11 +1,5 @@
 import Link from "next/link";
-import {
-  ShieldCheck,
-  ArrowRight,
-  Building2,
-  CalendarDays,
-  Handshake,
-} from "lucide-react";
+import { ShieldCheck, ArrowRight } from "lucide-react";
 import { createClient } from "@/lib/supabase/server";
 import { getManagedOrg } from "@/lib/orgs/queries";
 import { getHomeData } from "@/lib/home/data";
@@ -40,7 +34,6 @@ import {
   PillarTriptych,
   HowItWorks,
   PhotoBand,
-  LiveNetworkHeading,
 } from "@/components/home/showcase";
 
 export const dynamic = "force-dynamic";
@@ -226,26 +219,7 @@ export default async function Home({
                 private-deal marketplace — open only to organizations in
                 continuous good standing on Truvis Compliance.
               </p>
-              {/* The three registers, named up front */}
-              <nav aria-label="Platform sections" className="mt-5 flex flex-wrap gap-2">
-                {(
-                  [
-                    ["/directory", "Directory", Building2],
-                    ["/events", "Events", CalendarDays],
-                    ["/marketplace", "Marketplace", Handshake],
-                  ] as const
-                ).map(([href, label, Icon]) => (
-                  <Link
-                    key={href}
-                    href={href}
-                    className="inline-flex items-center gap-2 rounded-full border border-white/20 bg-white/5 px-3.5 py-1.5 text-sm font-medium text-white/85 transition-colors hover:border-emerald-brand/60 hover:bg-emerald-brand/10 hover:text-white"
-                  >
-                    <Icon className="size-4 text-emerald-brand" aria-hidden />
-                    {label}
-                  </Link>
-                ))}
-              </nav>
-              <div className="mt-6 flex flex-wrap gap-3">
+              <div className="mt-7 flex flex-wrap gap-3">
                 <Button asChild size="lg">
                   <Link href="/signup">
                     Join the network
@@ -329,7 +303,6 @@ export default async function Home({
           />
           <HowItWorks />
           <PhotoBand />
-          <LiveNetworkHeading />
         </>
       ) : null}
 
@@ -379,14 +352,19 @@ export default async function Home({
 
         {/* Center feed */}
         <div className="order-1 flex min-w-0 flex-col gap-4 lg:order-2">
-          <div className="flex items-center justify-between px-1">
-            <FeedHeading className="flex items-center gap-2 font-display text-sm font-bold uppercase tracking-[0.16em] text-petroleum dark:text-foreground">
-              <span aria-hidden className="h-4 w-1 rounded-full bg-emerald-brand" />
-              Network activity
-            </FeedHeading>
+          <div className="flex items-end justify-between gap-3 px-1">
+            <div>
+              <FeedHeading className="flex items-center gap-2 font-display text-sm font-bold uppercase tracking-[0.16em] text-petroleum dark:text-foreground">
+                <span aria-hidden className="h-4 w-1 rounded-full bg-emerald-brand" />
+                Network activity
+              </FeedHeading>
+              <p className="mt-1 text-xs text-muted-foreground">
+                Live posts, events and opportunities from verified organizations.
+              </p>
+            </div>
             <Link
               href="/feed"
-              className="link-engraved text-xs font-semibold text-emerald-deeper dark:text-emerald-brand"
+              className="link-engraved shrink-0 text-xs font-semibold text-emerald-deeper dark:text-emerald-brand"
             >
               Full feed →
             </Link>

@@ -434,17 +434,3 @@ export function PhotoBand() {
     </section>
   );
 }
-
-/* ------------------------- Hub section heading -------------------------- */
-
-export function LiveNetworkHeading() {
-  return (
-    <div className="mx-auto max-w-7xl px-6 pt-12 lg:px-8">
-      <SectionHeading
-        eyebrow="Live from the network"
-        title="The register, right now"
-        copy="Real posts, events and opportunities from verified organizations — updated continuously."
-      />
-    </div>
-  );
-}
