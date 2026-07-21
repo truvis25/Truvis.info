@@ -21,7 +21,6 @@ export async function getHomeData(supabase: SupabaseClient): Promise<HomeData> {
   const [
     { count: orgCount },
     { count: eventCount },
-    { count: listingCount },
     { data: posts },
     { data: orgs },
     { data: orgMeta },
@@ -33,10 +32,6 @@ export async function getHomeData(supabase: SupabaseClient): Promise<HomeData> {
       .from("events")
       .select("*", { count: "exact", head: true })
       .eq("status", "published"),
-    supabase
-      .from("marketplace_listings")
-      .select("*", { count: "exact", head: true })
-      .eq("status", "active"),
     supabase
       .from("posts")
       .select(
@@ -78,13 +73,18 @@ export async function getHomeData(supabase: SupabaseClient): Promise<HomeData> {
     })
     .filter((row): row is MemberOrg => row !== null);
 
+  // Anon has no table grant on marketplace_listings (a HEAD count 401s), so
+  // the listing count comes from the RPC result — it returns exactly the
+  // active listings the caller may see.
+  const allListings = (listings ?? []) as PublicListing[];
+
   return {
     orgCount: orgCount ?? 0,
     eventCount: eventCount ?? 0,
-    listingCount: listingCount ?? 0,
+    listingCount: allListings.length,
     posts: (posts ?? []) as unknown as FeedPost[],
     members,
     events: (events ?? []) as unknown as HomeEvent[],
-    listings: ((listings ?? []) as PublicListing[]).slice(0, 4),
+    listings: allListings.slice(0, 4),
   };
 }
