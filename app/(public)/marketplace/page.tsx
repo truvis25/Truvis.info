@@ -43,20 +43,51 @@ export default async function MarketplacePage({
 
   return (
     <main className="mx-auto w-full max-w-5xl flex-1 px-6 py-14 lg:px-12">
-      <header className="mb-6 max-w-2xl">
-        <h1 className="font-display text-3xl font-bold tracking-tight text-petroleum dark:text-foreground">
-          Marketplace
-        </h1>
-        <p className="mt-2 text-muted-foreground">
-          Opportunities from compliance-verified organizations. Identities and
-          full details unlock with a subscription and the seller&apos;s
-          approval — some sellers choose to disclose their identity up front.
-        </p>
-        <Button asChild variant="link" className="mt-1 px-0">
-          <Link href="/pricing">
-            Get access <ArrowRight aria-hidden />
-          </Link>
-        </Button>
+      <header className="mb-6 flex flex-wrap items-end justify-between gap-6">
+        <div className="max-w-2xl">
+          <h1 className="font-display text-3xl font-bold tracking-tight text-petroleum dark:text-foreground">
+            Marketplace
+          </h1>
+          <p className="mt-2 text-muted-foreground">
+            Opportunities from compliance-verified organizations. Identities and
+            full details unlock with a subscription and the seller&apos;s
+            approval — some sellers choose to disclose their identity up front.
+          </p>
+          <Button asChild variant="link" className="link-engraved mt-1 px-0">
+            <Link href="/pricing">
+              Get access <ArrowRight aria-hidden />
+            </Link>
+          </Button>
+        </div>
+        {/* Type triptych — engraved quick filters */}
+        <nav aria-label="Filter by opportunity type" className="flex gap-2">
+          {(
+            [
+              ["fundraise", "Raise", "text-emerald-deeper dark:text-emerald-brand border-emerald-brand/40 bg-emerald-brand/5"],
+              ["equity_sale", "Equity", "text-cyan-700 dark:text-cyan-accent border-cyan-accent/40 bg-cyan-accent/5"],
+              ["business_sale", "Sale", "text-petroleum dark:text-foreground border-petroleum/30 bg-petroleum/5"],
+            ] as const
+          ).map(([value, label, tint]) => (
+            <Link
+              key={value}
+              href={type === value ? "/marketplace" : `/marketplace?type=${value}`}
+              aria-pressed={type === value}
+              className={`embossed inline-flex flex-col items-center gap-1 rounded-xl border px-4 py-2.5 text-xs font-semibold transition-transform motion-safe:hover:-translate-y-0.5 ${tint} ${
+                type === value ? "ring-2 ring-ring" : ""
+              }`}
+            >
+              <span aria-hidden className="relative inline-block size-5">
+                <BrandArt
+                  seed={`truvis-${value}`}
+                  variant="medallion"
+                  rings={2}
+                  accent={value === "equity_sale" ? "cyan" : "emerald"}
+                />
+              </span>
+              {label}
+            </Link>
+          ))}
+        </nav>
       </header>
 
       {trial ? (
@@ -135,7 +166,7 @@ export default async function MarketplacePage({
       ) : (
         <ul className="flex flex-col gap-4">
           {list.map((listing) => (
-            <li key={listing.id}>
+            <li key={listing.id} className="reveal">
               <ListingCard listing={listing} />
             </li>
           ))}

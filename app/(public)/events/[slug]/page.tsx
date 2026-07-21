@@ -5,7 +5,7 @@ import { notFound } from "next/navigation";
 import { ExternalLink } from "lucide-react";
 import { createClient } from "@/lib/supabase/server";
 import { registerForEvent, cancelRegistration } from "@/lib/events/actions";
-import { VerifiedBadge } from "@/components/ui/badge";
+import { VerifiedBadge, SealBadge } from "@/components/ui/badge";
 import { BrandArt } from "@/components/brand-art";
 
 export const dynamic = "force-dynamic";
@@ -107,7 +107,7 @@ export default async function EventPage({
       {/* Engraved header band: real banner when set, generative plate otherwise */}
       <div className="art-on-petroleum relative mt-6 h-40 overflow-hidden rounded-2xl bg-gradient-to-br from-petroleum-deep via-petroleum to-[#03427a] shadow-[inset_0_0_0_1px_rgba(255,255,255,0.12)] sm:h-52">
         {event.banner_url ? (
-          <>
+          <div className="duotone absolute inset-0">
             <Image
               src={event.banner_url}
               alt=""
@@ -115,14 +115,20 @@ export default async function EventPage({
               sizes="(min-width: 768px) 768px, 100vw"
               className="object-cover opacity-80"
             />
+            <div aria-hidden className="duotone-overlay" />
             <div
               className="absolute inset-0 bg-gradient-to-t from-petroleum-deep/60 to-transparent"
               aria-hidden
             />
-          </>
+          </div>
         ) : (
-          <BrandArt seed={event.slug} variant="event" />
+          <BrandArt seed={event.slug} variant="event" draw />
         )}
+        {!isLuma && event.organizations ? (
+          <div className="absolute right-4 top-4">
+            <SealBadge seed={event.organizations.slug} className="bg-white/90 dark:bg-card/90" />
+          </div>
+        ) : null}
         <div aria-hidden className="rule-engraved absolute inset-x-0 bottom-0" />
       </div>
 

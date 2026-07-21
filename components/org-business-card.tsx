@@ -5,6 +5,25 @@ import { Card } from "@/components/ui/card";
 import { Badge, VerifiedBadge } from "@/components/ui/badge";
 import { RatingStars } from "@/components/ui/rating-stars";
 import { BrandArt } from "@/components/brand-art";
+import { fnv1a } from "@/lib/brand-art";
+import { cn } from "@/lib/utils";
+
+// Deterministic sector tint: each industry gets a subconscious color code
+// drawn from the existing brand trio.
+const SECTOR_TINTS = [
+  {
+    cover: "bg-gradient-to-r from-petroleum-deep via-petroleum to-emerald-deeper",
+    ring: "group-hover:ring-emerald-brand/40",
+  },
+  {
+    cover: "bg-gradient-to-r from-petroleum-deep via-petroleum to-[#0891b2]",
+    ring: "group-hover:ring-cyan-accent/40",
+  },
+  {
+    cover: "bg-gradient-to-r from-petroleum-deep via-petroleum to-[#03427a]",
+    ring: "group-hover:ring-white/30",
+  },
+] as const;
 
 // Row shape returned by the search_orgs RPC (directory + home featured strip).
 export type DirectoryOrg = {
@@ -36,12 +55,18 @@ export function OrgBusinessCard({ org }: { org: DirectoryOrg }) {
   const chips = [org.jurisdiction, org.industry_code, org.size_band].filter(
     (chip): chip is string => Boolean(chip),
   );
+  const tint = SECTOR_TINTS[fnv1a(org.industry_code ?? org.slug) % 3];
   return (
     <Link href={`/orgs/${org.slug}`} className="group block h-full">
       <Card className="flex h-full flex-col overflow-hidden transition duration-200 group-hover:-translate-y-1 group-hover:shadow-[0_16px_40px_-16px_rgba(2,48,89,0.35)]">
-        <div className="art-on-petroleum relative h-20 shrink-0 bg-gradient-to-r from-petroleum-deep via-petroleum to-[#03427a] shadow-[inset_0_0_0_1px_rgba(255,255,255,0.12)] transition-shadow duration-300 group-hover:shadow-[inset_0_0_0_1px_rgba(255,255,255,0.22)]">
+        <div
+          className={cn(
+            "art-on-petroleum relative h-20 shrink-0 shadow-[inset_0_0_0_1px_rgba(255,255,255,0.12)] transition-shadow duration-300 group-hover:shadow-[inset_0_0_0_1px_rgba(255,255,255,0.22)]",
+            tint.cover,
+          )}
+        >
           {org.cover_url ? (
-            <>
+            <div className="duotone absolute inset-0">
               <Image
                 src={org.cover_url}
                 alt=""
@@ -49,8 +74,9 @@ export function OrgBusinessCard({ org }: { org: DirectoryOrg }) {
                 sizes="(min-width: 1024px) 360px, (min-width: 640px) 50vw, 100vw"
                 className="object-cover opacity-80"
               />
+              <div aria-hidden className="duotone-overlay" />
               <div className="absolute inset-0 bg-gradient-to-t from-petroleum-deep/60 to-transparent" />
-            </>
+            </div>
           ) : (
             <BrandArt
               seed={org.slug}
@@ -67,7 +93,10 @@ export function OrgBusinessCard({ org }: { org: DirectoryOrg }) {
               alt=""
               width={56}
               height={56}
-              className="size-14 rounded-lg bg-card object-contain shadow-md ring-4 ring-card"
+              className={cn(
+                "size-14 rounded-lg bg-card object-contain shadow-md ring-4 ring-card transition-shadow duration-300",
+                tint.ring,
+              )}
             />
           ) : (
             <span className="art-on-petroleum relative flex size-14 items-center justify-center overflow-hidden rounded-lg bg-gradient-to-br from-petroleum to-petroleum-deep font-display text-lg font-bold text-white shadow-md ring-4 ring-card">

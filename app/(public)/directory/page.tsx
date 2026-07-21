@@ -40,21 +40,39 @@ export default async function DirectoryPage({
   const jurisdictions = [...new Set((allVisible ?? []).map((o) => o.jurisdiction).filter(Boolean))] as string[];
 
   return (
-    <main className="mx-auto w-full max-w-7xl flex-1 px-6 py-14 lg:px-12">
-      <header className="mb-8 max-w-2xl">
-        <h1 className="font-display text-3xl font-bold tracking-tight text-petroleum dark:text-foreground">
-          Business Directory
-        </h1>
-        <p className="mt-2 text-muted-foreground">
-          {list.length} verified organization{list.length === 1 ? "" : "s"} —
-          every listing continuously vetted through Truvis Compliance.
-        </p>
+    <main className="flex-1">
+      {/* Registry band — the directory's dark signature surface */}
+      <header className="art-on-petroleum relative overflow-hidden bg-gradient-to-br from-petroleum-deep via-petroleum to-[#03427a] text-white">
+        <div
+          aria-hidden
+          className="pointer-events-none absolute inset-x-0 bottom-0 h-24 [mask-image:linear-gradient(to_top,black,transparent)]"
+        >
+          <BrandArt seed="truvis-registry" variant="horizon" draw />
+        </div>
+        <div className="relative mx-auto flex max-w-7xl flex-wrap items-end justify-between gap-6 px-6 pb-16 pt-12 lg:px-12">
+          <div className="max-w-2xl">
+            <h1 className="font-display text-3xl font-bold tracking-tight">
+              Business Directory
+            </h1>
+            <p className="mt-2 text-white/70">
+              Every listing continuously vetted through Truvis Compliance.
+            </p>
+          </div>
+          <p className="font-display text-6xl font-extrabold tabular-nums text-emerald-brand">
+            {list.length}
+            <span className="ml-3 align-middle text-xs font-semibold uppercase tracking-[0.2em] text-white/60">
+              on the register
+            </span>
+          </p>
+        </div>
+        <div aria-hidden className="rule-engraved absolute inset-x-0 bottom-0" />
       </header>
 
-      {/* Search & facets */}
+      <div className="mx-auto w-full max-w-7xl px-6 pb-14 lg:px-12">
+      {/* Search & facets — floats over the registry band edge */}
       <form
         method="GET"
-        className="mb-10 flex flex-col gap-3 rounded-xl border border-border bg-card p-4 sm:flex-row sm:items-center"
+        className="-mt-8 mb-10 flex flex-col gap-3 rounded-xl border border-border bg-card p-4 shadow-[0_16px_40px_-24px_rgba(2,48,89,0.4)] sm:flex-row sm:items-center"
         role="search"
         aria-label="Search the directory"
       >
@@ -106,12 +124,13 @@ export default async function DirectoryPage({
       ) : (
         <ul className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
           {list.map((org) => (
-            <li key={org.slug}>
+            <li key={org.slug} className="reveal">
               <OrgBusinessCard org={org} />
             </li>
           ))}
         </ul>
       )}
+      </div>
     </main>
   );
 }

@@ -2,6 +2,7 @@ import * as React from "react";
 import { cva, type VariantProps } from "class-variance-authority";
 import { ShieldCheck } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { BrandArt } from "@/components/brand-art";
 
 const badgeVariants = cva(
   "inline-flex items-center gap-1 rounded-full px-2.5 py-0.5 text-xs font-semibold w-fit whitespace-nowrap [&_svg]:size-3",
@@ -50,4 +51,45 @@ function VerifiedBadge({ className, long = false }: { className?: string; long?:
   );
 }
 
-export { Badge, VerifiedBadge, badgeVariants };
+// Wax-seal verification stamp for hero surfaces (org headers, certificates,
+// event bands). The rosette is the entity's own engraving fingerprint.
+function SealBadge({
+  seed,
+  size = "md",
+  className,
+}: {
+  seed: string;
+  size?: "md" | "lg";
+  className?: string;
+}) {
+  return (
+    <span
+      title="Verified via Truvis Compliance"
+      className={cn(
+        "embossed relative inline-flex shrink-0 -rotate-6 items-center justify-center overflow-hidden rounded-full bg-card transition-transform duration-300 motion-safe:hover:rotate-0",
+        size === "md" ? "size-16" : "size-20",
+        className,
+      )}
+    >
+      <span
+        aria-hidden
+        className="absolute inset-0 rounded-full opacity-[0.08]"
+        style={{
+          background:
+            "conic-gradient(from 0deg, var(--emerald), var(--cyan-accent), var(--emerald))",
+        }}
+      />
+      <BrandArt seed={seed} variant="medallion" rings={3} accent="emerald" />
+      <ShieldCheck
+        aria-hidden
+        className={cn(
+          "relative z-10 text-emerald-deeper dark:text-emerald-brand",
+          size === "md" ? "size-5" : "size-6",
+        )}
+      />
+      <span className="sr-only">Verified via Truvis Compliance</span>
+    </span>
+  );
+}
+
+export { Badge, VerifiedBadge, SealBadge, badgeVariants };

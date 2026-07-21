@@ -164,6 +164,7 @@ export default async function Home() {
             <BrandArt
               seed="truvis-hero"
               variant="hero"
+              draw
               className="origin-center motion-safe:animate-[spin_240s_linear_infinite]"
             />
           </div>
@@ -171,7 +172,7 @@ export default async function Home() {
             aria-hidden
             className="pointer-events-none absolute inset-x-0 bottom-0 h-24 [mask-image:linear-gradient(to_top,black,transparent)]"
           >
-            <BrandArt seed="truvis-hero" variant="horizon" />
+            <BrandArt seed="truvis-hero" variant="horizon" draw />
           </div>
           <div className="relative mx-auto flex max-w-7xl flex-col gap-8 px-6 py-12 lg:flex-row lg:items-end lg:justify-between lg:px-8 lg:py-16">
             <div>
@@ -221,6 +222,54 @@ export default async function Home() {
           </div>
           <div aria-hidden className="rule-engraved absolute inset-x-0 bottom-0" />
         </section>
+      ) : null}
+
+      {/* Live network ticker — one ambient loop, pauses on hover */}
+      {!signedIn ? (
+        <div className="ticker border-b border-border bg-background py-2">
+          <div className="ticker-track">
+            {[undefined, "copy"].map((copy) => (
+              <div
+                key={copy ?? "primary"}
+                aria-hidden={copy ? true : undefined}
+                data-ticker-copy={copy}
+                className="flex items-center gap-6 pr-6 text-xs font-medium text-muted-foreground"
+              >
+                <span className="pl-6">
+                  {data.orgCount} verified organization{data.orgCount === 1 ? "" : "s"} on the register
+                </span>
+                <span aria-hidden className="relative inline-block size-3 shrink-0">
+                  <BrandArt seed="truvis-hero" variant="medallion" rings={1} accent="emerald" />
+                </span>
+                {upcomingSorted[0] ? (
+                  <>
+                    <span>
+                      Next event: {upcomingSorted[0].title} —{" "}
+                      {new Date(upcomingSorted[0].starts_at).toLocaleDateString("en-GB", { dateStyle: "medium" })}
+                    </span>
+                    <span aria-hidden className="relative inline-block size-3 shrink-0">
+                      <BrandArt seed="truvis-hero" variant="medallion" rings={1} accent="cyan" />
+                    </span>
+                  </>
+                ) : null}
+                {data.listings[0] ? (
+                  <>
+                    <span>Latest opportunity: {data.listings[0].teaser_headline}</span>
+                    <span aria-hidden className="relative inline-block size-3 shrink-0">
+                      <BrandArt seed="truvis-hero" variant="medallion" rings={1} accent="emerald" />
+                    </span>
+                  </>
+                ) : null}
+                <span className="text-emerald-deeper dark:text-emerald-brand">
+                  Admissions open — claim your verified profile
+                </span>
+                <span aria-hidden className="relative inline-block size-3 shrink-0">
+                  <BrandArt seed="truvis-hero" variant="medallion" rings={1} accent="cyan" />
+                </span>
+              </div>
+            ))}
+          </div>
+        </div>
       ) : null}
 
       {/* Hub grid */}
@@ -311,8 +360,18 @@ export default async function Home() {
                 <NoticeCard />
               </li>
             ) : null}
-            {feed.map((item) => (
-              <li key={`${item.kind}-${item.kind === "post" ? item.data.id : item.kind === "listing" ? item.data.id : item.data.slug}`}>
+            {feed.map((item, index) => (
+              <li
+                key={`${item.kind}-${item.kind === "post" ? item.data.id : item.kind === "listing" ? item.data.id : item.data.slug}`}
+                className="reveal relative"
+              >
+                {/* Engraved edition numeral in the ledger margin */}
+                <span
+                  aria-hidden
+                  className="ledger-numeral absolute -left-14 top-4 hidden select-none font-display text-xl font-extrabold tracking-tight xl:block"
+                >
+                  {`No. ${String(index + 1).padStart(2, "0")}`}
+                </span>
                 <article>
                   <FeedItemCard
                     item={item}
@@ -340,7 +399,10 @@ export default async function Home() {
               <span className="absolute left-1/2 top-1/2 size-2 -translate-x-1/2 -translate-y-1/2 rounded-full bg-emerald-brand/20 ring-1 ring-emerald-brand/40" />
             </div>
             <p className="mt-4 text-xs text-muted-foreground">
-              End of current edition — {data.orgCount} organization
+              {feed[0]?.ts
+                ? `Edition of ${new Date(feed[0].ts).toLocaleDateString("en-GB", { dateStyle: "long" })} — `
+                : "End of current edition — "}
+              {data.orgCount} organization
               {data.orgCount === 1 ? "" : "s"} on the register ·{" "}
               <Link href="/feed" className="link-engraved font-semibold text-emerald-deeper dark:text-emerald-brand">
                 Full feed →

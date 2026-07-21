@@ -38,12 +38,16 @@ export function BrandArt({
   variant,
   rings = 3,
   accent = "line",
+  draw = false,
   className,
 }: {
   seed: string;
   variant: Variant;
   rings?: 1 | 2 | 3;
   accent?: keyof typeof ACCENT_VAR;
+  // Animates the engraving as a pen stroke on load (CSS-only, motion-safe;
+  // renders fully drawn when reduced motion is preferred).
+  draw?: boolean;
   className?: string;
 }) {
   const p = params(seed);
@@ -84,6 +88,7 @@ export function BrandArt({
           <path
             key={i}
             d={d}
+            pathLength={1}
             fill="none"
             strokeLinecap="round"
             vectorEffect="non-scaling-stroke"
@@ -119,6 +124,7 @@ export function BrandArt({
           <path
             key={i}
             d={d}
+            pathLength={1}
             fill="none"
             strokeLinecap="round"
             vectorEffect="non-scaling-stroke"
@@ -151,6 +157,7 @@ export function BrandArt({
           <path
             key={i}
             d={d}
+            pathLength={1}
             fill="none"
             strokeLinecap="round"
             vectorEffect="non-scaling-stroke"
@@ -187,6 +194,7 @@ export function BrandArt({
           <path
             key={i}
             d={d}
+            pathLength={1}
             fill="none"
             strokeLinecap="round"
             vectorEffect="non-scaling-stroke"
@@ -216,6 +224,7 @@ export function BrandArt({
           <path
             key={i}
             d={d}
+            pathLength={1}
             fill="none"
             strokeLinecap="round"
             vectorEffect="non-scaling-stroke"
@@ -235,6 +244,7 @@ export function BrandArt({
       focusable="false"
       className={cn(
         "pointer-events-none absolute inset-0 h-full w-full",
+        draw && "art-draw",
         className,
       )}
     >
