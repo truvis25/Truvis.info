@@ -157,7 +157,7 @@ export default async function ListingPage({
       {detail ? (
         <section className="mt-8 flex flex-col gap-6">
           <div className="rounded-2xl border border-emerald-200 p-6 dark:border-emerald-900">
-            <p className="text-xs font-medium uppercase tracking-widest text-emerald-dark">
+            <p className="text-xs font-semibold uppercase tracking-[0.16em] text-emerald-dark">
               Full detail unlocked
             </p>
             <h2 className="mt-2 text-xl font-semibold">
@@ -207,7 +207,10 @@ export default async function ListingPage({
           </div>
 
           <div className="rounded-2xl border border-border p-6">
-            <h3 className="font-display font-semibold">Messages with the seller</h3>
+            <h3 className="flex items-center gap-2.5 font-display font-semibold">
+              <span aria-hidden className="h-4 w-1 shrink-0 rounded-full bg-emerald-brand" />
+              Messages with the seller
+            </h3>
             <ul className="mt-4 flex flex-col gap-3">
               {messages.map((message) => (
                 <li
@@ -271,7 +274,10 @@ export default async function ListingPage({
           ) : (
             <form action={applyToReview} className="flex flex-col gap-4">
               <input type="hidden" name="listing_id" value={id} />
-              <h3 className="font-display font-semibold">Apply to review this opportunity</h3>
+              <h3 className="flex items-center gap-2.5 font-display font-semibold">
+                <span aria-hidden className="h-4 w-1 shrink-0 rounded-full bg-emerald-brand" />
+                Apply to review this opportunity
+              </h3>
               <label className="flex flex-col gap-1 text-sm font-medium">
                 Introduce yourself to the seller
                 <textarea
