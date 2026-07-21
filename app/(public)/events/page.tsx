@@ -61,14 +61,30 @@ export default async function EventsPage({
 
   return (
     <main className="mx-auto w-full max-w-5xl flex-1 px-6 py-14 lg:px-12">
-      <header className="mb-8 max-w-2xl">
-        <h1 className="font-display text-3xl font-bold tracking-tight text-petroleum dark:text-foreground">
-          Events
-        </h1>
-        <p className="mt-2 text-muted-foreground">
-          Upcoming events hosted by verified organizations and the Truvis
-          community calendar.
-        </p>
+      <header className="mb-8 flex flex-wrap items-end justify-between gap-6">
+        <div className="max-w-2xl">
+          <h1 className="font-display text-3xl font-bold tracking-tight text-petroleum dark:text-foreground">
+            Events
+          </h1>
+          <p className="mt-2 text-muted-foreground">
+            Upcoming events hosted by verified organizations and the Truvis
+            community calendar.
+          </p>
+        </div>
+        {/* Overlapping medallion cluster — the section's signature mark */}
+        <div aria-hidden className="hidden items-center sm:flex">
+          {["truvis-events-1", "truvis-events-2", "truvis-events-3"].map(
+            (seed, index) => (
+              <span
+                key={seed}
+                className={`relative size-12 overflow-hidden rounded-full border border-border bg-card ${index > 0 ? "-ml-4" : ""}`}
+                style={{ zIndex: 3 - index }}
+              >
+                <BrandArt seed={seed} variant="medallion" rings={3} accent={index === 1 ? "cyan" : "emerald"} />
+              </span>
+            ),
+          )}
+        </div>
       </header>
 
       {/* Search */}
@@ -126,7 +142,7 @@ export default async function EventsPage({
             const date = new Date(event.starts_at);
             const isLuma = event.external_source === "luma";
             return (
-              <li key={event.slug}>
+              <li key={event.slug} className="reveal">
                 <Link href={`/events/${event.slug}`} className="group block">
                   <Card className="overflow-hidden transition-all group-hover:-translate-y-0.5 group-hover:shadow-[0_16px_40px_-16px_rgba(2,48,89,0.25)]">
                     <CardContent className="flex items-stretch gap-5 p-0">
@@ -180,13 +196,16 @@ export default async function EventsPage({
                       {/* Banner thumbnail (real photo) or engraved event plate */}
                       <div className="art-on-petroleum relative hidden w-44 shrink-0 overflow-hidden bg-gradient-to-br from-petroleum-deep via-petroleum to-[#03427a] md:block">
                         {event.banner_url ? (
-                          <Image
-                            src={event.banner_url}
-                            alt=""
-                            fill
-                            sizes="176px"
-                            className="object-cover opacity-85"
-                          />
+                          <div className="duotone absolute inset-0">
+                            <Image
+                              src={event.banner_url}
+                              alt=""
+                              fill
+                              sizes="176px"
+                              className="object-cover opacity-85"
+                            />
+                            <div aria-hidden className="duotone-overlay" />
+                          </div>
                         ) : (
                           <BrandArt seed={event.slug} variant="event" className="opacity-90" />
                         )}

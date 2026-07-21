@@ -1,6 +1,7 @@
 import Link from "next/link";
 import Image from "next/image";
 import { Mail, Globe, ShieldCheck } from "lucide-react";
+import { BrandArt } from "@/components/brand-art";
 
 const linkClass =
   "text-sm text-white/60 hover:text-white transition-colors rounded-sm";
@@ -97,6 +98,17 @@ export function SiteFooter() {
               investment advice, broker transactions, or hold client funds.
             </p>
           </div>
+        </div>
+
+        {/* Colophon — the certificate metaphor closes every page */}
+        <div className="art-on-petroleum mb-8 flex flex-col items-center gap-3">
+          <div aria-hidden className="rule-engraved w-full max-w-md" />
+          <span aria-hidden className="relative -mt-6 inline-flex size-6 items-center justify-center rounded-full bg-petroleum">
+            <BrandArt seed="truvis-hero" variant="medallion" rings={2} accent="emerald" />
+          </span>
+          <p className="text-[10px] font-semibold uppercase tracking-[0.3em] text-gray-500">
+            Printed by the Truvis Registry · Every card verified
+          </p>
         </div>
 
         {/* Bottom bar */}

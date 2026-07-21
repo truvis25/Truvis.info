@@ -13,7 +13,7 @@ import {
 import { createClient } from "@/lib/supabase/server";
 import { MEDIA_BASE } from "@/lib/config";
 import { toggleFollow } from "@/lib/orgs/actions";
-import { VerifiedBadge, Badge } from "@/components/ui/badge";
+import { VerifiedBadge, SealBadge, Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { RatingStars } from "@/components/ui/rating-stars";
@@ -209,12 +209,13 @@ export default async function OrgProfilePage({
       {/* Cover band */}
       <div className="art-on-petroleum relative h-44 bg-gradient-to-r from-petroleum-deep via-petroleum to-[#03427a] shadow-[inset_0_0_0_1px_rgba(255,255,255,0.12)] sm:h-56">
         {org.cover_url ? (
-          <>
+          <div className="duotone absolute inset-0">
             <Image src={org.cover_url} alt="" fill className="object-cover opacity-70" />
+            <div aria-hidden className="duotone-overlay" />
             <div className="absolute inset-0 bg-gradient-to-t from-petroleum-deep/60 to-transparent" aria-hidden />
-          </>
+          </div>
         ) : (
-          <BrandArt seed={org.slug} variant="card" />
+          <BrandArt seed={org.slug} variant="card" draw />
         )}
         <div aria-hidden className="rule-engraved absolute inset-x-0 bottom-0" />
       </div>
@@ -237,11 +238,11 @@ export default async function OrgProfilePage({
               </span>
             )}
             <div className="pb-1">
-              <div className="flex flex-wrap items-center gap-2">
+              <div className="flex flex-wrap items-center gap-3">
                 <h1 className="font-display text-2xl font-bold tracking-tight text-petroleum sm:text-3xl dark:text-foreground">
                   {org.legal_name}
                 </h1>
-                <VerifiedBadge long />
+                <SealBadge seed={org.slug} />
               </div>
               {org.tagline ? (
                 <p className="mt-1 text-muted-foreground">{org.tagline}</p>

@@ -292,7 +292,7 @@ export function FeedItemCard({
         />
         <div className="px-5 pb-4 pt-3">
           {event.banner_url ? (
-            <div className="relative mb-3 h-24 overflow-hidden rounded-lg">
+            <div className="duotone relative mb-3 h-24 overflow-hidden rounded-lg">
               <Image
                 src={event.banner_url}
                 alt=""
@@ -300,6 +300,7 @@ export function FeedItemCard({
                 sizes="640px"
                 className="object-cover"
               />
+              <div aria-hidden className="duotone-overlay" />
             </div>
           ) : null}
           <div className="flex items-center gap-4">
