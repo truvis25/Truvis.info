@@ -45,7 +45,23 @@ import {
 
 export const dynamic = "force-dynamic";
 
-export default async function Home() {
+// LinkedIn-style feed filters: view → feed item kind.
+const FEED_VIEWS = {
+  posts: { kind: "post", label: "Updates", empty: "No updates yet — verified organizations post here." },
+  events: { kind: "event", label: "Events", empty: "No event announcements right now." },
+  deals: { kind: "listing", label: "Deals", empty: "No live opportunities in the feed right now." },
+  members: { kind: "member", label: "New members", empty: "New members are announced here." },
+} as const;
+
+export default async function Home({
+  searchParams,
+}: {
+  searchParams: Promise<{ view?: string }>;
+}) {
+  const { view } = await searchParams;
+  const activeView = (view && view in FEED_VIEWS ? view : "all") as
+    | keyof typeof FEED_VIEWS
+    | "all";
   const supabase = await createClient();
   const {
     data: { user },
@@ -93,6 +109,11 @@ export default async function Home() {
     followedOrgIds,
     nowMs,
   });
+
+  const visibleFeed =
+    activeView === "all"
+      ? feed
+      : feed.filter((item) => item.kind === FEED_VIEWS[activeView].kind);
 
   const managedMember = managedOrg
     ? data.members.find((m) => m.slug === managedOrg.slug)
@@ -324,7 +345,10 @@ export default async function Home() {
       ) : null}
 
       {/* Hub grid */}
-      <section className="mx-auto grid w-full max-w-7xl grid-cols-1 gap-6 px-4 py-8 sm:px-6 lg:grid-cols-[240px_minmax(0,1fr)_320px] lg:items-start lg:px-8">
+      <section
+        id="network"
+        className="mx-auto grid w-full max-w-7xl scroll-mt-20 grid-cols-1 gap-6 px-4 py-8 sm:px-6 lg:grid-cols-[240px_minmax(0,1fr)_320px] lg:items-start lg:px-8"
+      >
         {/* Left rail */}
         <aside aria-label="Your profile" className="order-2 flex flex-col gap-4 lg:order-1 lg:sticky lg:top-20">
           {signedIn ? (
@@ -405,13 +429,38 @@ export default async function Home() {
             )}
           </Card>
 
+          {/* Feed filters — slice the stream like LinkedIn's feed views */}
+          <nav aria-label="Filter the feed" className="flex flex-wrap gap-1.5 px-1">
+            {(
+              [
+                ["all", "All"],
+                ...Object.entries(FEED_VIEWS).map(
+                  ([key, config]) => [key, config.label] as const,
+                ),
+              ] as ReadonlyArray<readonly [string, string]>
+            ).map(([key, label]) => (
+              <Link
+                key={key}
+                href={key === "all" ? "/#network" : `/?view=${key}#network`}
+                aria-current={activeView === key ? "page" : undefined}
+                className={
+                  activeView === key
+                    ? "inline-flex h-7 items-center rounded-full border border-petroleum bg-petroleum px-3 text-xs font-semibold text-white dark:border-emerald-brand dark:bg-emerald-brand dark:text-petroleum-deep"
+                    : "inline-flex h-7 items-center rounded-full border border-border px-3 text-xs font-semibold text-muted-foreground transition-colors hover:bg-secondary hover:text-foreground"
+                }
+              >
+                {label}
+              </Link>
+            ))}
+          </nav>
+
           <ol className="flex flex-col gap-4">
-            {!signedIn ? (
+            {!signedIn && activeView === "all" ? (
               <li>
                 <NoticeCard />
               </li>
             ) : null}
-            {feed.map((item, index) => (
+            {visibleFeed.map((item, index) => (
               <li
                 key={`${item.kind}-${item.kind === "post" ? item.data.id : item.kind === "listing" ? item.data.id : item.data.slug}`}
                 className="reveal relative"
@@ -433,7 +482,22 @@ export default async function Home() {
                 </article>
               </li>
             ))}
-            {feed.length < 6 ? (
+            {activeView !== "all" && visibleFeed.length === 0 ? (
+              <li>
+                <Card className="flex flex-col items-center gap-2 p-8 text-center">
+                  <p className="text-sm text-muted-foreground">
+                    {FEED_VIEWS[activeView].empty}
+                  </p>
+                  <Link
+                    href="/#network"
+                    className="link-engraved text-xs font-semibold text-emerald-deeper dark:text-emerald-brand"
+                  >
+                    Back to the full feed →
+                  </Link>
+                </Card>
+              </li>
+            ) : null}
+            {activeView === "all" && feed.length < 6 ? (
               <>
                 <li><SystemCard variant="founding" /></li>
                 {feed.length < 5 ? (

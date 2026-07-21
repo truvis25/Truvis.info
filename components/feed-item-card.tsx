@@ -237,8 +237,22 @@ export function FeedItemCard({
           }
           chip={KIND_CHIP.member}
         />
-        <div className="px-5 pb-5 pt-3">
+        <div className="px-5 pb-4 pt-3">
           <OrgBusinessCard org={member} />
+        </div>
+        <div className="flex items-center gap-4 border-t border-border/60 px-5 py-2.5 text-xs">
+          <Link
+            href={`/orgs/${member.slug}`}
+            className="link-engraved font-semibold text-emerald-deeper dark:text-emerald-brand"
+          >
+            View business card →
+          </Link>
+          <FollowControl
+            orgId={item.orgId!}
+            orgSlug={member.slug}
+            isFollowing={followedOrgIds.has(item.orgId!)}
+            signedIn={signedIn}
+          />
         </div>
       </Shell>
     );
@@ -386,8 +400,22 @@ export function FeedItemCard({
         }
         chip={{ label: theme.label, cls: theme.badge }}
       />
-      <div className="px-5 pb-5 pt-3">
+      <div className="px-5 pb-4 pt-3">
         <ListingCard listing={listing} embedded />
+      </div>
+      <div className="flex items-center gap-4 border-t border-border/60 px-5 py-2.5 text-xs">
+        <Link
+          href={`/marketplace/${listing.id}`}
+          className="link-engraved font-semibold text-emerald-deeper dark:text-emerald-brand"
+        >
+          Review opportunity →
+        </Link>
+        <Link
+          href="/marketplace"
+          className="link-engraved font-semibold text-muted-foreground"
+        >
+          All deals →
+        </Link>
       </div>
     </Shell>
   );
