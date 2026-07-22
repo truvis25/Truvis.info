@@ -240,7 +240,7 @@ const TRUST_POINTS = [
 
 export function TrustSeal() {
   return (
-    <Card className="art-on-petroleum relative overflow-hidden bg-gradient-to-br from-petroleum-deep via-petroleum to-[#03427a] p-5 text-white">
+    <Card className="art-on-petroleum relative overflow-hidden bg-gradient-to-br from-petroleum-deep via-petroleum to-petroleum-light p-5 text-white">
       <div aria-hidden className="pointer-events-none absolute -bottom-8 -right-8 size-36 opacity-40">
         <BrandArt seed="truvis-trust" variant="medallion" rings={3} accent="emerald" />
       </div>

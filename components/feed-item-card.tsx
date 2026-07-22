@@ -10,16 +10,8 @@ import { OrgBusinessCard } from "@/components/org-business-card";
 import { ListingCard, TYPE_THEME } from "@/components/listing-card";
 import { toggleFollow } from "@/lib/orgs/actions";
 import { formatDate, formatDateTime } from "@/lib/format";
-import { cn } from "@/lib/utils";
+import { cn, initials } from "@/lib/utils";
 import type { FeedItem } from "@/lib/home/feed";
-
-function initials(name: string) {
-  return name
-    .split(/\s+/)
-    .slice(0, 2)
-    .map((word) => word[0]?.toUpperCase() ?? "")
-    .join("");
-}
 
 function ActorAvatar({
   logoUrl,

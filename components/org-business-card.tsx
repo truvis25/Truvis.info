@@ -6,7 +6,7 @@ import { Badge, VerifiedBadge } from "@/components/ui/badge";
 import { RatingStars } from "@/components/ui/rating-stars";
 import { BrandArt } from "@/components/brand-art";
 import { fnv1a } from "@/lib/brand-art";
-import { cn } from "@/lib/utils";
+import { cn, initials } from "@/lib/utils";
 
 // Deterministic sector tint: each industry gets a subconscious color code
 // drawn from the existing brand trio.
@@ -20,7 +20,7 @@ const SECTOR_TINTS = [
     ring: "group-hover:ring-cyan-accent/40",
   },
   {
-    cover: "bg-gradient-to-r from-petroleum-deep via-petroleum to-[#03427a]",
+    cover: "bg-gradient-to-r from-petroleum-deep via-petroleum to-petroleum-light",
     ring: "group-hover:ring-white/30",
   },
 ] as const;
@@ -39,14 +39,6 @@ export type DirectoryOrg = {
   review_count: number;
   follower_count: number;
 };
-
-function initials(name: string) {
-  return name
-    .split(/\s+/)
-    .slice(0, 2)
-    .map((word) => word[0]?.toUpperCase() ?? "")
-    .join("");
-}
 
 // The organization "business card": cover strip, overlapping logo, verified
 // mark, key facts, and social proof (rating + followers). Whole card links

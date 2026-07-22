@@ -17,6 +17,7 @@ import {
   CircleUserRound,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { ThemeToggle } from "@/components/theme-toggle";
 
 const NAV_ITEMS = [
   { href: "/directory", label: "Directory" },
@@ -172,6 +173,7 @@ export function SiteHeaderClient({
 
           {/* Right side */}
           <div className="flex items-center gap-3">
+            <ThemeToggle className="cursor-pointer rounded-md p-2 text-muted-foreground transition-colors hover:bg-secondary hover:text-foreground" />
             {user ? (
               <Dropdown.Root>
                 <Dropdown.Trigger asChild>

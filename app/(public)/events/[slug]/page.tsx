@@ -107,7 +107,7 @@ export default async function EventPage({
       </Link>
 
       {/* Engraved header band: real banner when set, generative plate otherwise */}
-      <div className="art-on-petroleum relative mt-6 h-40 overflow-hidden rounded-2xl bg-gradient-to-br from-petroleum-deep via-petroleum to-[#03427a] shadow-[inset_0_0_0_1px_rgba(255,255,255,0.12)] sm:h-52">
+      <div className="art-on-petroleum relative mt-6 h-40 overflow-hidden rounded-2xl bg-gradient-to-br from-petroleum-deep via-petroleum to-petroleum-light shadow-[inset_0_0_0_1px_rgba(255,255,255,0.12)] sm:h-52">
         {event.banner_url ? (
           <div className="duotone absolute inset-0">
             <Image

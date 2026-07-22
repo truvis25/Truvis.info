@@ -18,6 +18,9 @@ import {
 import { StatusBadge } from "@/components/status-badge";
 import { ConfirmSubmitButton } from "@/components/confirm-submit-button";
 import { formatDate, formatDateTime } from "@/lib/format";
+import { Pagination, pageCountFor, parsePage } from "@/components/pagination";
+
+const ADMIN_ORGS_PAGE_SIZE = 25;
 
 export const metadata: Metadata = { title: "Admin" };
 
@@ -72,9 +75,11 @@ type AuditRow = {
 export default async function AdminPage({
   searchParams,
 }: {
-  searchParams: Promise<{ error?: string; saved?: string }>;
+  searchParams: Promise<{ error?: string; saved?: string; page?: string }>;
 }) {
-  const { error, saved } = await searchParams;
+  const { error, saved, page: pageRaw } = await searchParams;
+  const page = parsePage(pageRaw);
+  const orgsFrom = (page - 1) * ADMIN_ORGS_PAGE_SIZE;
   const supabase = await createClient();
   const {
     data: { user },
@@ -87,14 +92,16 @@ export default async function AdminPage({
     .maybeSingle();
   if (!profile?.platform_admin) redirect("/dashboard");
 
-  const [{ data: orgs }, { data: reports }, { data: subscriptions }, { data: audit }, { data: metrics }] =
+  const [{ data: orgs, count: orgCount }, { data: reports }, { data: subscriptions }, { data: audit }, { data: metrics, error: metricsError }] =
     await Promise.all([
       supabase
         .from("organizations")
         .select(
           "id, slug, legal_name, is_visible, grant_active, admin_suspended, suspension_reason, compliance_status(state, risk_level, score, synced_at)",
+          { count: "exact" },
         )
-        .order("legal_name"),
+        .order("legal_name")
+        .range(orgsFrom, orgsFrom + ADMIN_ORGS_PAGE_SIZE - 1),
       supabase
         .from("content_reports")
         .select(
@@ -141,12 +148,19 @@ export default async function AdminPage({
 
       <Notice error={error} saved={saved} />
 
-      {/* KPI overview (BRD §9) */}
+      {/* KPI overview (BRD §9). A failed metrics RPC shows "—", never fake
+          zeros — an all-zero board must mean a genuinely empty platform. */}
+      {metricsError ? (
+        <p className="rounded-lg border border-amber-500/30 bg-amber-500/5 px-4 py-3 text-sm text-amber-700 dark:text-amber-400">
+          Platform metrics are unavailable ({metricsError.message}); tiles show
+          “—” until the admin_metrics RPC recovers.
+        </p>
+      ) : null}
       <section aria-label="Platform metrics" className="grid grid-cols-2 gap-4 sm:grid-cols-4">
         {kpiTiles.map(([label, key]) => (
           <div key={key} className="rounded-xl border border-border bg-card p-4">
             <p className="font-display text-2xl font-extrabold text-petroleum dark:text-foreground">
-              {kpis[key] ?? 0}
+              {metricsError ? "—" : kpis[key] ?? 0}
             </p>
             <p className="mt-1 text-xs uppercase tracking-wide text-muted-foreground">
               {label}
@@ -158,7 +172,7 @@ export default async function AdminPage({
       {/* Organizations & compliance sync health (DSH-4, ADM-2) */}
       <section className="flex flex-col gap-3">
         <h2 className="font-display text-xl font-bold">
-          Organizations ({orgList.length})
+          Organizations ({orgCount ?? orgList.length})
         </h2>
         {orgList.map((org) => {
           const standing = org.compliance_status;
@@ -216,6 +230,11 @@ export default async function AdminPage({
             </div>
           );
         })}
+        <Pagination
+          page={page}
+          pageCount={pageCountFor(orgCount ?? orgList.length, ADMIN_ORGS_PAGE_SIZE)}
+          basePath="/admin"
+        />
       </section>
 
       {/* Moderation queue (ADM-3) */}

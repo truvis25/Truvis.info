@@ -5,10 +5,14 @@ import { Newspaper } from "lucide-react";
 import { createClient } from "@/lib/supabase/server";
 import { reportPost } from "@/lib/moderation/actions";
 import { formatDate } from "@/lib/format";
+import { Pagination, pageCountFor, parsePage } from "@/components/pagination";
 import { Card } from "@/components/ui/card";
 import { VerifiedBadge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { BrandArt } from "@/components/brand-art";
+import { initials } from "@/lib/utils";
+
+const FEED_PAGE_SIZE = 20;
 
 export const metadata: Metadata = {
   title: "Feed",
@@ -25,40 +29,37 @@ type FeedPost = {
   organizations: { slug: string; legal_name: string; logo_url: string | null };
 };
 
-function initials(name: string) {
-  return name
-    .split(/\s+/)
-    .slice(0, 2)
-    .map((word) => word[0]?.toUpperCase() ?? "")
-    .join("");
-}
-
 export default async function FeedPage({
   searchParams,
 }: {
-  searchParams: Promise<{ reported?: string; error?: string }>;
+  searchParams: Promise<{ reported?: string; error?: string; page?: string }>;
 }) {
-  const { reported, error } = await searchParams;
+  const { reported, error, page: pageRaw } = await searchParams;
+  const page = parsePage(pageRaw);
+  const from = (page - 1) * FEED_PAGE_SIZE;
   const supabase = await createClient();
   const {
     data: { user },
   } = await supabase.auth.getUser();
   // RLS keeps posts of hidden orgs out (POST-2 / DIR-6).
-  const [{ data: posts }, { data: follows }] = await Promise.all([
+  const [{ data: posts, count: postCount }, { data: follows }] = await Promise.all([
     supabase
       .from("posts")
       .select(
         "id, title, body, published_at, org_id, organizations!inner(slug, legal_name, logo_url)",
+        { count: "exact" },
       )
       .eq("status", "published")
       .order("published_at", { ascending: false })
-      .limit(50),
+      .range(from, from + FEED_PAGE_SIZE - 1),
     user
       ? supabase.from("org_follows").select("org_id").eq("user_id", user.id)
       : Promise.resolve({ data: [] as Array<{ org_id: string }> }),
   ]);
 
-  // Followed organizations first (POST-2), then newest.
+  const pageCount = pageCountFor(postCount ?? 0, FEED_PAGE_SIZE);
+
+  // Followed organizations first within the page (POST-2), then newest.
   const followedIds = new Set((follows ?? []).map((f) => f.org_id));
   const list = ((posts ?? []) as unknown as (FeedPost & { org_id: string })[]).sort(
     (a, b) => Number(followedIds.has(b.org_id)) - Number(followedIds.has(a.org_id)),
@@ -194,6 +195,7 @@ export default async function FeedPage({
           })}
         </ul>
       )}
+      <Pagination page={page} pageCount={pageCount} basePath="/feed" />
     </main>
   );
 }

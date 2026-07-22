@@ -1,5 +1,10 @@
 @import "tailwindcss";
 
+/* dark: utilities follow the .dark class (set by the theme script/toggle),
+   not the OS media query — the script mirrors the OS preference when the
+   user hasn't chosen, so "system" still works. */
+@custom-variant dark (&:where(.dark, .dark *));
+
 /* ---------------------------------------------------------------------------
    TRUVIS design tokens — extracted from hub.truvis.ae (JurisdictionDecisionHub
    src/styles/theme.css, "TRUVIS Brand Colors - STRICT")
@@ -8,6 +13,7 @@
   /* Brand */
   --petroleum: #023059;
   --petroleum-deep: #01203f;
+  --petroleum-light: #03427a;
   --emerald: #10b981;
   --emerald-dark: #059669;
   --emerald-deeper: #047857;
@@ -74,6 +80,7 @@
   --color-ring: var(--ring);
   --color-petroleum: var(--petroleum);
   --color-petroleum-deep: var(--petroleum-deep);
+  --color-petroleum-light: var(--petroleum-light);
   --color-emerald-brand: var(--emerald);
   --color-emerald-dark: var(--emerald-dark);
   --color-emerald-deeper: var(--emerald-deeper);
@@ -84,28 +91,6 @@
   --radius-md: var(--radius);
   --radius-lg: calc(var(--radius) + 4px);
   --radius-xl: calc(var(--radius) + 8px);
-}
-
-@media (prefers-color-scheme: dark) {
-  :root:not(.light) {
-    --background: #0b1220;
-    --foreground: #e7ecf3;
-    --card: #101a2c;
-    --card-foreground: #e7ecf3;
-    --primary: #e7ecf3;
-    --primary-foreground: #0b1220;
-    --secondary: #16233a;
-    --secondary-foreground: #e7ecf3;
-    --muted: #131e33;
-    --muted-foreground: #94a3b8;
-    --accent: #10b981;
-    --accent-foreground: #04121f;
-    --destructive: #f0335c;
-    --destructive-foreground: #ffffff;
-    --border: rgba(231, 236, 243, 0.12);
-    --input: #16233a;
-    --ring: #10b981;
-  }
 }
 
 body {
@@ -142,13 +127,6 @@ h1, h2, h3, .font-display {
 .dark {
   --art-line: rgba(231, 236, 243, 0.07);
   --art-line-strong: rgba(231, 236, 243, 0.12);
-}
-
-@media (prefers-color-scheme: dark) {
-  :root:not(.light) {
-    --art-line: rgba(231, 236, 243, 0.07);
-    --art-line-strong: rgba(231, 236, 243, 0.12);
-  }
 }
 
 /* Petroleum surfaces are theme-invariant — set on the wrapper, never branches */
