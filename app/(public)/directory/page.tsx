@@ -37,6 +37,8 @@ export default async function DirectoryPage({
   ]);
 
   const list = (orgs ?? []) as DirectoryOrg[];
+  const totalCount = (allVisible ?? []).length;
+  const filtersActive = Boolean(q?.trim() || industry || jurisdiction);
   const industries = [...new Set((allVisible ?? []).map((o) => o.industry_code).filter(Boolean))] as string[];
   const jurisdictions = [...new Set((allVisible ?? []).map((o) => o.jurisdiction).filter(Boolean))] as string[];
 
@@ -72,7 +74,7 @@ export default async function DirectoryPage({
             </p>
           </div>
           <p className="font-display text-6xl font-extrabold tabular-nums text-emerald-brand">
-            {list.length}
+            {totalCount}
             <span className="ml-3 align-middle text-xs font-semibold uppercase tracking-[0.2em] text-white/60">
               on the register
             </span>
@@ -131,10 +133,16 @@ export default async function DirectoryPage({
             .
           </p>
           <Button asChild variant="outline" size="sm" className="relative z-10">
-            <Link href="/signup">List your organization</Link>
+            <Link href="/signup">Claim your profile</Link>
           </Button>
         </div>
       ) : (
+        <>
+        {filtersActive ? (
+          <p className="mb-4 text-sm text-muted-foreground">
+            {list.length} result{list.length === 1 ? "" : "s"}
+          </p>
+        ) : null}
         <ul className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
           {list.map((org) => (
             <li key={org.slug} className="reveal">
@@ -142,6 +150,7 @@ export default async function DirectoryPage({
             </li>
           ))}
         </ul>
+        </>
       )}
       </div>
     </main>

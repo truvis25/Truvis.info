@@ -5,7 +5,7 @@ import type { SupabaseClient } from "@supabase/supabase-js";
 export async function getManagedOrg(supabase: SupabaseClient, userId: string) {
   const { data } = await supabase
     .from("org_members")
-    .select("role, can_manage_content, organizations(id, slug, legal_name, tagline, description, website, is_visible)")
+    .select("role, can_manage_content, can_manage_events, organizations(id, slug, legal_name, tagline, description, website, social_links, is_visible)")
     .eq("user_id", userId)
     .limit(1)
     .maybeSingle();
@@ -18,12 +18,14 @@ export async function getManagedOrg(supabase: SupabaseClient, userId: string) {
     tagline: string | null;
     description: string | null;
     website: string | null;
+    social_links: { linkedin?: string; x?: string; instagram?: string } | null;
     is_visible: boolean;
   };
   return {
     ...org,
     role: data.role as string,
     canManageContent: Boolean(data.can_manage_content),
+    canManageEvents: Boolean(data.can_manage_events),
   };
 }
 

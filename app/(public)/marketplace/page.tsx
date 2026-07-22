@@ -39,6 +39,7 @@ export default async function MarketplacePage({
 
   const list = (listings ?? []) as PublicListing[];
   const all = (allListings ?? []) as PublicListing[];
+  const filtersActive = Boolean(q?.trim() || type || sector || region);
   const sectors = [...new Set(all.map((l) => l.sector).filter(Boolean))] as string[];
   const regions = [...new Set(all.map((l) => l.region).filter(Boolean))] as string[];
 
@@ -187,6 +188,12 @@ export default async function MarketplacePage({
           </Button>
         </div>
       ) : (
+        <>
+        {filtersActive ? (
+          <p className="mb-4 text-sm text-muted-foreground">
+            {list.length} result{list.length === 1 ? "" : "s"}
+          </p>
+        ) : null}
         <ul className="flex flex-col gap-4">
           {list.map((listing) => (
             <li key={listing.id} className="reveal">
@@ -194,6 +201,7 @@ export default async function MarketplacePage({
             </li>
           ))}
         </ul>
+        </>
       )}
       </div>
     </main>

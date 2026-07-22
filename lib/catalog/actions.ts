@@ -87,7 +87,7 @@ export async function setCatalogItemStatus(formData: FormData) {
 
   if (error) redirect(`/dashboard/catalog?error=${encodeURIComponent(error.message)}`);
   revalidatePath(`/orgs/${org.slug}`);
-  redirect("/dashboard/catalog");
+  redirect("/dashboard/catalog?saved=1");
 }
 
 // Catalog item image upload (CAT-2) into public-media/org/<org_id>/…;
@@ -135,5 +135,5 @@ export async function deleteCatalogItem(formData: FormData) {
 
   if (error) redirect(`/dashboard/catalog?error=${encodeURIComponent(error.message)}`);
   revalidatePath(`/orgs/${org.slug}`);
-  redirect("/dashboard/catalog");
+  redirect("/dashboard/catalog?saved=1");
 }

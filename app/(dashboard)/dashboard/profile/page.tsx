@@ -101,15 +101,15 @@ export default async function ProfileEditPage({
         <div className="grid gap-4 sm:grid-cols-3">
           <label className="flex flex-col gap-1 text-sm font-medium">
             LinkedIn
-            <input name="linkedin" type="url" placeholder="https://linkedin.com/company/…" className={inputCls} />
+            <input name="linkedin" type="url" defaultValue={org.social_links?.linkedin ?? ""} placeholder="https://linkedin.com/company/…" className={inputCls} />
           </label>
           <label className="flex flex-col gap-1 text-sm font-medium">
             X
-            <input name="x" type="url" placeholder="https://x.com/…" className={inputCls} />
+            <input name="x" type="url" defaultValue={org.social_links?.x ?? ""} placeholder="https://x.com/…" className={inputCls} />
           </label>
           <label className="flex flex-col gap-1 text-sm font-medium">
             Instagram
-            <input name="instagram" type="url" placeholder="https://instagram.com/…" className={inputCls} />
+            <input name="instagram" type="url" defaultValue={org.social_links?.instagram ?? ""} placeholder="https://instagram.com/…" className={inputCls} />
           </label>
         </div>
         <div className="flex items-center gap-4">

@@ -93,7 +93,7 @@ export function SiteFooter() {
                 </a>
               </li>
             </ul>
-            <p className="mt-6 text-xs leading-relaxed text-gray-500">
+            <p className="mt-6 text-xs leading-relaxed text-gray-400">
               Truvis.info is an introduction service only; it does not provide
               investment advice, broker transactions, or hold client funds.
             </p>
@@ -106,7 +106,7 @@ export function SiteFooter() {
           <span aria-hidden className="relative -mt-6 inline-flex size-6 items-center justify-center rounded-full bg-petroleum">
             <BrandArt seed="truvis-hero" variant="medallion" rings={2} accent="emerald" />
           </span>
-          <p className="text-[10px] font-semibold uppercase tracking-[0.3em] text-gray-500">
+          <p className="text-[10px] font-semibold uppercase tracking-[0.3em] text-gray-400">
             Printed by the Truvis Registry · Every card verified
           </p>
         </div>

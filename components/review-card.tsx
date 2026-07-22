@@ -3,6 +3,7 @@ import { Flag } from "lucide-react";
 import { Card } from "@/components/ui/card";
 import { RatingStars } from "@/components/ui/rating-stars";
 import { deleteMyReview, reportReview } from "@/lib/reviews/actions";
+import { formatDate } from "@/lib/format";
 import { inputCls, buttonGhostCls } from "@/components/form-field";
 
 export type OrgReview = {
@@ -53,9 +54,7 @@ export function ReviewCard({
           <div className="flex items-center gap-2">
             <RatingStars value={review.rating} size="sm" />
             <span className="text-xs text-muted-foreground">
-              {new Date(review.created_at).toLocaleDateString("en-GB", {
-                dateStyle: "medium",
-              })}
+              {formatDate(review.created_at)}
             </span>
           </div>
         </div>

@@ -105,7 +105,7 @@ export async function setListingStatus(formData: FormData) {
 
   if (error) redirect(`/dashboard/listings?error=${encodeURIComponent(error.message)}`);
   revalidatePath("/marketplace");
-  redirect("/dashboard/listings");
+  redirect("/dashboard/listings?saved=1");
 }
 
 // --- Subscriber side ---------------------------------------------------------
@@ -161,14 +161,21 @@ export async function decideApplication(formData: FormData) {
     .eq("id", applicationId);
 
   if (error) redirect(`/dashboard/listings?error=${encodeURIComponent(error.message)}`);
-  redirect("/dashboard/listings");
+  redirect("/dashboard/listings?saved=1");
 }
 
 // --- Messaging (approved applications only; RLS-enforced) --------------------
 
 export async function sendListingMessage(formData: FormData) {
   const applicationId = String(formData.get("application_id") ?? "");
-  const back = String(formData.get("back") ?? "/dashboard/applications");
+  // Allow-listed same as toggleFollow's return_to — never redirect to an
+  // arbitrary form-supplied target.
+  const backRaw = String(formData.get("back") ?? "");
+  const back =
+    backRaw.startsWith("/dashboard/applications") ||
+    backRaw.startsWith("/dashboard/listings")
+      ? backRaw
+      : "/dashboard/applications";
   const body = String(formData.get("body") ?? "").trim();
   const supabase = await createClient();
   const {

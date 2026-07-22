@@ -56,7 +56,7 @@ export async function setPostStatus(formData: FormData) {
   if (error) redirect(`/dashboard/posts?error=${encodeURIComponent(error.message)}`);
   revalidatePath(`/orgs/${org.slug}`);
   revalidatePath("/feed");
-  redirect("/dashboard/posts");
+  redirect("/dashboard/posts?saved=1");
 }
 
 export async function deletePost(formData: FormData) {
@@ -72,5 +72,5 @@ export async function deletePost(formData: FormData) {
   if (error) redirect(`/dashboard/posts?error=${encodeURIComponent(error.message)}`);
   revalidatePath(`/orgs/${org.slug}`);
   revalidatePath("/feed");
-  redirect("/dashboard/posts");
+  redirect("/dashboard/posts?saved=1");
 }

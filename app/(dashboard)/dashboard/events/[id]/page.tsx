@@ -5,6 +5,9 @@ import { createClient } from "@/lib/supabase/server";
 import { getManagedOrg } from "@/lib/orgs/queries";
 import { decideRegistration, setEventStatus, updateEvent } from "@/lib/events/actions";
 import { Notice, inputCls, buttonCls, buttonGhostCls } from "@/components/form-field";
+import { StatusBadge } from "@/components/status-badge";
+import { ConfirmSubmitButton } from "@/components/confirm-submit-button";
+import { formatDateTime, toGstLocalInput } from "@/lib/format";
 
 export const metadata: Metadata = { title: "Manage event" };
 
@@ -32,7 +35,7 @@ export default async function ManageEventPage({
   } = await supabase.auth.getUser();
   if (!user) redirect(`/login?next=/dashboard/events/${id}`);
   const org = await getManagedOrg(supabase, user.id);
-  if (!org) redirect("/dashboard");
+  if (!org || !org.canManageEvents) redirect("/dashboard");
 
   const { data: event } = await supabase
     .from("events")
@@ -42,9 +45,8 @@ export default async function ManageEventPage({
     .maybeSingle();
   if (!event) notFound();
 
-  // datetime-local prefill (UTC-based, matching how the create form stores values)
-  const toLocalInput = (iso: string | null) =>
-    iso ? new Date(iso).toISOString().slice(0, 16) : "";
+  // datetime-local prefill in GST wall clock, matching how the actions parse.
+  const toLocalInput = toGstLocalInput;
 
   const { data: registrations } = await supabase
     .from("event_registrations")
@@ -65,9 +67,9 @@ export default async function ManageEventPage({
         </Link>
         <div className="mt-3 flex flex-wrap items-center justify-between gap-3">
           <h1 className="font-display text-2xl font-bold tracking-tight text-petroleum dark:text-foreground">{event.title}</h1>
-          <span className="text-sm text-muted-foreground">
-            {event.status} ·{" "}
-            {new Date(event.starts_at).toLocaleString("en-GB", { dateStyle: "medium", timeStyle: "short" })}
+          <span className="flex items-center gap-2 text-sm text-muted-foreground">
+            <StatusBadge status={event.status} />
+            {formatDateTime(event.starts_at)}
           </span>
         </div>
         <div className="mt-2 flex gap-3 text-sm">
@@ -101,7 +103,7 @@ export default async function ManageEventPage({
           </label>
           <div className="grid gap-4 sm:grid-cols-2">
             <label className="flex flex-col gap-1 text-sm font-medium">
-              Starts
+              Starts (Gulf Standard Time)
               <input name="starts_at" type="datetime-local" required defaultValue={toLocalInput(event.starts_at)} className={inputCls} />
             </label>
             <label className="flex flex-col gap-1 text-sm font-medium">
@@ -162,20 +164,9 @@ export default async function ManageEventPage({
               <p className="font-medium">
                 {reg.user_profiles?.display_name || "Registered user"}
               </p>
-              <p className="text-xs text-muted-foreground">
-                {new Date(reg.created_at).toLocaleString("en-GB", { dateStyle: "medium", timeStyle: "short" })}
-                {" · "}
-                <span
-                  className={
-                    reg.status === "approved"
-                      ? "text-emerald-dark"
-                      : reg.status === "pending"
-                        ? "text-amber-600"
-                        : ""
-                  }
-                >
-                  {reg.status}
-                </span>
+              <p className="flex items-center gap-2 text-xs text-muted-foreground">
+                {formatDateTime(reg.created_at)}
+                <StatusBadge status={reg.status} />
               </p>
             </div>
             {reg.status === "pending" ? (
@@ -190,9 +181,12 @@ export default async function ManageEventPage({
                   <input type="hidden" name="registration_id" value={reg.id} />
                   <input type="hidden" name="event_id" value={event.id} />
                   <input type="hidden" name="decision" value="reject" />
-                  <button className={`${buttonGhostCls} text-destructive`}>
+                  <ConfirmSubmitButton
+                    confirmMessage={`Reject this registration from ${reg.user_profiles?.display_name || "this user"}?`}
+                    className={`${buttonGhostCls} text-destructive`}
+                  >
                     Reject
-                  </button>
+                  </ConfirmSubmitButton>
                 </form>
               </div>
             ) : null}

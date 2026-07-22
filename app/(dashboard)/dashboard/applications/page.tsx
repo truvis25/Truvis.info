@@ -3,6 +3,9 @@ import Link from "next/link";
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { getSubscription } from "@/lib/billing/actions";
+import { StatusBadge } from "@/components/status-badge";
+import { buttonGhostCls } from "@/components/form-field";
+import { formatDate } from "@/lib/format";
 
 export const metadata: Metadata = { title: "My applications" };
 
@@ -43,7 +46,7 @@ export default async function ApplicationsPage() {
         <p className="mt-1 text-sm text-muted-foreground">
           {subscription?.active
             ? subscription.status === "trialing" && subscription.current_period_end
-              ? `Subscription: trial, ends ${new Date(subscription.current_period_end).toLocaleDateString("en-GB", { dateStyle: "medium" })}.`
+              ? `Subscription: trial, ends ${formatDate(subscription.current_period_end)}.`
               : "Subscription: active."
             : "No active subscription — "}
           {!subscription?.active ? (
@@ -75,26 +78,15 @@ export default async function ApplicationsPage() {
                 >
                   {app.marketplace_listings?.teaser_headline ?? "Listing"}
                 </Link>
-                <p className="text-xs text-muted-foreground">
-                  {new Date(app.created_at).toLocaleDateString("en-GB", { dateStyle: "medium" })}
-                  {" · "}
-                  <span
-                    className={
-                      app.status === "approved"
-                        ? "text-emerald-dark"
-                        : app.status === "pending"
-                          ? "text-amber-600"
-                          : ""
-                    }
-                  >
-                    {app.status}
-                  </span>
+                <p className="flex items-center gap-2 text-xs text-muted-foreground">
+                  {formatDate(app.created_at)}
+                  <StatusBadge status={app.status} />
                 </p>
               </div>
               {app.status === "approved" ? (
                 <Link
                   href={`/dashboard/applications/${app.id}`}
-                  className="rounded-full border border-border px-4 py-2 text-sm font-medium hover:bg-secondary dark:hover:bg-secondary"
+                  className={buttonGhostCls}
                 >
                   Open thread
                 </Link>

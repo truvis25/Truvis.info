@@ -1,4 +1,5 @@
 import { BrandArt } from "@/components/brand-art";
+import { dateTileParts } from "@/lib/format";
 import { cn } from "@/lib/utils";
 
 // The engraved petroleum date medallion used on event cards and rails.
@@ -13,7 +14,7 @@ export function EventDateTile({
   size?: "md" | "sm";
   className?: string;
 }) {
-  const d = typeof date === "string" ? new Date(date) : date;
+  const { day, month } = dateTileParts(date);
   return (
     <div
       className={cn(
@@ -33,7 +34,7 @@ export function EventDateTile({
           size === "md" ? "text-xl" : "text-sm",
         )}
       >
-        {d.getDate()}
+        {day}
       </span>
       <span
         className={cn(
@@ -41,7 +42,7 @@ export function EventDateTile({
           size === "md" ? "text-[10px]" : "text-[8px]",
         )}
       >
-        {d.toLocaleString("en-GB", { month: "short" })}
+        {month}
       </span>
     </div>
   );
