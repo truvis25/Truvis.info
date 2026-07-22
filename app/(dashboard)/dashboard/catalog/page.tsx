@@ -15,6 +15,8 @@ import {
   buttonCls,
   buttonGhostCls,
 } from "@/components/form-field";
+import { StatusBadge } from "@/components/status-badge";
+import { ConfirmSubmitButton } from "@/components/confirm-submit-button";
 
 export const metadata: Metadata = { title: "Catalog" };
 
@@ -39,7 +41,7 @@ export default async function CatalogAdminPage({
   } = await supabase.auth.getUser();
   if (!user) redirect("/login?next=/dashboard/catalog");
   const org = await getManagedOrg(supabase, user.id);
-  if (!org) redirect("/dashboard");
+  if (!org || !org.canManageContent) redirect("/dashboard");
 
   const { data: items } = await supabase
     .from("catalog_items")
@@ -106,13 +108,13 @@ export default async function CatalogAdminPage({
             className="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-border px-5 py-4"
           >
             <div>
-              <p className="font-medium">{item.name}</p>
+              <p className="flex items-center gap-2 font-medium">
+                {item.name}
+                <StatusBadge status={item.status} />
+              </p>
               <p className="text-xs text-muted-foreground">
                 {item.item_type}
-                {item.category ? ` · ${item.category}` : ""} ·{" "}
-                <span className={item.status === "published" ? "text-emerald-dark" : ""}>
-                  {item.status}
-                </span>
+                {item.category ? ` · ${item.category}` : ""}
               </p>
             </div>
             <form action={uploadCatalogImage} className="flex items-center gap-2">
@@ -129,6 +131,9 @@ export default async function CatalogAdminPage({
               <button className={buttonGhostCls}>Add image</button>
             </form>
             <div className="flex items-center gap-2">
+              <Link href={`/dashboard/catalog/${item.id}`} className={buttonGhostCls}>
+                Edit
+              </Link>
               <form action={setCatalogItemStatus}>
                 <input type="hidden" name="id" value={item.id} />
                 <input
@@ -144,9 +149,12 @@ export default async function CatalogAdminPage({
                 action={deleteCatalogItem}
               >
                 <input type="hidden" name="id" value={item.id} />
-                <button className={`${buttonGhostCls} text-destructive`}>
+                <ConfirmSubmitButton
+                  confirmMessage={`Delete "${item.name}"? This cannot be undone.`}
+                  className={`${buttonGhostCls} text-destructive`}
+                >
                   Delete
-                </button>
+                </ConfirmSubmitButton>
               </form>
             </div>
           </div>

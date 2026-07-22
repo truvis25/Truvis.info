@@ -9,6 +9,7 @@ import { MarketplaceDisclaimer } from "@/components/marketplace-disclaimer";
 import { VerifiedBadge } from "@/components/ui/badge";
 import type { PublicListing } from "@/components/listing-card";
 import { inputCls, buttonCls } from "@/components/form-field";
+import { formatAed } from "@/lib/format";
 
 export const dynamic = "force-dynamic";
 
@@ -18,7 +19,26 @@ const typeLabels: Record<string, string> = {
   business_sale: "Business for sale",
 };
 
-export const metadata: Metadata = { title: "Listing" };
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ id: string }>;
+}): Promise<Metadata> {
+  const { id } = await params;
+  const supabase = await createClient();
+  const { data: teaser } = await supabase
+    .from("marketplace_listings")
+    .select("teaser_headline, teaser_summary, status")
+    .eq("id", id)
+    .maybeSingle();
+  if (!teaser || teaser.status !== "active") return { title: "Listing" };
+  const description = teaser.teaser_summary?.slice(0, 160) || undefined;
+  return {
+    title: teaser.teaser_headline,
+    description,
+    openGraph: { title: teaser.teaser_headline, description },
+  };
+}
 
 type Detail = {
   listing_id: string;
@@ -93,7 +113,7 @@ export default async function ListingPage({
 
   return (
     <main className="mx-auto w-full max-w-3xl flex-1 px-6 py-16">
-      <Link href="/marketplace" className="text-sm text-muted-foreground underline underline-offset-4">
+      <Link href="/marketplace" className="link-engraved text-sm text-muted-foreground">
         ← Marketplace
       </Link>
 
@@ -173,7 +193,7 @@ export default async function ListingPage({
               {detail.amount_sought ? (
                 <div>
                   <dt className="text-muted-foreground">Seeking</dt>
-                  <dd className="font-medium">AED {Number(detail.amount_sought).toLocaleString()}</dd>
+                  <dd className="font-medium">{formatAed(detail.amount_sought)}</dd>
                 </div>
               ) : null}
               {detail.equity_percent ? (
@@ -238,6 +258,7 @@ export default async function ListingPage({
                 required
                 maxLength={2000}
                 placeholder="Write a message…"
+                aria-label="Message to the listing owner"
                 className={`${inputCls} flex-1`}
               />
               <button className={buttonCls}>Send</button>

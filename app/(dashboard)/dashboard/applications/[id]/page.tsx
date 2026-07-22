@@ -4,6 +4,7 @@ import { notFound, redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { sendListingMessage } from "@/lib/marketplace/actions";
 import { inputCls, buttonCls } from "@/components/form-field";
+import { formatDateTime } from "@/lib/format";
 
 export const metadata: Metadata = { title: "Application thread" };
 
@@ -77,7 +78,7 @@ export default async function ApplicationThreadPage({
           >
             {message.body}
             <span className="mt-1 block text-[10px] opacity-60">
-              {new Date(message.created_at).toLocaleString("en-GB", { dateStyle: "short", timeStyle: "short" })}
+              {formatDateTime(message.created_at)}
             </span>
           </li>
         ))}
@@ -96,6 +97,7 @@ export default async function ApplicationThreadPage({
           required
           maxLength={2000}
           placeholder="Write a message…"
+          aria-label="Message"
           className={`${inputCls} flex-1`}
         />
         <button className={buttonCls}>Send</button>

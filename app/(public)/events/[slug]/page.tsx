@@ -7,6 +7,7 @@ import { createClient } from "@/lib/supabase/server";
 import { registerForEvent, cancelRegistration } from "@/lib/events/actions";
 import { VerifiedBadge, SealBadge } from "@/components/ui/badge";
 import { BrandArt } from "@/components/brand-art";
+import { dateTileParts, formatDate, formatDateTime } from "@/lib/format";
 
 export const dynamic = "force-dynamic";
 
@@ -83,6 +84,7 @@ export default async function EventPage({
   }
 
   const startDate = new Date(event.starts_at);
+  const startTile = dateTileParts(startDate);
   const started = startDate <= new Date();
   const deadlinePassed =
     event.registration_deadline != null &&
@@ -140,10 +142,10 @@ export default async function EventPage({
           className="[mask-image:radial-gradient(closest-side,black,transparent)]"
         />
         <span className="relative z-10 font-display text-2xl font-extrabold leading-none text-white">
-          {startDate.getDate()}
+          {startTile.day}
         </span>
         <span className="relative z-10 text-[11px] font-semibold uppercase tracking-wide text-emerald-brand">
-          {startDate.toLocaleString("en-GB", { month: "short" })}
+          {startTile.month}
         </span>
       </div>
 
@@ -175,13 +177,13 @@ export default async function EventPage({
         <div>
           <dt className="text-muted-foreground">Starts</dt>
           <dd className="font-medium">
-            {startDate.toLocaleString("en-GB", { dateStyle: "full", timeStyle: "short" })}
+            {formatDateTime(startDate)}
           </dd>
         </div>
         <div>
           <dt className="text-muted-foreground">Ends</dt>
           <dd className="font-medium">
-            {new Date(event.ends_at).toLocaleString("en-GB", { dateStyle: "full", timeStyle: "short" })}
+            {formatDateTime(event.ends_at)}
           </dd>
         </div>
         {event.venue_address ? (
@@ -202,7 +204,7 @@ export default async function EventPage({
           <div>
             <dt className="text-muted-foreground">Register by</dt>
             <dd className="font-medium">
-              {new Date(event.registration_deadline).toLocaleString("en-GB", { dateStyle: "medium", timeStyle: "short" })}
+              {formatDateTime(event.registration_deadline)}
             </dd>
           </div>
         ) : null}
@@ -268,7 +270,7 @@ export default async function EventPage({
               {event.registration_deadline ? (
                 <p className="text-muted-foreground">
                   Register by{" "}
-                  {new Date(event.registration_deadline).toLocaleDateString("en-GB", { dateStyle: "medium" })}
+                  {formatDate(event.registration_deadline)}
                 </p>
               ) : null}
             </div>

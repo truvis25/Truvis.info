@@ -9,6 +9,7 @@ import { Button } from "@/components/ui/button";
 import { Input, Select } from "@/components/ui/input";
 import { BrandArt } from "@/components/brand-art";
 import { EventDateTile } from "@/components/event-date-tile";
+import { formatDateTime } from "@/lib/format";
 
 export const metadata: Metadata = {
   title: "Events",
@@ -56,8 +57,17 @@ export default async function EventsPage({
   if (mode === "online") query = query.not("online_url", "is", null);
   if (mode === "in-person") query = query.not("venue_address", "is", null);
 
-  const { data: events } = await query;
+  // Filtered list + unfiltered head-count for the hero stat.
+  const [{ data: events }, { count: totalCount }] = await Promise.all([
+    query,
+    supabase
+      .from("events")
+      .select("*", { count: "exact", head: true })
+      .eq("status", "published")
+      .gte("starts_at", new Date().toISOString()),
+  ]);
   const list = (events ?? []) as unknown as EventRow[];
+  const filtersActive = Boolean(q?.trim() || mode);
 
   return (
     <main className="flex-1">
@@ -105,7 +115,7 @@ export default async function EventsPage({
               )}
             </div>
             <p className="font-display text-6xl font-extrabold tabular-nums text-emerald-brand">
-              {list.length}
+              {totalCount ?? list.length}
               <span className="ml-3 align-middle text-xs font-semibold uppercase tracking-[0.2em] text-white/60">
                 on the calendar
               </span>
@@ -166,6 +176,12 @@ export default async function EventsPage({
           </Button>
         </div>
       ) : (
+        <>
+        {filtersActive ? (
+          <p className="mb-4 text-sm text-muted-foreground">
+            {list.length} result{list.length === 1 ? "" : "s"}
+          </p>
+        ) : null}
         <ul className="flex flex-col gap-4">
           {list.map((event) => {
             const date = new Date(event.starts_at);
@@ -182,9 +198,7 @@ export default async function EventsPage({
                             {event.title}
                           </h2>
                           <p className="mt-1 flex flex-wrap items-center gap-x-4 gap-y-1 text-sm text-muted-foreground">
-                            <span>
-                              {date.toLocaleString("en-GB", { weekday: "long", hour: "2-digit", minute: "2-digit" })}
-                            </span>
+                            <span>{formatDateTime(date)}</span>
                             {event.venue_address ? (
                               <span className="inline-flex items-center gap-1">
                                 <MapPin className="size-3.5" aria-hidden /> {event.venue_address}
@@ -246,6 +260,7 @@ export default async function EventsPage({
             );
           })}
         </ul>
+        </>
       )}
       </div>
     </main>

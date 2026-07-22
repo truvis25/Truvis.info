@@ -15,6 +15,9 @@ import {
   buttonCls,
   buttonGhostCls,
 } from "@/components/form-field";
+import { StatusBadge } from "@/components/status-badge";
+import { ConfirmSubmitButton } from "@/components/confirm-submit-button";
+import { formatDate, formatDateTime } from "@/lib/format";
 
 export const metadata: Metadata = { title: "Admin" };
 
@@ -170,13 +173,9 @@ export default async function AdminPage({
                   <Link href={`/orgs/${org.slug}`} className="font-medium underline-offset-4 hover:underline">
                     {org.legal_name}
                   </Link>
-                  <p className="text-xs text-muted-foreground">
-                    {org.is_visible ? (
-                      <span className="text-emerald-dark">visible</span>
-                    ) : (
-                      <span className="text-amber-600">hidden</span>
-                    )}
-                    {" · grant "}{org.grant_active ? "active" : "inactive"}
+                  <p className="flex flex-wrap items-center gap-1.5 text-xs text-muted-foreground">
+                    <StatusBadge status={org.is_visible ? "visible" : "hidden"} />
+                    {" grant "}{org.grant_active ? "active" : "inactive"}
                     {standing
                       ? ` · ${standing.state} / ${standing.risk_level} / ${standing.score}`
                       : " · no standing data"}
@@ -202,11 +201,15 @@ export default async function AdminPage({
                       name="reason"
                       required
                       placeholder="Suspension reason"
+                      aria-label={`Suspension reason for ${org.legal_name}`}
                       className={`${inputCls} w-44`}
                     />
-                    <button className={`${buttonGhostCls} text-destructive`}>
+                    <ConfirmSubmitButton
+                      confirmMessage={`Suspend ${org.legal_name}? Their public profile and all content will be hidden immediately.`}
+                      className={`${buttonGhostCls} text-destructive`}
+                    >
                       Suspend
-                    </button>
+                    </ConfirmSubmitButton>
                   </form>
                 )}
               </div>
@@ -238,7 +241,7 @@ export default async function AdminPage({
                 </p>
                 <p className="text-xs text-muted-foreground">
                   Reported by {report.user_profiles?.display_name ?? "user"} ·{" "}
-                  {new Date(report.created_at).toLocaleString("en-GB", { dateStyle: "medium", timeStyle: "short" })}{" "}
+                  {formatDateTime(report.created_at)}{" "}
                   · “{report.reason}”
                 </p>
               </div>
@@ -249,9 +252,12 @@ export default async function AdminPage({
                   <input type="hidden" name="post_id" value={report.posts?.id ?? ""} />
                   <input type="hidden" name="review_id" value={review?.id ?? ""} />
                   <input type="hidden" name="action" value="remove" />
-                  <button className={`${buttonGhostCls} text-destructive`}>
+                  <ConfirmSubmitButton
+                    confirmMessage={`Remove this ${isReview ? "review" : "post"}? This cannot be undone.`}
+                    className={`${buttonGhostCls} text-destructive`}
+                  >
                     {isReview ? "Remove review" : "Remove post"}
-                  </button>
+                  </ConfirmSubmitButton>
                 </form>
                 <form action={resolveReport}>
                   <input type="hidden" name="report_id" value={report.id} />
@@ -284,6 +290,7 @@ export default async function AdminPage({
               type="email"
               required
               placeholder="account email"
+              aria-label="Email of the account to grant access"
               className={`${inputCls} w-64`}
             />
             <button className={buttonCls}>Grant 1-year access</button>
@@ -294,11 +301,15 @@ export default async function AdminPage({
               type="email"
               required
               placeholder="account email"
+              aria-label="Email of the account to revoke"
               className={`${inputCls} w-64`}
             />
-            <button className={`${buttonGhostCls} text-destructive`}>
+            <ConfirmSubmitButton
+              confirmMessage="Revoke this account's subscription? They immediately lose access to listing details and applications."
+              className={`${buttonGhostCls} text-destructive`}
+            >
               Revoke
-            </button>
+            </ConfirmSubmitButton>
           </form>
         </div>
         <ul className="flex flex-col gap-2 text-sm">
@@ -314,7 +325,7 @@ export default async function AdminPage({
                   {sub.status}
                 </span>
                 {sub.current_period_end
-                  ? ` · until ${new Date(sub.current_period_end).toLocaleDateString("en-GB", { dateStyle: "medium" })}`
+                  ? ` · until ${formatDate(sub.current_period_end)}`
                   : ""}
               </span>
             </li>
@@ -339,7 +350,7 @@ export default async function AdminPage({
                 </span>
               </span>
               <span className="text-xs text-muted-foreground">
-                {new Date(entry.created_at).toLocaleString("en-GB", { dateStyle: "short", timeStyle: "short" })}
+                {formatDateTime(entry.created_at)}
               </span>
             </li>
           ))}

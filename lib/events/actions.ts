@@ -4,6 +4,7 @@ import { redirect } from "next/navigation";
 import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
 import { getManagedOrg, slugifyText } from "@/lib/orgs/queries";
+import { parseGstLocalInput } from "@/lib/format";
 import { syncEventToLuma } from "@/lib/luma/sync";
 
 async function requireEventManager(nextPath: string) {
@@ -14,6 +15,7 @@ async function requireEventManager(nextPath: string) {
   if (!user) redirect(`/login?next=${encodeURIComponent(nextPath)}`);
   const org = await getManagedOrg(supabase, user.id);
   if (!org) redirect("/dashboard");
+  if (!org.canManageEvents) redirect("/dashboard?error=You%20do%20not%20have%20permission%20to%20manage%20events");
   return { supabase, org, userId: user.id };
 }
 
@@ -27,10 +29,12 @@ function parseEventFields(formData: FormData) {
     description: String(formData.get("description") ?? "").trim() || null,
     venue_address: String(formData.get("venue_address") ?? "").trim() || null,
     online_url: String(formData.get("online_url") ?? "").trim() || null,
-    starts_at: startsAt ? new Date(startsAt).toISOString() : null,
-    ends_at: endsAt ? new Date(endsAt).toISOString() : null,
+    // datetime-local values are entered as GST wall-clock (fixed UTC+4) —
+    // never parse them in the server's timezone.
+    starts_at: parseGstLocalInput(startsAt),
+    ends_at: parseGstLocalInput(endsAt),
     capacity: capacityRaw ? Number(capacityRaw) : null,
-    registration_deadline: deadline ? new Date(deadline).toISOString() : null,
+    registration_deadline: parseGstLocalInput(deadline),
     approval_mode: formData.get("approval_mode") === "auto" ? "auto" : "manual",
     luma_publish: formData.get("luma_publish") === "on",
   };
@@ -111,7 +115,7 @@ export async function setEventStatus(formData: FormData) {
   if (error) redirect(`/dashboard/events?error=${encodeURIComponent(error.message)}`);
   await syncEventToLuma(supabase, id);
   revalidatePath("/events");
-  redirect("/dashboard/events");
+  redirect("/dashboard/events?saved=1");
 }
 
 // Re-run a failed Luma push from the dashboard.
@@ -178,7 +182,17 @@ export async function decideRegistration(formData: FormData) {
   const registrationId = String(formData.get("registration_id") ?? "");
   const eventId = String(formData.get("event_id") ?? "");
   const decision = String(formData.get("decision") ?? "");
-  const { supabase } = await requireEventManager(`/dashboard/events/${eventId}`);
+  const { supabase, org } = await requireEventManager(`/dashboard/events/${eventId}`);
+
+  // Explicit ownership check on top of RLS: the registration must belong to
+  // an event of the caller's org.
+  const { data: ownedEvent } = await supabase
+    .from("events")
+    .select("id")
+    .eq("id", eventId)
+    .eq("org_id", org.id)
+    .maybeSingle();
+  if (!ownedEvent) redirect("/dashboard/events");
 
   if (decision === "approve") {
     // Capacity-safe approval via SECURITY DEFINER RPC (migration 0005).
@@ -195,7 +209,8 @@ export async function decideRegistration(formData: FormData) {
         status: "rejected",
         decided_at: new Date().toISOString(),
       })
-      .eq("id", registrationId);
+      .eq("id", registrationId)
+      .eq("event_id", eventId);
     if (error) {
       redirect(`/dashboard/events/${eventId}?error=${encodeURIComponent(error.message)}`);
     }

@@ -15,6 +15,9 @@ import {
   buttonCls,
   buttonGhostCls,
 } from "@/components/form-field";
+import { StatusBadge } from "@/components/status-badge";
+import { ConfirmSubmitButton } from "@/components/confirm-submit-button";
+import { formatDateTime } from "@/lib/format";
 
 export const metadata: Metadata = { title: "Marketplace listings" };
 
@@ -188,12 +191,12 @@ export default async function ListingsAdminPage({
             className="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-border px-5 py-4"
           >
             <div>
-              <p className="font-medium">{listing.teaser_headline}</p>
+              <p className="flex items-center gap-2 font-medium">
+                {listing.teaser_headline}
+                <StatusBadge status={listing.status} />
+              </p>
               <p className="text-xs text-muted-foreground">
-                {typeLabels[listing.listing_type]} ·{" "}
-                <span className={listing.status === "active" ? "text-emerald-dark" : ""}>
-                  {listing.status}
-                </span>
+                {typeLabels[listing.listing_type]}
                 {revealed.has(listing.id) ? " · identity revealed" : " · anonymous"}
               </p>
             </div>
@@ -217,9 +220,12 @@ export default async function ListingsAdminPage({
                   <form action={setListingStatus}>
                     <input type="hidden" name="id" value={listing.id} />
                     <input type="hidden" name="status" value="closed" />
-                    <button className={`${buttonGhostCls} text-destructive`}>
+                    <ConfirmSubmitButton
+                      confirmMessage={`Close "${listing.teaser_headline}"? Closed listings leave the marketplace and applicants are notified.`}
+                      className={`${buttonGhostCls} text-destructive`}
+                    >
                       Close
-                    </button>
+                    </ConfirmSubmitButton>
                   </form>
                 </>
               ) : null}
@@ -227,7 +233,9 @@ export default async function ListingsAdminPage({
           </div>
         ))}
         {!listings.length ? (
-          <p className="text-sm text-muted-foreground">No listings yet.</p>
+          <p className="text-sm text-muted-foreground">
+            No listings yet — create your first listing above.
+          </p>
         ) : null}
       </section>
 
@@ -243,20 +251,9 @@ export default async function ListingsAdminPage({
                 <p className="font-medium">
                   {app.user_profiles?.display_name || "Subscriber"}
                 </p>
-                <p className="text-xs text-muted-foreground">
-                  {new Date(app.created_at).toLocaleString("en-GB", { dateStyle: "medium", timeStyle: "short" })}
-                  {" · "}
-                  <span
-                    className={
-                      app.status === "approved"
-                        ? "text-emerald-dark"
-                        : app.status === "pending"
-                          ? "text-amber-600"
-                          : ""
-                    }
-                  >
-                    {app.status}
-                  </span>
+                <p className="flex items-center gap-2 text-xs text-muted-foreground">
+                  {formatDateTime(app.created_at)}
+                  <StatusBadge status={app.status} />
                 </p>
               </div>
               {app.status === "pending" ? (
@@ -269,9 +266,12 @@ export default async function ListingsAdminPage({
                   <form action={decideApplication}>
                     <input type="hidden" name="application_id" value={app.id} />
                     <input type="hidden" name="decision" value="reject" />
-                    <button className={`${buttonGhostCls} text-destructive`}>
+                    <ConfirmSubmitButton
+                      confirmMessage={`Reject the application from ${app.user_profiles?.display_name || "this subscriber"}?`}
+                      className={`${buttonGhostCls} text-destructive`}
+                    >
                       Reject
-                    </button>
+                    </ConfirmSubmitButton>
                   </form>
                 </div>
               ) : app.status === "approved" ? (

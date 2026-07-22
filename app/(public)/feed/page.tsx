@@ -1,10 +1,13 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import Image from "next/image";
+import { Newspaper } from "lucide-react";
 import { createClient } from "@/lib/supabase/server";
 import { reportPost } from "@/lib/moderation/actions";
+import { formatDate } from "@/lib/format";
 import { Card } from "@/components/ui/card";
 import { VerifiedBadge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import { BrandArt } from "@/components/brand-art";
 
 export const metadata: Metadata = {
@@ -97,19 +100,16 @@ export default async function FeedPage({
       ) : null}
 
       {list.length === 0 ? (
-        <div className="relative overflow-hidden rounded-2xl border border-border p-10 text-center">
+        <div className="relative flex flex-col items-center gap-3 overflow-hidden rounded-2xl border border-border py-20 text-center">
           <BrandArt seed="empty-feed" variant="empty" />
-          <p className="relative z-10 text-muted-foreground">
-            No updates published yet.
+          <Newspaper className="relative z-10 size-10 text-muted-foreground/50" aria-hidden />
+          <p className="relative z-10 font-medium">No updates published yet.</p>
+          <p className="relative z-10 text-sm text-muted-foreground">
+            Follow verified organizations to see their updates here.
           </p>
-          <div className="relative z-10 mt-4">
-            <Link
-              href="/directory"
-              className="link-engraved text-sm font-semibold text-emerald-deeper dark:text-emerald-brand"
-            >
-              Follow organizations →
-            </Link>
-          </div>
+          <Button asChild variant="outline" size="sm" className="relative z-10">
+            <Link href="/directory">Explore the directory</Link>
+          </Button>
         </div>
       ) : (
         <ul className="flex flex-col gap-4">
@@ -149,9 +149,7 @@ export default async function FeedPage({
                           <>
                             {" · "}
                             <time dateTime={post.published_at}>
-                              {new Date(post.published_at).toLocaleDateString("en-GB", {
-                                dateStyle: "medium",
-                              })}
+                              {formatDate(post.published_at)}
                             </time>
                           </>
                         ) : null}
@@ -180,6 +178,7 @@ export default async function FeedPage({
                         <input
                           name="reason"
                           placeholder="Reason (optional)"
+                          aria-label="Reason for reporting"
                           maxLength={300}
                           className="rounded-lg border border-border bg-background px-2 py-1 text-xs"
                         />

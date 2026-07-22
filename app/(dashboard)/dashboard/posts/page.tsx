@@ -10,6 +10,9 @@ import {
   buttonCls,
   buttonGhostCls,
 } from "@/components/form-field";
+import { StatusBadge } from "@/components/status-badge";
+import { ConfirmSubmitButton } from "@/components/confirm-submit-button";
+import { formatDate } from "@/lib/format";
 
 export const metadata: Metadata = { title: "Posts" };
 
@@ -32,7 +35,7 @@ export default async function PostsAdminPage({
   } = await supabase.auth.getUser();
   if (!user) redirect("/login?next=/dashboard/posts");
   const org = await getManagedOrg(supabase, user.id);
-  if (!org) redirect("/dashboard");
+  if (!org || !org.canManageContent) redirect("/dashboard");
 
   const { data: posts } = await supabase
     .from("posts")
@@ -84,15 +87,15 @@ export default async function PostsAdminPage({
             className="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-border px-5 py-4"
           >
             <div>
-              <p className="font-medium">{post.title}</p>
-              <p className="text-xs text-muted-foreground">
-                <span className={post.status === "published" ? "text-emerald-dark" : ""}>
-                  {post.status}
-                </span>
-                {post.published_at
-                  ? ` · ${new Date(post.published_at).toLocaleDateString("en-GB", { dateStyle: "medium" })}`
-                  : ""}
+              <p className="flex items-center gap-2 font-medium">
+                {post.title}
+                <StatusBadge status={post.status} />
               </p>
+              {post.published_at ? (
+                <p className="text-xs text-muted-foreground">
+                  {formatDate(post.published_at)}
+                </p>
+              ) : null}
             </div>
             <div className="flex items-center gap-2">
               <form action={setPostStatus}>
@@ -108,16 +111,19 @@ export default async function PostsAdminPage({
               </form>
               <form action={deletePost}>
                 <input type="hidden" name="id" value={post.id} />
-                <button className={`${buttonGhostCls} text-destructive`}>
+                <ConfirmSubmitButton
+                  confirmMessage={`Delete "${post.title}"? This cannot be undone.`}
+                  className={`${buttonGhostCls} text-destructive`}
+                >
                   Delete
-                </button>
+                </ConfirmSubmitButton>
               </form>
             </div>
           </div>
         ))}
         {!posts?.length ? (
           <p className="text-sm text-muted-foreground">
-            No posts yet.
+            No posts yet — share your first update above.
           </p>
         ) : null}
       </section>

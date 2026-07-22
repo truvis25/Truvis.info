@@ -9,6 +9,7 @@ import { EventDateTile } from "@/components/event-date-tile";
 import { OrgBusinessCard } from "@/components/org-business-card";
 import { ListingCard, TYPE_THEME } from "@/components/listing-card";
 import { toggleFollow } from "@/lib/orgs/actions";
+import { formatDate, formatDateTime } from "@/lib/format";
 import { cn } from "@/lib/utils";
 import type { FeedItem } from "@/lib/home/feed";
 
@@ -154,7 +155,7 @@ function ActorRow({
 function timeLabel(ts: string) {
   const date = new Date(ts);
   if (Number.isNaN(date.getTime())) return "recently";
-  return date.toLocaleDateString("en-GB", { dateStyle: "medium" });
+  return formatDate(date);
 }
 
 // One feed entry on the home network hub. Server-rendered; five bodies.
@@ -326,9 +327,7 @@ export function FeedItemCard({
                 </Link>
               </h3>
               <p className="mt-1 flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-muted-foreground">
-                <span>
-                  {starts.toLocaleString("en-GB", { weekday: "long", hour: "2-digit", minute: "2-digit" })}
-                </span>
+                <span>{formatDateTime(starts)}</span>
                 {event.venue_address ? (
                   <span className="inline-flex items-center gap-1">
                     <MapPin className="size-3" aria-hidden /> {event.venue_address}

@@ -11,7 +11,8 @@ import {
   UserCheck,
 } from "lucide-react";
 import { createClient } from "@/lib/supabase/server";
-import { MEDIA_BASE } from "@/lib/config";
+import { MEDIA_BASE, SITE_URL } from "@/lib/config";
+import { formatDate, formatDateTime } from "@/lib/format";
 import { toggleFollow } from "@/lib/orgs/actions";
 import { VerifiedBadge, SealBadge, Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
@@ -168,6 +169,14 @@ export default async function OrgProfilePage({
     (ownReviewRes.data as { rating: number; comment: string | null } | null) ??
     null;
   const contact = org.contact_person;
+  // Contact fields can be missing on older/partial records — only render
+  // what's actually populated.
+  const hasContactDetails = Boolean(
+    contact &&
+      [contact.name, contact.title, contact.email, contact.phone].some(
+        (value) => value?.trim(),
+      ),
+  );
   const socials = org.social_links ?? {};
   const facts: Array<[string, string | number | null]> = [
     ["Jurisdiction", org.jurisdiction],
@@ -181,7 +190,7 @@ export default async function OrgProfilePage({
     "@context": "https://schema.org",
     "@type": "Organization",
     name: org.legal_name,
-    url: `https://truvis.info/orgs/${org.slug}`,
+    url: `${SITE_URL}/orgs/${org.slug}`,
     logo: org.logo_url ?? undefined,
     description: org.tagline ?? undefined,
     sameAs: [socials.linkedin, socials.x, socials.instagram, org.website].filter(Boolean),
@@ -395,7 +404,7 @@ export default async function OrgProfilePage({
                         <span>
                           <span className="block font-semibold">{event.title}</span>
                           <span className="block text-xs text-muted-foreground">
-                            {new Date(event.starts_at).toLocaleString("en-GB", { dateStyle: "full", timeStyle: "short" })}
+                            {formatDateTime(event.starts_at)}
                             {event.venue_address ? ` · ${event.venue_address}` : ""}
                           </span>
                         </span>
@@ -420,7 +429,7 @@ export default async function OrgProfilePage({
                           <p className="font-semibold">{post.title}</p>
                           {post.published_at ? (
                             <p className="mt-0.5 text-xs text-muted-foreground">
-                              {new Date(post.published_at).toLocaleDateString("en-GB", { dateStyle: "medium" })}
+                              {formatDate(post.published_at)}
                             </p>
                           ) : null}
                           <p className="mt-2 whitespace-pre-line text-sm leading-6 text-foreground/80">
@@ -446,25 +455,35 @@ export default async function OrgProfilePage({
 
           {/* Sidebar */}
           <aside className="flex flex-col gap-6 lg:sticky lg:top-24 lg:self-start">
-            {contact ? (
+            {contact && hasContactDetails ? (
               <Card>
                 <CardContent className="p-6">
                   <h2 className="mb-3 flex items-center gap-2 font-display text-sm font-bold uppercase tracking-[0.16em] text-petroleum dark:text-foreground">
                     <span aria-hidden className="h-3.5 w-1 shrink-0 rounded-full bg-emerald-brand" />
                     Contact Person
                   </h2>
-                  <p className="font-semibold">{contact.name}</p>
-                  <p className="text-sm text-muted-foreground">{contact.title}</p>
-                  <div className="mt-4 flex flex-col gap-2 text-sm">
-                    <a href={`mailto:${contact.email}`} className="inline-flex items-center gap-2 text-emerald-deeper hover:underline dark:text-emerald-brand">
-                      <Mail className="size-4" aria-hidden />
-                      {contact.email}
-                    </a>
-                    <a href={`tel:${contact.phone}`} className="inline-flex items-center gap-2 text-emerald-deeper hover:underline dark:text-emerald-brand">
-                      <Phone className="size-4" aria-hidden />
-                      {contact.phone}
-                    </a>
-                  </div>
+                  {contact.name?.trim() ? (
+                    <p className="font-semibold">{contact.name}</p>
+                  ) : null}
+                  {contact.title?.trim() ? (
+                    <p className="text-sm text-muted-foreground">{contact.title}</p>
+                  ) : null}
+                  {contact.email?.trim() || contact.phone?.trim() ? (
+                    <div className="mt-4 flex flex-col gap-2 text-sm">
+                      {contact.email?.trim() ? (
+                        <a href={`mailto:${contact.email}`} className="inline-flex items-center gap-2 text-emerald-deeper hover:underline dark:text-emerald-brand">
+                          <Mail className="size-4" aria-hidden />
+                          {contact.email}
+                        </a>
+                      ) : null}
+                      {contact.phone?.trim() ? (
+                        <a href={`tel:${contact.phone}`} className="inline-flex items-center gap-2 text-emerald-deeper hover:underline dark:text-emerald-brand">
+                          <Phone className="size-4" aria-hidden />
+                          {contact.phone}
+                        </a>
+                      ) : null}
+                    </div>
+                  ) : null}
                 </CardContent>
               </Card>
             ) : null}

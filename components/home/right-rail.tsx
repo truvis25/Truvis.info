@@ -8,6 +8,7 @@ import { BrandArt } from "@/components/brand-art";
 import { EventDateTile } from "@/components/event-date-tile";
 import { TYPE_THEME } from "@/components/listing-card";
 import { toggleFollow } from "@/lib/orgs/actions";
+import { LOCALE, PLATFORM_TZ, formatTime } from "@/lib/format";
 import { cn } from "@/lib/utils";
 import type { MemberOrg, HomeEvent } from "@/lib/home/feed";
 import type { PublicListing } from "@/components/listing-card";
@@ -164,7 +165,8 @@ export function EventsRail({
                 <div className="min-w-0">
                   <p className="truncate text-sm font-semibold">{event.title}</p>
                   <p className="text-xs text-muted-foreground">
-                    {new Date(event.starts_at).toLocaleString("en-GB", { weekday: "short", hour: "2-digit", minute: "2-digit" })}
+                    {new Date(event.starts_at).toLocaleDateString(LOCALE, { weekday: "short", timeZone: PLATFORM_TZ })}{" "}
+                    {formatTime(event.starts_at)}
                     {" · "}
                     {event.organizations?.legal_name ?? "via Luma"}
                   </p>

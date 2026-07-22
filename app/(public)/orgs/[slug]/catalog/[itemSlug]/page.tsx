@@ -68,7 +68,7 @@ export default async function CatalogItemPage({
     <main className="mx-auto w-full max-w-3xl flex-1 px-6 py-16">
       <Link
         href={`/orgs/${slug}`}
-        className="text-sm text-muted-foreground underline underline-offset-4"
+        className="link-engraved text-sm text-muted-foreground"
       >
         ← {item.organizations.legal_name}
       </Link>

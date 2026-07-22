@@ -3,6 +3,7 @@ import { Check } from "lucide-react";
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/server";
 import { startTrial, getSubscription } from "@/lib/billing/actions";
+import { formatDate } from "@/lib/format";
 import { buttonCls } from "@/components/form-field";
 
 export const metadata: Metadata = {
@@ -85,7 +86,7 @@ export default async function PricingPage({
               <p className="text-sm font-medium text-emerald-dark">
                 Your access is active
                 {subscription.status === "trialing" && subscription.current_period_end
-                  ? ` (trial ends ${new Date(subscription.current_period_end).toLocaleDateString("en-GB", { dateStyle: "medium" })})`
+                  ? ` (trial ends ${formatDate(subscription.current_period_end)})`
                   : ""}
                 .{" "}
                 <Link href="/marketplace" className="underline underline-offset-4">

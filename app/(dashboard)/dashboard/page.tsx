@@ -5,6 +5,10 @@ import { createClient } from "@/lib/supabase/server";
 import { claimOrganization } from "@/lib/compliance/actions";
 import { signOut } from "@/lib/auth/actions";
 import { RatingStars } from "@/components/ui/rating-stars";
+import { Badge } from "@/components/ui/badge";
+import { StatusBadge } from "@/components/status-badge";
+import { inputCls, buttonCls, buttonGhostCls } from "@/components/form-field";
+import { formatDate, formatDateTime } from "@/lib/format";
 
 export const metadata: Metadata = { title: "Dashboard" };
 
@@ -27,9 +31,9 @@ type OrgRow = {
 export default async function DashboardPage({
   searchParams,
 }: {
-  searchParams: Promise<{ claim_error?: string; claimed?: string }>;
+  searchParams: Promise<{ claim_error?: string; claimed?: string; error?: string }>;
 }) {
-  const { claim_error, claimed } = await searchParams;
+  const { claim_error, claimed, error } = await searchParams;
   const supabase = await createClient();
   const {
     data: { user },
@@ -40,7 +44,7 @@ export default async function DashboardPage({
     supabase
       .from("org_members")
       .select(
-        "role, organizations(id, slug, legal_name, is_visible, grant_active, admin_suspended, compliance_status(state, risk_level, score, renewal_expiry, synced_at))",
+        "role, can_manage_content, can_manage_events, organizations(id, slug, legal_name, is_visible, grant_active, admin_suspended, compliance_status(state, risk_level, score, renewal_expiry, synced_at))",
       )
       .eq("user_id", user.id),
     supabase
@@ -53,8 +57,17 @@ export default async function DashboardPage({
   ]);
 
   const orgs = (memberships ?? [])
-    .map((m) => m.organizations as unknown as OrgRow)
-    .filter(Boolean);
+    .map((m) => {
+      const org = m.organizations as unknown as OrgRow | null;
+      if (!org) return null;
+      return {
+        ...org,
+        role: m.role as string,
+        canManageContent: Boolean(m.can_manage_content),
+        canManageEvents: Boolean(m.can_manage_events),
+      };
+    })
+    .filter((o): o is NonNullable<typeof o> => Boolean(o));
 
   // Community reputation per managed org (usually one).
   const ratings = new Map<string, { avg: number | null; count: number }>(
@@ -82,9 +95,7 @@ export default async function DashboardPage({
           </p>
         </div>
         <form action={signOut}>
-          <button className="rounded-full border border-border px-4 py-2 text-sm font-medium hover:bg-secondary dark:hover:bg-secondary">
-            Sign out
-          </button>
+          <button className={buttonGhostCls}>Sign out</button>
         </form>
       </header>
 
@@ -96,9 +107,9 @@ export default async function DashboardPage({
           </Link>
         </p>
       ) : null}
-      {claim_error ? (
+      {claim_error || error ? (
         <p className="rounded-lg border border-destructive/30 bg-destructive/5 px-4 py-3 text-sm text-destructive">
-          {claim_error}
+          {claim_error || error}
         </p>
       ) : null}
 
@@ -111,16 +122,17 @@ export default async function DashboardPage({
             authorized publication, enter its compliance organization ID to
             claim its verified profile here.
           </p>
-          <form action={claimOrganization} className="mt-6 flex max-w-md gap-3">
-            <input
-              name="compliance_org_id"
-              placeholder="e.g. org-demo-1"
-              required
-              className="flex-1 rounded-lg border border-border px-3 py-2 text-sm "
-            />
-            <button className="rounded-md bg-gradient-to-r from-emerald-dark to-emerald-deeper shadow-[0_6px_20px_-6px_rgba(16,185,129,0.45)] px-5 py-2 text-sm font-medium text-white transition-all hover:-translate-y-0.5">
-              Claim
-            </button>
+          <form action={claimOrganization} className="mt-6 flex max-w-md items-end gap-3">
+            <label className="flex flex-1 flex-col gap-1 text-sm font-medium">
+              Compliance organization ID
+              <input
+                name="compliance_org_id"
+                placeholder="e.g. org-demo-1"
+                required
+                className={inputCls}
+              />
+            </label>
+            <button className={buttonCls}>Claim</button>
           </form>
         </section>
       ) : (
@@ -139,15 +151,12 @@ export default async function DashboardPage({
                     /orgs/{org.slug}
                   </p>
                 </div>
-                <span
-                  className={`rounded-full px-4 py-1.5 text-sm font-medium ${
-                    org.is_visible
-                      ? "bg-emerald-brand/10 text-emerald-deeper dark:text-emerald-brand"
-                      : "bg-amber-500/10 text-amber-700 dark:text-amber-400"
-                  }`}
+                <Badge
+                  variant={org.is_visible ? "success" : "warning"}
+                  className="px-4 py-1.5 text-sm"
                 >
                   {org.is_visible ? "Publicly visible" : "Hidden from public"}
-                </span>
+                </Badge>
               </div>
 
               {!org.is_visible ? (
@@ -183,12 +192,7 @@ export default async function DashboardPage({
                     Last synced
                   </dt>
                   <dd className="font-medium">
-                    {standing
-                      ? new Date(standing.synced_at).toLocaleString("en-GB", {
-                          dateStyle: "medium",
-                          timeStyle: "short",
-                        })
-                      : "—"}
+                    {standing ? formatDateTime(standing.synced_at) : "—"}
                   </dd>
                 </div>
               </dl>
@@ -219,42 +223,32 @@ export default async function DashboardPage({
               </div>
 
               <div className="mt-6 flex flex-wrap gap-3 text-sm">
-                <Link
-                  href={`/orgs/${org.slug}`}
-                  className="rounded-full border border-border px-4 py-2 font-medium hover:bg-secondary dark:hover:bg-secondary"
-                >
+                <Link href={`/orgs/${org.slug}`} className={buttonGhostCls}>
                   View public profile
                 </Link>
-                <Link
-                  href="/dashboard/profile"
-                  className="rounded-full border border-border px-4 py-2 font-medium hover:bg-secondary dark:hover:bg-secondary"
-                >
+                <Link href="/dashboard/profile" className={buttonGhostCls}>
                   Edit profile
                 </Link>
-                <Link
-                  href="/dashboard/catalog"
-                  className="rounded-full border border-border px-4 py-2 font-medium hover:bg-secondary dark:hover:bg-secondary"
-                >
-                  Catalog
-                </Link>
-                <Link
-                  href="/dashboard/posts"
-                  className="rounded-full border border-border px-4 py-2 font-medium hover:bg-secondary dark:hover:bg-secondary"
-                >
-                  Posts
-                </Link>
-                <Link
-                  href="/dashboard/events"
-                  className="rounded-full border border-border px-4 py-2 font-medium hover:bg-secondary dark:hover:bg-secondary"
-                >
-                  Events
-                </Link>
-                <Link
-                  href="/dashboard/listings"
-                  className="rounded-full border border-border px-4 py-2 font-medium hover:bg-secondary dark:hover:bg-secondary"
-                >
-                  Marketplace listings
-                </Link>
+                {org.canManageContent ? (
+                  <>
+                    <Link href="/dashboard/catalog" className={buttonGhostCls}>
+                      Catalog
+                    </Link>
+                    <Link href="/dashboard/posts" className={buttonGhostCls}>
+                      Posts
+                    </Link>
+                  </>
+                ) : null}
+                {org.canManageEvents ? (
+                  <Link href="/dashboard/events" className={buttonGhostCls}>
+                    Events
+                  </Link>
+                ) : null}
+                {org.role === "owner" ? (
+                  <Link href="/dashboard/listings" className={buttonGhostCls}>
+                    Marketplace listings
+                  </Link>
+                ) : null}
               </div>
             </section>
           );
@@ -298,22 +292,9 @@ export default async function DashboardPage({
                   >
                     {event.title}
                   </Link>
-                  <span className="text-muted-foreground">
-                    {new Date(event.starts_at).toLocaleDateString("en-GB", {
-                      dateStyle: "medium",
-                    })}
-                    {" · "}
-                    <span
-                      className={
-                        reg.status === "approved"
-                          ? "text-emerald-dark"
-                          : reg.status === "pending"
-                            ? "text-amber-600"
-                            : ""
-                      }
-                    >
-                      {reg.status}
-                    </span>
+                  <span className="flex items-center gap-2 text-muted-foreground">
+                    {formatDate(event.starts_at)}
+                    <StatusBadge status={reg.status} />
                   </span>
                 </li>
               );

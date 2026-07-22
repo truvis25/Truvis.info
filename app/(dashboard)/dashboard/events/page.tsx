@@ -10,6 +10,9 @@ import {
   buttonCls,
   buttonGhostCls,
 } from "@/components/form-field";
+import { StatusBadge } from "@/components/status-badge";
+import { ConfirmSubmitButton } from "@/components/confirm-submit-button";
+import { formatDateTime } from "@/lib/format";
 
 export const metadata: Metadata = { title: "Events" };
 
@@ -39,7 +42,7 @@ export default async function EventsAdminPage({
   } = await supabase.auth.getUser();
   if (!user) redirect("/login?next=/dashboard/events");
   const org = await getManagedOrg(supabase, user.id);
-  if (!org) redirect("/dashboard");
+  if (!org || !org.canManageEvents) redirect("/dashboard");
 
   const { data: events } = await supabase
     .from("events")
@@ -128,13 +131,14 @@ export default async function EventsAdminPage({
             className="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-border px-5 py-4"
           >
             <div>
-              <Link href={`/dashboard/events/${event.id}`} className="font-medium underline-offset-4 hover:underline">
-                {event.title}
-              </Link>
+              <span className="flex items-center gap-2">
+                <Link href={`/dashboard/events/${event.id}`} className="font-medium underline-offset-4 hover:underline">
+                  {event.title}
+                </Link>
+                <StatusBadge status={event.status} />
+              </span>
               <p className="text-xs text-muted-foreground">
-                {new Date(event.starts_at).toLocaleString("en-GB", { dateStyle: "medium", timeStyle: "short" })}
-                {" · "}
-                <span className={event.status === "published" ? "text-emerald-dark" : ""}>{event.status}</span>
+                {formatDateTime(event.starts_at)}
                 {" · "}
                 {event.registrations?.[0]?.count ?? 0} registration{(event.registrations?.[0]?.count ?? 0) === 1 ? "" : "s"}
                 {event.luma_publish || event.luma_sync_status ? (
@@ -180,14 +184,21 @@ export default async function EventsAdminPage({
                 <form action={setEventStatus}>
                   <input type="hidden" name="id" value={event.id} />
                   <input type="hidden" name="status" value="cancelled" />
-                  <button className={`${buttonGhostCls} text-destructive`}>Cancel</button>
+                  <ConfirmSubmitButton
+                    confirmMessage={`Cancel "${event.title}"? Registered attendees will see the event as cancelled.`}
+                    className={`${buttonGhostCls} text-destructive`}
+                  >
+                    Cancel
+                  </ConfirmSubmitButton>
                 </form>
               ) : null}
             </div>
           </div>
         ))}
         {!events?.length ? (
-          <p className="text-sm text-muted-foreground">No events yet.</p>
+          <p className="text-sm text-muted-foreground">
+            No events yet — create your first event above.
+          </p>
         ) : null}
       </section>
     </main>
