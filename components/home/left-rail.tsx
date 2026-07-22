@@ -6,14 +6,7 @@ import { Button } from "@/components/ui/button";
 import { VerifiedBadge } from "@/components/ui/badge";
 import { RatingStars } from "@/components/ui/rating-stars";
 import { BrandArt } from "@/components/brand-art";
-
-function initials(name: string) {
-  return name
-    .split(/\s+/)
-    .slice(0, 2)
-    .map((word) => word[0]?.toUpperCase() ?? "")
-    .join("");
-}
+import { initials } from "@/lib/utils";
 
 // Engraved header strip shared by rail cards.
 function RailStrip() {
@@ -110,7 +103,7 @@ export function IdentityCard({
 }) {
   return (
     <Card className="overflow-hidden p-0">
-      <div className="art-on-petroleum relative h-14 bg-gradient-to-r from-petroleum-deep via-petroleum to-[#03427a]">
+      <div className="art-on-petroleum relative h-14 bg-gradient-to-r from-petroleum-deep via-petroleum to-petroleum-light">
         {org.cover_url ? (
           <Image src={org.cover_url} alt="" fill sizes="240px" className="object-cover opacity-80" />
         ) : (

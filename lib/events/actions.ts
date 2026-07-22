@@ -124,7 +124,7 @@ export async function retryLumaSync(formData: FormData) {
   const { supabase } = await requireEventManager("/dashboard/events");
   await syncEventToLuma(supabase, id);
   revalidatePath("/events");
-  redirect("/dashboard/events");
+  redirect("/dashboard/events?saved=1");
 }
 
 // --- Attendee side -----------------------------------------------------------

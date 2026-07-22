@@ -183,7 +183,7 @@ export default async function Home({
 
       {/* Gate band — anonymous only */}
       {!signedIn ? (
-        <section className="art-on-petroleum relative overflow-hidden bg-gradient-to-br from-petroleum-deep via-petroleum to-[#03427a] text-white">
+        <section className="art-on-petroleum relative overflow-hidden bg-gradient-to-br from-petroleum-deep via-petroleum to-petroleum-light text-white">
           <div
             aria-hidden
             className="pointer-events-none absolute -right-24 -top-24 size-[420px] opacity-50 md:opacity-80 [mask-image:radial-gradient(closest-side,black_55%,transparent_100%)]"

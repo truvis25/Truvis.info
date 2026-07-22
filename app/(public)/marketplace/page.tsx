@@ -8,6 +8,9 @@ import { ListingCard, type PublicListing } from "@/components/listing-card";
 import { Button } from "@/components/ui/button";
 import { Input, Select } from "@/components/ui/input";
 import { BrandArt } from "@/components/brand-art";
+import { Pagination, pageCountFor, parsePage } from "@/components/pagination";
+
+const MARKETPLACE_PAGE_SIZE = 24;
 
 export const metadata: Metadata = {
   title: "Marketplace",
@@ -20,9 +23,10 @@ export const dynamic = "force-dynamic";
 export default async function MarketplacePage({
   searchParams,
 }: {
-  searchParams: Promise<{ trial?: string; q?: string; type?: string; sector?: string; region?: string }>;
+  searchParams: Promise<{ trial?: string; q?: string; type?: string; sector?: string; region?: string; page?: string }>;
 }) {
-  const { trial, q, type, sector, region } = await searchParams;
+  const { trial, q, type, sector, region, page: pageRaw } = await searchParams;
+  const page = parsePage(pageRaw);
   const supabase = await createClient();
   // Anonymity-safe listing feed: identity fields come back non-null only for
   // listings whose owner opted into reveal_identity. Second unfiltered call
@@ -37,7 +41,13 @@ export default async function MarketplacePage({
     supabase.rpc("get_public_listings"),
   ]);
 
-  const list = (listings ?? []) as PublicListing[];
+  // The RPC has no offset support, so paging slices its result set here.
+  const matches = (listings ?? []) as PublicListing[];
+  const pageCount = pageCountFor(matches.length, MARKETPLACE_PAGE_SIZE);
+  const list = matches.slice(
+    (page - 1) * MARKETPLACE_PAGE_SIZE,
+    page * MARKETPLACE_PAGE_SIZE,
+  );
   const all = (allListings ?? []) as PublicListing[];
   const filtersActive = Boolean(q?.trim() || type || sector || region);
   const sectors = [...new Set(all.map((l) => l.sector).filter(Boolean))] as string[];
@@ -46,7 +56,7 @@ export default async function MarketplacePage({
   return (
     <main className="flex-1">
       {/* Deal-room band — the section's dark signature surface with photography */}
-      <header className="art-on-petroleum relative overflow-hidden bg-gradient-to-br from-petroleum-deep via-petroleum to-[#03427a] text-white">
+      <header className="art-on-petroleum relative overflow-hidden bg-gradient-to-br from-petroleum-deep via-petroleum to-petroleum-light text-white">
         <div
           aria-hidden
           className="pointer-events-none absolute inset-y-0 right-0 w-2/3 opacity-25 [mask-image:linear-gradient(to_left,black,transparent)]"
@@ -191,7 +201,7 @@ export default async function MarketplacePage({
         <>
         {filtersActive ? (
           <p className="mb-4 text-sm text-muted-foreground">
-            {list.length} result{list.length === 1 ? "" : "s"}
+            {matches.length} result{matches.length === 1 ? "" : "s"}
           </p>
         ) : null}
         <ul className="flex flex-col gap-4">
@@ -201,6 +211,12 @@ export default async function MarketplacePage({
             </li>
           ))}
         </ul>
+        <Pagination
+          page={page}
+          pageCount={pageCount}
+          basePath="/marketplace"
+          params={{ q, type, sector, region }}
+        />
         </>
       )}
       </div>

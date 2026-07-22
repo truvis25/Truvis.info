@@ -216,7 +216,7 @@ export default async function OrgProfilePage({
       />
 
       {/* Cover band */}
-      <div className="art-on-petroleum relative h-44 bg-gradient-to-r from-petroleum-deep via-petroleum to-[#03427a] shadow-[inset_0_0_0_1px_rgba(255,255,255,0.12)] sm:h-56">
+      <div className="art-on-petroleum relative h-44 bg-gradient-to-r from-petroleum-deep via-petroleum to-petroleum-light shadow-[inset_0_0_0_1px_rgba(255,255,255,0.12)] sm:h-56">
         {org.cover_url ? (
           <div className="duotone absolute inset-0">
             <Image src={org.cover_url} alt="" fill className="object-cover opacity-70" />

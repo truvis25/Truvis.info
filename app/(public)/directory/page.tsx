@@ -10,6 +10,9 @@ import {
 import { Input, Select } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { BrandArt } from "@/components/brand-art";
+import { Pagination, pageCountFor, parsePage } from "@/components/pagination";
+
+const DIRECTORY_PAGE_SIZE = 24;
 
 export const metadata: Metadata = {
   title: "Directory",
@@ -21,9 +24,10 @@ export const dynamic = "force-dynamic";
 export default async function DirectoryPage({
   searchParams,
 }: {
-  searchParams: Promise<{ q?: string; industry?: string; jurisdiction?: string }>;
+  searchParams: Promise<{ q?: string; industry?: string; jurisdiction?: string; page?: string }>;
 }) {
-  const { q, industry, jurisdiction } = await searchParams;
+  const { q, industry, jurisdiction, page: pageRaw } = await searchParams;
+  const page = parsePage(pageRaw);
   const supabase = await createClient();
 
   // Search + facets via search_orgs (RLS keeps hidden orgs out — DIR-4/5/6).
@@ -36,7 +40,14 @@ export default async function DirectoryPage({
     supabase.from("organizations").select("industry_code, jurisdiction"),
   ]);
 
-  const list = (orgs ?? []) as DirectoryOrg[];
+  // search_orgs supports a limit but no offset, so paging slices the ranked
+  // result set here; the query itself is capped inside the RPC.
+  const matches = (orgs ?? []) as DirectoryOrg[];
+  const pageCount = pageCountFor(matches.length, DIRECTORY_PAGE_SIZE);
+  const list = matches.slice(
+    (page - 1) * DIRECTORY_PAGE_SIZE,
+    page * DIRECTORY_PAGE_SIZE,
+  );
   const totalCount = (allVisible ?? []).length;
   const filtersActive = Boolean(q?.trim() || industry || jurisdiction);
   const industries = [...new Set((allVisible ?? []).map((o) => o.industry_code).filter(Boolean))] as string[];
@@ -45,7 +56,7 @@ export default async function DirectoryPage({
   return (
     <main className="flex-1">
       {/* Registry band — the directory's dark signature surface */}
-      <header className="art-on-petroleum relative overflow-hidden bg-gradient-to-br from-petroleum-deep via-petroleum to-[#03427a] text-white">
+      <header className="art-on-petroleum relative overflow-hidden bg-gradient-to-br from-petroleum-deep via-petroleum to-petroleum-light text-white">
         <div
           aria-hidden
           className="pointer-events-none absolute inset-y-0 right-0 w-2/3 opacity-25 [mask-image:linear-gradient(to_left,black,transparent)]"
@@ -140,7 +151,7 @@ export default async function DirectoryPage({
         <>
         {filtersActive ? (
           <p className="mb-4 text-sm text-muted-foreground">
-            {list.length} result{list.length === 1 ? "" : "s"}
+            {matches.length} result{matches.length === 1 ? "" : "s"}
           </p>
         ) : null}
         <ul className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
@@ -150,6 +161,12 @@ export default async function DirectoryPage({
             </li>
           ))}
         </ul>
+        <Pagination
+          page={page}
+          pageCount={pageCount}
+          basePath="/directory"
+          params={{ q, industry, jurisdiction }}
+        />
         </>
       )}
       </div>

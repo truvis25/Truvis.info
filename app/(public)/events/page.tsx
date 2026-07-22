@@ -10,6 +10,9 @@ import { Input, Select } from "@/components/ui/input";
 import { BrandArt } from "@/components/brand-art";
 import { EventDateTile } from "@/components/event-date-tile";
 import { formatDateTime } from "@/lib/format";
+import { Pagination, pageCountFor, parsePage } from "@/components/pagination";
+
+const EVENTS_PAGE_SIZE = 20;
 
 export const metadata: Metadata = {
   title: "Events",
@@ -32,9 +35,10 @@ type EventRow = {
 export default async function EventsPage({
   searchParams,
 }: {
-  searchParams: Promise<{ q?: string; mode?: string }>;
+  searchParams: Promise<{ q?: string; mode?: string; page?: string }>;
 }) {
-  const { q, mode } = await searchParams;
+  const { q, mode, page: pageRaw } = await searchParams;
+  const page = parsePage(pageRaw);
   const supabase = await createClient();
 
   // Left join: Luma-sourced community events have no owning organization.
@@ -42,6 +46,7 @@ export default async function EventsPage({
     .from("events")
     .select(
       "slug, title, starts_at, venue_address, online_url, banner_url, external_source, organizations(slug, legal_name, logo_url)",
+      { count: "exact" },
     )
     .eq("status", "published")
     .gte("starts_at", new Date().toISOString())
@@ -57,17 +62,20 @@ export default async function EventsPage({
   if (mode === "online") query = query.not("online_url", "is", null);
   if (mode === "in-person") query = query.not("venue_address", "is", null);
 
-  // Filtered list + unfiltered head-count for the hero stat.
-  const [{ data: events }, { count: totalCount }] = await Promise.all([
-    query,
-    supabase
-      .from("events")
-      .select("*", { count: "exact", head: true })
-      .eq("status", "published")
-      .gte("starts_at", new Date().toISOString()),
-  ]);
+  // Paged filtered list (+ its total) and unfiltered head-count for the hero.
+  const from = (page - 1) * EVENTS_PAGE_SIZE;
+  const [{ data: events, count: filteredCount }, { count: totalCount }] =
+    await Promise.all([
+      query.range(from, from + EVENTS_PAGE_SIZE - 1),
+      supabase
+        .from("events")
+        .select("*", { count: "exact", head: true })
+        .eq("status", "published")
+        .gte("starts_at", new Date().toISOString()),
+    ]);
   const list = (events ?? []) as unknown as EventRow[];
   const filtersActive = Boolean(q?.trim() || mode);
+  const pageCount = pageCountFor(filteredCount ?? list.length, EVENTS_PAGE_SIZE);
 
   return (
     <main className="flex-1">
@@ -179,7 +187,7 @@ export default async function EventsPage({
         <>
         {filtersActive ? (
           <p className="mb-4 text-sm text-muted-foreground">
-            {list.length} result{list.length === 1 ? "" : "s"}
+            {filteredCount ?? list.length} result{(filteredCount ?? list.length) === 1 ? "" : "s"}
           </p>
         ) : null}
         <ul className="flex flex-col gap-4">
@@ -237,7 +245,7 @@ export default async function EventsPage({
                         </div>
                       </div>
                       {/* Banner thumbnail (real photo) or engraved event plate */}
-                      <div className="art-on-petroleum relative hidden w-44 shrink-0 overflow-hidden bg-gradient-to-br from-petroleum-deep via-petroleum to-[#03427a] md:block">
+                      <div className="art-on-petroleum relative hidden w-44 shrink-0 overflow-hidden bg-gradient-to-br from-petroleum-deep via-petroleum to-petroleum-light md:block">
                         {event.banner_url ? (
                           <div className="duotone absolute inset-0">
                             <Image
@@ -260,6 +268,12 @@ export default async function EventsPage({
             );
           })}
         </ul>
+        <Pagination
+          page={page}
+          pageCount={pageCount}
+          basePath="/events"
+          params={{ q, mode }}
+        />
         </>
       )}
       </div>
