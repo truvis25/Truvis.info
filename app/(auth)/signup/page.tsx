@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { signUp } from "@/lib/auth/actions";
+import { Notice, inputCls, buttonCls } from "@/components/form-field";
 
 export const metadata: Metadata = { title: "Create account" };
 
@@ -39,11 +40,7 @@ export default async function SignupPage({
           organization&apos;s verified profile.
         </p>
       </div>
-      {error ? (
-        <p className="rounded-lg border border-destructive/30 bg-destructive/5 px-4 py-3 text-sm text-destructive">
-          {error}
-        </p>
-      ) : null}
+      <Notice error={error} />
       <form action={signUp} className="flex flex-col gap-4">
         <label className="flex flex-col gap-1 text-sm font-medium">
           Full name
@@ -52,7 +49,7 @@ export default async function SignupPage({
             type="text"
             required
             autoComplete="name"
-            className="rounded-lg border border-border px-3 py-2 text-base font-normal "
+            className={inputCls}
           />
         </label>
         <label className="flex flex-col gap-1 text-sm font-medium">
@@ -62,7 +59,7 @@ export default async function SignupPage({
             type="email"
             required
             autoComplete="email"
-            className="rounded-lg border border-border px-3 py-2 text-base font-normal "
+            className={inputCls}
           />
         </label>
         <label className="flex flex-col gap-1 text-sm font-medium">
@@ -73,13 +70,10 @@ export default async function SignupPage({
             required
             minLength={8}
             autoComplete="new-password"
-            className="rounded-lg border border-border px-3 py-2 text-base font-normal "
+            className={inputCls}
           />
         </label>
-        <button
-          type="submit"
-          className="rounded-md bg-gradient-to-r from-emerald-dark to-emerald-deeper shadow-[0_6px_20px_-6px_rgba(16,185,129,0.45)] px-6 py-2.5 text-sm font-medium text-white transition-all hover:-translate-y-0.5"
-        >
+        <button type="submit" className={buttonCls}>
           Create account
         </button>
       </form>

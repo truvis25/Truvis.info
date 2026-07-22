@@ -4,6 +4,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { ReviewCard, type OrgReview } from "@/components/review-card";
 import { submitReview } from "@/lib/reviews/actions";
 import { inputCls, buttonCls } from "@/components/form-field";
+import { SectionHeading } from "@/components/section-heading";
 
 export type OrgRating = {
   avg: number | null;
@@ -35,10 +36,7 @@ export function OrgReviewsSection({
 
   return (
     <div id="reviews" className="scroll-mt-24">
-      <h2 className="mb-4 flex items-center gap-2.5 font-display text-lg font-bold text-petroleum dark:text-foreground">
-        <span aria-hidden className="h-5 w-1 shrink-0 rounded-full bg-emerald-brand" />
-        Community Reviews
-      </h2>
+      <SectionHeading className="mb-4">Community Reviews</SectionHeading>
 
       {count > 0 ? (
         <Card className="mb-5">
@@ -97,10 +95,9 @@ export function OrgReviewsSection({
       {viewerId && !viewerIsMember ? (
         <Card className="mt-6">
           <CardContent className="p-6">
-            <h3 className="flex items-center gap-2 font-display text-sm font-bold uppercase tracking-[0.16em] text-petroleum dark:text-foreground">
-              <span aria-hidden className="h-3.5 w-1 shrink-0 rounded-full bg-emerald-brand" />
+            <SectionHeading as="h3" size="sm">
               {viewerReview ? "Update your review" : "Write a review"}
-            </h3>
+            </SectionHeading>
             <form action={submitReview} className="mt-4 flex flex-col gap-4">
               <input type="hidden" name="org_id" value={org.id} />
               <input type="hidden" name="org_slug" value={org.slug} />

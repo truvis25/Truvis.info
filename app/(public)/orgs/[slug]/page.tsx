@@ -26,6 +26,7 @@ import type { OrgReview } from "@/components/review-card";
 import { Notice } from "@/components/form-field";
 import { BrandArt } from "@/components/brand-art";
 import type { ContactPerson } from "@/types/domain";
+import { SectionHeading } from "@/components/section-heading";
 
 export const dynamic = "force-dynamic";
 
@@ -327,10 +328,7 @@ export default async function OrgProfilePage({
             ) : null}
             {org.description ? (
               <div id="about" className="scroll-mt-24">
-                <h2 className="mb-3 flex items-center gap-2.5 font-display text-lg font-bold text-petroleum dark:text-foreground">
-                  <span aria-hidden className="h-5 w-1 shrink-0 rounded-full bg-emerald-brand" />
-                  About
-                </h2>
+                <SectionHeading className="mb-3">About</SectionHeading>
                 <p className="whitespace-pre-line text-sm leading-7 text-foreground/80">
                   {org.description}
                 </p>
@@ -339,10 +337,7 @@ export default async function OrgProfilePage({
 
             {catalog?.length ? (
               <div id="catalog" className="scroll-mt-24">
-                <h2 className="mb-4 flex items-center gap-2.5 font-display text-lg font-bold text-petroleum dark:text-foreground">
-                  <span aria-hidden className="h-5 w-1 shrink-0 rounded-full bg-emerald-brand" />
-                  Products &amp; Services
-                </h2>
+                <SectionHeading className="mb-4">Products &amp; Services</SectionHeading>
                 <ul className="grid gap-4 sm:grid-cols-2">
                   {catalog.map((item) => {
                     const media = (item.catalog_media ?? []).find(
@@ -387,10 +382,7 @@ export default async function OrgProfilePage({
 
             {events?.length ? (
               <div id="org-events" className="scroll-mt-24">
-                <h2 className="mb-4 flex items-center gap-2.5 font-display text-lg font-bold text-petroleum dark:text-foreground">
-                  <span aria-hidden className="h-5 w-1 shrink-0 rounded-full bg-emerald-brand" />
-                  Upcoming Events
-                </h2>
+                <SectionHeading className="mb-4">Upcoming Events</SectionHeading>
                 <ul className="flex flex-col gap-3">
                   {events.map((event) => (
                     <li key={event.slug}>
@@ -417,10 +409,7 @@ export default async function OrgProfilePage({
 
             {posts?.length ? (
               <div id="updates" className="scroll-mt-24">
-                <h2 className="mb-4 flex items-center gap-2.5 font-display text-lg font-bold text-petroleum dark:text-foreground">
-                  <span aria-hidden className="h-5 w-1 shrink-0 rounded-full bg-emerald-brand" />
-                  Latest Updates
-                </h2>
+                <SectionHeading className="mb-4">Latest Updates</SectionHeading>
                 <ul className="flex flex-col gap-4">
                   {posts.map((post) => (
                     <li key={post.id}>
