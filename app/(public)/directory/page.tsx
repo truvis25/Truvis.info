@@ -82,10 +82,10 @@ export default async function DirectoryPage({
       </header>
 
       <div className="mx-auto w-full max-w-7xl px-6 pb-14 lg:px-12">
-      {/* Search & facets — floats over the registry band edge */}
+      {/* Search & facets — sits below the registry band edge */}
       <form
         method="GET"
-        className="-mt-8 mb-10 flex flex-col gap-3 rounded-xl border border-border bg-card p-4 shadow-[0_16px_40px_-24px_rgba(2,48,89,0.4)] sm:flex-row sm:items-center"
+        className="mt-8 mb-10 flex flex-col gap-3 rounded-xl border border-border bg-card p-4 shadow-[0_16px_40px_-24px_rgba(2,48,89,0.4)] sm:flex-row sm:items-center"
         role="search"
         aria-label="Search the directory"
       >
