@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { signIn } from "@/lib/auth/actions";
+import { Notice, inputCls, buttonCls } from "@/components/form-field";
 
 export const metadata: Metadata = { title: "Sign in" };
 
@@ -18,11 +19,7 @@ export default async function LoginPage({
           Access your organization dashboard.
         </p>
       </div>
-      {error ? (
-        <p className="rounded-lg border border-destructive/30 bg-destructive/5 px-4 py-3 text-sm text-destructive">
-          {error}
-        </p>
-      ) : null}
+      <Notice error={error} />
       <form action={signIn} className="flex flex-col gap-4">
         <input type="hidden" name="next" value={next ?? ""} />
         <label className="flex flex-col gap-1 text-sm font-medium">
@@ -32,7 +29,7 @@ export default async function LoginPage({
             type="email"
             required
             autoComplete="email"
-            className="rounded-lg border border-border px-3 py-2 text-base font-normal "
+            className={inputCls}
           />
         </label>
         <label className="flex flex-col gap-1 text-sm font-medium">
@@ -42,13 +39,10 @@ export default async function LoginPage({
             type="password"
             required
             autoComplete="current-password"
-            className="rounded-lg border border-border px-3 py-2 text-base font-normal "
+            className={inputCls}
           />
         </label>
-        <button
-          type="submit"
-          className="rounded-md bg-gradient-to-r from-emerald-dark to-emerald-deeper shadow-[0_6px_20px_-6px_rgba(16,185,129,0.45)] px-6 py-2.5 text-sm font-medium text-white transition-all hover:-translate-y-0.5"
-        >
+        <button type="submit" className={buttonCls}>
           Sign in
         </button>
       </form>

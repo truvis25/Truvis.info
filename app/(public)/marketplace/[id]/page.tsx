@@ -10,6 +10,7 @@ import { VerifiedBadge } from "@/components/ui/badge";
 import type { PublicListing } from "@/components/listing-card";
 import { inputCls, buttonCls } from "@/components/form-field";
 import { formatAed } from "@/lib/format";
+import { SectionHeading } from "@/components/section-heading";
 
 export const dynamic = "force-dynamic";
 
@@ -227,10 +228,7 @@ export default async function ListingPage({
           </div>
 
           <div className="rounded-2xl border border-border p-6">
-            <h3 className="flex items-center gap-2.5 font-display font-semibold">
-              <span aria-hidden className="h-4 w-1 shrink-0 rounded-full bg-emerald-brand" />
-              Messages with the seller
-            </h3>
+            <SectionHeading as="h3" size="md">Messages with the seller</SectionHeading>
             <ul className="mt-4 flex flex-col gap-3">
               {messages.map((message) => (
                 <li
@@ -295,10 +293,7 @@ export default async function ListingPage({
           ) : (
             <form action={applyToReview} className="flex flex-col gap-4">
               <input type="hidden" name="listing_id" value={id} />
-              <h3 className="flex items-center gap-2.5 font-display font-semibold">
-                <span aria-hidden className="h-4 w-1 shrink-0 rounded-full bg-emerald-brand" />
-                Apply to review this opportunity
-              </h3>
+              <SectionHeading as="h3" size="md">Apply to review this opportunity</SectionHeading>
               <label className="flex flex-col gap-1 text-sm font-medium">
                 Introduce yourself to the seller
                 <textarea
