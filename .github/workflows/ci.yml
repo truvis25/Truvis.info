@@ -5,6 +5,11 @@ on:
     branches: [main]
   pull_request:
 
+# Least-privilege token: the workflow only reads the repo and uploads an
+# artifact, neither of which needs write scopes.
+permissions:
+  contents: read
+
 jobs:
   build:
     runs-on: ubuntu-latest
