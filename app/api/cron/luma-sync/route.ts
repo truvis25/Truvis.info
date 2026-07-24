@@ -2,6 +2,7 @@ import { NextResponse, type NextRequest } from "next/server";
 import { revalidatePath } from "next/cache";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { getLumaClient } from "@/lib/luma/client";
+import { notifyEventCancelled } from "@/lib/email/notifications";
 import type { LumaEvent } from "@/lib/luma/types";
 
 // Pull sweep: mirror events from the central Truvis Luma calendar into the
@@ -111,7 +112,7 @@ export async function GET(request: NextRequest) {
   if (completedPagination) {
     const { data: stale } = await supabase
       .from("events")
-      .select("id, luma_event_id")
+      .select("id, luma_event_id, title")
       .eq("external_source", "luma")
       .eq("status", "published")
       .gt("starts_at", nowIso);
@@ -122,7 +123,13 @@ export async function GET(request: NextRequest) {
           .from("events")
           .update({ status: "cancelled", updated_at: nowIso })
           .eq("id", row.id);
-        if (!error) cancelled += 1;
+        if (!error) {
+          cancelled += 1;
+          // Keep the "cancellation always notifies" invariant. Near-no-op for
+          // Luma events (registrations are blocked on external events), but
+          // correct if any local registrations ever exist.
+          await notifyEventCancelled({ eventId: row.id, eventTitle: row.title });
+        }
       }
     }
   }

@@ -13,3 +13,11 @@ export function createAdminClient() {
     { auth: { persistSession: false } },
   );
 }
+
+// Null-safe variant for best-effort callers (e.g. email notifications): returns
+// null instead of building a client with an undefined key, so a dev environment
+// without the service key degrades gracefully rather than crashing.
+export function tryCreateAdminClient() {
+  if (!process.env.SUPABASE_SERVICE_ROLE_KEY) return null;
+  return createAdminClient();
+}

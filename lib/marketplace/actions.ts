@@ -4,6 +4,11 @@ import { redirect } from "next/navigation";
 import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
 import { getManagedOrg } from "@/lib/orgs/queries";
+import {
+  notifyApplicationReceived,
+  notifyApplicationDecided,
+  notifyNewListingMessage,
+} from "@/lib/email/notifications";
 
 async function requireOwner(nextPath: string) {
   const supabase = await createClient();
@@ -141,6 +146,7 @@ export async function applyToReview(formData: FormData) {
           : error.message;
     redirect(`/marketplace/${listingId}?error=${encodeURIComponent(message)}`);
   }
+  await notifyApplicationReceived({ listingId });
   redirect(`/marketplace/${listingId}?applied=1`);
 }
 
@@ -151,16 +157,25 @@ export async function decideApplication(formData: FormData) {
   const decision = formData.get("decision") === "approve" ? "approved" : "rejected";
   const { supabase, userId } = await requireOwner("/dashboard/listings");
 
-  const { error } = await supabase
+  const { data: updated, error } = await supabase
     .from("listing_applications")
     .update({
       status: decision,
       decided_by: userId,
       decided_at: new Date().toISOString(),
     })
-    .eq("id", applicationId);
+    .eq("id", applicationId)
+    .select("applicant_id, listing_id")
+    .maybeSingle();
 
   if (error) redirect(`/dashboard/listings?error=${encodeURIComponent(error.message)}`);
+  if (updated?.applicant_id && updated?.listing_id) {
+    await notifyApplicationDecided({
+      applicantUserId: updated.applicant_id as string,
+      listingId: updated.listing_id as string,
+      decision,
+    });
+  }
   redirect("/dashboard/listings?saved=1");
 }
 
@@ -191,5 +206,10 @@ export async function sendListingMessage(formData: FormData) {
   });
 
   if (error) redirect(`${back}?error=${encodeURIComponent(error.message)}`);
+  await notifyNewListingMessage({
+    applicationId,
+    senderUserId: user.id,
+    preview: body,
+  });
   redirect(back);
 }

@@ -6,6 +6,11 @@ import { createClient } from "@/lib/supabase/server";
 import { getManagedOrg, slugifyText } from "@/lib/orgs/queries";
 import { parseGstLocalInput } from "@/lib/format";
 import { syncEventToLuma } from "@/lib/luma/sync";
+import {
+  notifyRegistrationReceived,
+  notifyRegistrationDecided,
+  notifyEventCancelled,
+} from "@/lib/email/notifications";
 
 async function requireEventManager(nextPath: string) {
   const supabase = await createClient();
@@ -106,6 +111,14 @@ export async function setEventStatus(formData: FormData) {
   }
   const { supabase, org } = await requireEventManager("/dashboard/events");
 
+  // Fetch the title before the write so a cancellation email can name the event.
+  const { data: eventRow } = await supabase
+    .from("events")
+    .select("title")
+    .eq("id", id)
+    .eq("org_id", org.id)
+    .maybeSingle();
+
   const { error } = await supabase
     .from("events")
     .update({ status, updated_at: new Date().toISOString() })
@@ -115,6 +128,9 @@ export async function setEventStatus(formData: FormData) {
   if (error) redirect(`/dashboard/events?error=${encodeURIComponent(error.message)}`);
   await syncEventToLuma(supabase, id);
   revalidatePath("/events");
+  if (status === "cancelled" && eventRow?.title) {
+    await notifyEventCancelled({ eventId: id, eventTitle: eventRow.title as string });
+  }
   redirect("/dashboard/events?saved=1");
 }
 
@@ -139,7 +155,7 @@ export async function registerForEvent(formData: FormData) {
 
   const { data: event } = await supabase
     .from("events")
-    .select("id")
+    .select("id, title, org_id")
     .eq("slug", eventSlug)
     .maybeSingle();
   if (!event) redirect("/events");
@@ -154,6 +170,22 @@ export async function registerForEvent(formData: FormData) {
   if (error) {
     const message = error.code === "23505" ? "You are already registered." : error.message;
     redirect(`/events/${eventSlug}?error=${encodeURIComponent(message)}`);
+  }
+
+  // Notify the organizer (org-owned events only; Luma community events have no org).
+  if (event.org_id) {
+    const { data: profile } = await supabase
+      .from("user_profiles")
+      .select("display_name")
+      .eq("id", user.id)
+      .maybeSingle();
+    await notifyRegistrationReceived({
+      eventId: event.id as string,
+      eventTitle: event.title as string,
+      registrantName:
+        (profile?.display_name as string) || user.email?.split("@")[0] || "A user",
+      orgId: event.org_id as string,
+    });
   }
   redirect(`/events/${eventSlug}?registered=1`);
 }
@@ -188,11 +220,19 @@ export async function decideRegistration(formData: FormData) {
   // an event of the caller's org.
   const { data: ownedEvent } = await supabase
     .from("events")
-    .select("id")
+    .select("id, title, slug")
     .eq("id", eventId)
     .eq("org_id", org.id)
     .maybeSingle();
   if (!ownedEvent) redirect("/dashboard/events");
+
+  // Capture the registrant before the write so we can notify on either path.
+  const { data: registration } = await supabase
+    .from("event_registrations")
+    .select("user_id")
+    .eq("id", registrationId)
+    .eq("event_id", eventId)
+    .maybeSingle();
 
   if (decision === "approve") {
     // Capacity-safe approval via SECURITY DEFINER RPC (migration 0005).
@@ -214,6 +254,15 @@ export async function decideRegistration(formData: FormData) {
     if (error) {
       redirect(`/dashboard/events/${eventId}?error=${encodeURIComponent(error.message)}`);
     }
+  }
+
+  if (registration?.user_id) {
+    await notifyRegistrationDecided({
+      registrantUserId: registration.user_id as string,
+      eventTitle: ownedEvent.title as string,
+      eventSlug: ownedEvent.slug as string,
+      decision: decision === "approve" ? "approved" : "rejected",
+    });
   }
   redirect(`/dashboard/events/${eventId}`);
 }

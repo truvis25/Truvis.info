@@ -3,6 +3,7 @@ import type {
   PublicationGrant,
   StandingResponse,
 } from "./types";
+import { pilotOrgs } from "./pilot-data";
 
 // Mock implementation of the partner API (docs/ARCHITECTURE.md §5.5).
 // Lets every feature build and demo before the real API ships (PRD CMP-7).
@@ -66,6 +67,14 @@ const standings: Record<string, Omit<StandingResponse, "orgId">> = {
     checkedAt: "2026-07-19T06:00:00Z",
   },
 };
+
+// Fold the pilot catalog in — the same module the seed script uses, so mock
+// standings and seeded rows can never drift. listUpdatedOrgs then returns the
+// pilot ids too, keeping their synced_at fresh via the compliance-poll cron.
+for (const org of pilotOrgs) {
+  grants[org.complianceOrgId] = org.grant;
+  standings[org.complianceOrgId] = org.standing;
+}
 
 export const mockComplianceClient: ComplianceApiClient = {
   async getPublicationGrant(complianceOrgId) {
