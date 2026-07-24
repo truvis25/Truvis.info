@@ -2,6 +2,10 @@ import { defineConfig } from "vitest/config";
 import { fileURLToPath } from "node:url";
 
 export default defineConfig({
+  test: {
+    // Playwright specs live in e2e/ and run via `playwright test`, not vitest.
+    exclude: ["e2e/**", "node_modules/**"],
+  },
   resolve: {
     alias: {
       // Mirror the tsconfig "@/*" path alias for tests.

@@ -19,6 +19,8 @@ jobs:
         run: npm run lint
       - name: Typecheck
         run: npx tsc --noEmit
+      - name: Unit tests
+        run: npm test
       - name: Build
         run: npm run build
         env:
@@ -26,3 +28,32 @@ jobs:
           NEXT_PUBLIC_SUPABASE_ANON_KEY: placeholder
           NEXT_PUBLIC_SITE_URL: https://truvis.info
           COMPLIANCE_API_MODE: mock
+
+  e2e:
+    runs-on: ubuntu-latest
+    # Parallel to build (no `needs`) to keep wall-clock down. Smokes the
+    # production build against the public Supabase defaults (anon + RLS =
+    # read-only); assertions are data-independent so an empty DB passes.
+    env:
+      COMPLIANCE_API_MODE: mock
+      NEXT_PUBLIC_SITE_URL: http://localhost:3000
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - name: Install Playwright browser
+        run: npx playwright install chromium --with-deps
+      - name: Build
+        run: npm run build
+      - name: E2E smoke
+        run: npx playwright test
+      - name: Upload report on failure
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-report
+          path: playwright-report/
+          retention-days: 7
