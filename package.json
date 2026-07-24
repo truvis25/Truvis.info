@@ -7,7 +7,9 @@
     "build": "next build",
     "start": "next start",
     "lint": "eslint",
-    "test": "vitest run"
+    "test": "vitest run",
+    "seed:pilot": "node --experimental-strip-types scripts/seed-pilot.mts",
+    "seed:pilot:remove": "node --experimental-strip-types scripts/seed-pilot.mts --remove"
   },
   "dependencies": {
     "@radix-ui/react-dialog": "^1.1.19",
