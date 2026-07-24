@@ -2,9 +2,10 @@ import type { Metadata } from "next";
 import { Check } from "lucide-react";
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/server";
-import { startTrial, getSubscription } from "@/lib/billing/actions";
+import { startTrial, getSubscription, createCheckoutSession } from "@/lib/billing/actions";
+import { isStripeEnabled } from "@/lib/billing/stripe";
 import { formatDate } from "@/lib/format";
-import { buttonCls } from "@/components/form-field";
+import { buttonCls, buttonGhostCls } from "@/components/form-field";
 
 export const metadata: Metadata = {
   title: "Pricing",
@@ -30,14 +31,28 @@ const proFeatures = [
 export default async function PricingPage({
   searchParams,
 }: {
-  searchParams: Promise<{ error?: string }>;
+  searchParams: Promise<{ error?: string; checkout?: string }>;
 }) {
-  const { error } = await searchParams;
+  const { error, checkout } = await searchParams;
   const supabase = await createClient();
   const {
     data: { user },
   } = await supabase.auth.getUser();
   const subscription = user ? await getSubscription() : null;
+
+  // Paid checkout is offered only when Stripe is live AND real (non-placeholder)
+  // prices exist; otherwise the pre-Stripe trial flow renders unchanged.
+  const stripeLive = isStripeEnabled();
+  const { data: planRows } = stripeLive
+    ? await supabase
+        .from("subscription_plans")
+        .select("id, name, stripe_price_id, interval")
+        .eq("active", true)
+    : { data: null };
+  const paidPlans = (planRows ?? []).filter(
+    (p) => !p.stripe_price_id.startsWith("price_pending") && p.stripe_price_id !== "trial",
+  );
+  const showCheckout = stripeLive && paidPlans.length > 0 && Boolean(user) && !subscription?.active;
 
   return (
     <main className="mx-auto w-full max-w-4xl flex-1 px-6 py-16">
@@ -54,6 +69,16 @@ export default async function PricingPage({
       {error ? (
         <p className="mx-auto mb-6 max-w-md rounded-lg border border-destructive/30 bg-destructive/5 px-4 py-3 text-sm text-destructive">
           {error}
+        </p>
+      ) : null}
+      {checkout === "success" ? (
+        <p role="status" className="mx-auto mb-6 max-w-md rounded-lg border border-emerald-brand/30 bg-emerald-brand/5 px-4 py-3 text-sm text-emerald-deeper dark:text-emerald-brand">
+          Payment received — your access activates within a minute once Stripe
+          confirms.
+        </p>
+      ) : checkout === "cancelled" ? (
+        <p className="mx-auto mb-6 max-w-md rounded-lg border border-border bg-muted px-4 py-3 text-sm text-muted-foreground">
+          Checkout cancelled — no charge was made.
         </p>
       ) : null}
 
@@ -93,6 +118,25 @@ export default async function PricingPage({
                   Browse the marketplace
                 </Link>
               </p>
+            ) : showCheckout ? (
+              <div className="flex flex-col gap-3">
+                {paidPlans.map((plan) => (
+                  <form key={plan.id} action={createCheckoutSession}>
+                    <input type="hidden" name="plan_id" value={plan.id} />
+                    <button className={`${buttonCls} w-full`}>
+                      Subscribe {plan.interval === "year" ? "annually" : "monthly"}
+                    </button>
+                  </form>
+                ))}
+                {/* Trial remains available to users with no subscription record. */}
+                {!subscription ? (
+                  <form action={startTrial}>
+                    <button className={`${buttonGhostCls} w-full`}>
+                      Or start a 14-day free trial
+                    </button>
+                  </form>
+                ) : null}
+              </div>
             ) : subscription ? (
               <p className="text-sm text-muted-foreground">
                 Your {subscription.status === "trialing" ? "trial has ended" : `subscription is ${subscription.status}`}.
