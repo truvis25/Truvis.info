@@ -89,7 +89,7 @@ const KIND_CHIP: Record<string, { label: string; cls: string }> = {
   post: { label: "Update", cls: "bg-emerald-brand/10 text-emerald-deeper dark:text-emerald-brand" },
   member: { label: "New member", cls: "bg-petroleum/10 text-petroleum dark:bg-white/10 dark:text-foreground" },
   event: { label: "Event", cls: "bg-cyan-accent/10 text-cyan-700 dark:text-cyan-accent" },
-  notice: { label: "Notice", cls: "border border-border bg-secondary text-muted-foreground" },
+  notice: { label: "Notice", cls: "border border-border bg-secondary text-foreground/70" },
 };
 
 function Shell({

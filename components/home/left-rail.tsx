@@ -166,7 +166,7 @@ export function FollowingCard({
     <Card className="overflow-hidden p-0">
       <RailStrip />
       <div className="px-4 pb-2 pt-3">
-        <h2 className="text-xs font-semibold uppercase tracking-[0.2em] text-emerald-dark">
+        <h2 className="text-xs font-semibold uppercase tracking-[0.2em] text-emerald-deeper dark:text-emerald-brand">
           Following
         </h2>
       </div>
@@ -226,7 +226,7 @@ export function NetworkLedger({
   ];
   return (
     <Card className="p-4">
-      <p className="flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.16em] text-emerald-dark">
+      <p className="flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.16em] text-emerald-deeper dark:text-emerald-brand">
         <span aria-hidden className="h-3.5 w-1 rounded-full bg-emerald-brand" />
         Network ledger
       </p>
