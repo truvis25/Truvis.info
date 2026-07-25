@@ -11,6 +11,7 @@ import { Input, Select } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { BrandArt } from "@/components/brand-art";
 import { Pagination, pageCountFor, parsePage } from "@/components/pagination";
+import { SaveSearchButton } from "@/components/save-search-button";
 
 const DIRECTORY_PAGE_SIZE = 24;
 
@@ -24,11 +25,14 @@ export const dynamic = "force-dynamic";
 export default async function DirectoryPage({
   searchParams,
 }: {
-  searchParams: Promise<{ q?: string; industry?: string; jurisdiction?: string; page?: string }>;
+  searchParams: Promise<{ q?: string; industry?: string; jurisdiction?: string; page?: string; saved?: string }>;
 }) {
-  const { q, industry, jurisdiction, page: pageRaw } = await searchParams;
+  const { q, industry, jurisdiction, page: pageRaw, saved } = await searchParams;
   const page = parsePage(pageRaw);
   const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
 
   // Search + facets via search_orgs (RLS keeps hidden orgs out — DIR-4/5/6).
   const [{ data: orgs }, { data: allVisible }] = await Promise.all([
@@ -150,9 +154,18 @@ export default async function DirectoryPage({
       ) : (
         <>
         {filtersActive ? (
-          <p className="mb-4 text-sm text-muted-foreground">
-            {matches.length} result{matches.length === 1 ? "" : "s"}
-          </p>
+          <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
+            <p className="text-sm text-muted-foreground">
+              {matches.length} result{matches.length === 1 ? "" : "s"}
+            </p>
+            {user ? (
+              <SaveSearchButton
+                kind="directory"
+                params={{ q, industry, jurisdiction }}
+                saved={saved === "1"}
+              />
+            ) : null}
+          </div>
         ) : null}
         <ul className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
           {list.map((org) => (

@@ -37,7 +37,10 @@ export default async function DashboardLayout({
       items.push({ href: "/dashboard/listings", label: "Listings" });
     }
   }
-  items.push({ href: "/dashboard/applications", label: "Applications" });
+  items.push(
+    { href: "/dashboard/applications", label: "Applications" },
+    { href: "/dashboard/saved-searches", label: "Saved searches" },
+  );
   if (admin) items.push({ href: "/admin", label: "Admin" });
 
   return (

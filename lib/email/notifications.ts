@@ -250,3 +250,39 @@ export async function notifyNewListingMessage(p: {
     console.error("[email] notifyNewListingMessage failed:", error);
   }
 }
+
+// --- Saved-search match alerts (MKT-6) --------------------------------------
+
+export async function notifySavedSearchMatches(p: {
+  userId: string;
+  label: string;
+  kind: "directory" | "marketplace";
+  matches: { title: string; href: string }[];
+}): Promise<void> {
+  try {
+    if (p.matches.length === 0) return;
+    const to = await emailForUser(p.userId);
+    const noun = p.kind === "directory" ? "organization" : "opportunity";
+    const list = p.matches
+      .slice(0, 10)
+      .map(
+        (m) =>
+          `<li style="margin:0 0 8px;"><a href="${SITE_URL}${m.href}" style="color:#047857;font-weight:600;text-decoration:none;">${m.title}</a></li>`,
+      )
+      .join("");
+    const more =
+      p.matches.length > 10
+        ? paragraph(`…and ${p.matches.length - 10} more.`)
+        : "";
+    await safeSend(
+      to,
+      `${p.matches.length} new ${noun}${p.matches.length === 1 ? "" : "s"} for "${p.label}"`,
+      paragraph(`New matches for your saved search <strong>${p.label}</strong>:`) +
+        `<ul style="margin:0 0 12px;padding-left:18px;font-size:14px;line-height:1.6;">${list}</ul>` +
+        more +
+        button(`${SITE_URL}/dashboard/saved-searches`, "Manage your alerts"),
+    );
+  } catch (error) {
+    console.error("[email] notifySavedSearchMatches failed:", error);
+  }
+}

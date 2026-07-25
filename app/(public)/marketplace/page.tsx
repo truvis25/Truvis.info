@@ -9,6 +9,7 @@ import { Button } from "@/components/ui/button";
 import { Input, Select } from "@/components/ui/input";
 import { BrandArt } from "@/components/brand-art";
 import { Pagination, pageCountFor, parsePage } from "@/components/pagination";
+import { SaveSearchButton } from "@/components/save-search-button";
 
 const MARKETPLACE_PAGE_SIZE = 24;
 
@@ -23,11 +24,14 @@ export const dynamic = "force-dynamic";
 export default async function MarketplacePage({
   searchParams,
 }: {
-  searchParams: Promise<{ trial?: string; q?: string; type?: string; sector?: string; region?: string; page?: string }>;
+  searchParams: Promise<{ trial?: string; q?: string; type?: string; sector?: string; region?: string; page?: string; saved?: string }>;
 }) {
-  const { trial, q, type, sector, region, page: pageRaw } = await searchParams;
+  const { trial, q, type, sector, region, page: pageRaw, saved } = await searchParams;
   const page = parsePage(pageRaw);
   const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
   // Anonymity-safe listing feed: identity fields come back non-null only for
   // listings whose owner opted into reveal_identity. Second unfiltered call
   // supplies the facet option lists.
@@ -200,9 +204,18 @@ export default async function MarketplacePage({
       ) : (
         <>
         {filtersActive ? (
-          <p className="mb-4 text-sm text-muted-foreground">
-            {matches.length} result{matches.length === 1 ? "" : "s"}
-          </p>
+          <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
+            <p className="text-sm text-muted-foreground">
+              {matches.length} result{matches.length === 1 ? "" : "s"}
+            </p>
+            {user ? (
+              <SaveSearchButton
+                kind="marketplace"
+                params={{ q, type, sector, region }}
+                saved={saved === "1"}
+              />
+            ) : null}
+          </div>
         ) : null}
         <ul className="flex flex-col gap-4">
           {list.map((listing) => (
