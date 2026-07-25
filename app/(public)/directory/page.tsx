@@ -12,6 +12,7 @@ import { Button } from "@/components/ui/button";
 import { BrandArt } from "@/components/brand-art";
 import { Pagination, pageCountFor, parsePage } from "@/components/pagination";
 import { SaveSearchButton } from "@/components/save-search-button";
+import { INDUSTRIES, industryLabel } from "@/lib/taxonomy/industries";
 
 const DIRECTORY_PAGE_SIZE = 24;
 
@@ -123,7 +124,7 @@ export default async function DirectoryPage({
         <Select name="industry" defaultValue={industry ?? ""} aria-label="Filter by industry" className="sm:w-44">
           <option value="">All industries</option>
           {industries.map((code) => (
-            <option key={code} value={code}>{code}</option>
+            <option key={code} value={code}>{industryLabel(code)}</option>
           ))}
         </Select>
         <Select name="jurisdiction" defaultValue={jurisdiction ?? ""} aria-label="Filter by jurisdiction" className="sm:w-44">
@@ -134,6 +135,22 @@ export default async function DirectoryPage({
         </Select>
         <Button type="submit" variant="primary">Search</Button>
       </form>
+
+      {/* Browse-by-industry — internal linking to SEO landing pages, shown on
+          the unfiltered directory only. */}
+      {!filtersActive ? (
+        <nav aria-label="Browse by industry" className="mb-8 flex flex-wrap gap-2">
+          {INDUSTRIES.map((i) => (
+            <Link
+              key={i.slug}
+              href={`/directory/industry/${i.slug}`}
+              className="inline-block rounded-full border border-border px-3 py-1.5 text-sm transition-colors hover:bg-secondary"
+            >
+              {i.label}
+            </Link>
+          ))}
+        </nav>
+      ) : null}
 
       {list.length === 0 ? (
         <div className="relative flex flex-col items-center gap-3 overflow-hidden rounded-2xl border border-border py-20 text-center">

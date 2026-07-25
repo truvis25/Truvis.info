@@ -1,6 +1,7 @@
 import type { MetadataRoute } from "next";
 import { createClient } from "@supabase/supabase-js";
 import { SUPABASE_URL, SUPABASE_ANON_KEY, SITE_URL } from "@/lib/config";
+import { INDUSTRIES } from "@/lib/taxonomy/industries";
 
 // Only visible orgs/events reach the sitemap — the anon client is bound by
 // RLS, so hidden organizations can never leak into search engines (DIR-7).
@@ -25,8 +26,15 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     priority: path === "" ? 1 : 0.8,
   }));
 
+  const industryPages: MetadataRoute.Sitemap = INDUSTRIES.map((i) => ({
+    url: `${SITE_URL}/directory/industry/${i.slug}`,
+    changeFrequency: "weekly" as const,
+    priority: 0.7,
+  }));
+
   return [
     ...statics,
+    ...industryPages,
     ...(orgs ?? []).map((org) => ({
       url: `${SITE_URL}/orgs/${org.slug}`,
       lastModified: org.updated_at ?? undefined,
