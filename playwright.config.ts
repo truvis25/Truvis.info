@@ -9,9 +9,17 @@ export default defineConfig({
   forbidOnly: Boolean(process.env.CI),
   retries: process.env.CI ? 1 : 0,
   reporter: process.env.CI ? [["html", { open: "never" }]] : "list",
+  // These smoke/a11y tests render against the real remote Supabase, so pages
+  // doing several DB round trips (directory, marketplace) can be slow from a CI
+  // runner. Generous timeouts keep the suite from flaking on network latency
+  // rather than real failures.
+  timeout: 60_000,
+  expect: { timeout: 15_000 },
   use: {
     baseURL: process.env.E2E_BASE_URL ?? "http://localhost:3000",
     trace: "on-first-retry",
+    navigationTimeout: 30_000,
+    actionTimeout: 15_000,
   },
   projects: [
     {
