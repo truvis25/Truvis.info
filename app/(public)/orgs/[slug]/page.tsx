@@ -27,6 +27,7 @@ import { Notice } from "@/components/form-field";
 import { BrandArt } from "@/components/brand-art";
 import type { ContactPerson } from "@/types/domain";
 import { SectionHeading } from "@/components/section-heading";
+import { industryLabel, industryHref } from "@/lib/taxonomy/industries";
 
 export const dynamic = "force-dynamic";
 
@@ -179,11 +180,12 @@ export default async function OrgProfilePage({
       ),
   );
   const socials = org.social_links ?? {};
+  const industryLink = industryHref(org.industry_code);
   const facts: Array<[string, string | number | null]> = [
     ["Jurisdiction", org.jurisdiction],
     ["Trade license", org.trade_license_no],
     ["Founded", org.incorporation_year],
-    ["Industry", org.industry_code],
+    ["Industry", industryLabel(org.industry_code) || org.industry_code],
     ["Company size", org.size_band],
   ];
 
@@ -495,7 +497,15 @@ export default async function OrgProfilePage({
                     .map(([label, value]) => (
                       <div key={label} className="flex justify-between gap-4">
                         <dt className="text-muted-foreground">{label}</dt>
-                        <dd className="font-medium">{value}</dd>
+                        <dd className="font-medium">
+                          {label === "Industry" && industryLink ? (
+                            <Link href={industryLink} className="underline-offset-4 hover:underline">
+                              {value}
+                            </Link>
+                          ) : (
+                            value
+                          )}
+                        </dd>
                       </div>
                     ))}
                 </dl>

@@ -3,7 +3,7 @@ import AxeBuilder from "@axe-core/playwright";
 
 // Automated accessibility scan (WCAG 2.0/2.1 A + AA) of the key public surfaces.
 // Data-independent: chrome and structure are present regardless of DB contents.
-const ROUTES = ["/", "/directory", "/events", "/marketplace", "/feed", "/pricing", "/login"];
+const ROUTES = ["/", "/directory", "/directory/industry/logistics", "/events", "/marketplace", "/feed", "/pricing", "/login"];
 
 for (const path of ROUTES) {
   test(`${path} has no serious/critical accessibility violations`, async ({ page }) => {

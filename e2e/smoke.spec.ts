@@ -4,6 +4,7 @@ import { test, expect } from "@playwright/test";
 // theme, 404) — never on seeded data — so they pass against an empty or full DB.
 
 const PUBLIC_ROUTES = [
+  "/directory/industry/logistics",
   "/",
   "/directory",
   "/events",
