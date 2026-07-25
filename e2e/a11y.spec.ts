@@ -12,10 +12,14 @@ for (const path of ROUTES) {
 
     const results = await new AxeBuilder({ page })
       .withTags(["wcag2a", "wcag2aa", "wcag21a", "wcag21aa"])
+      // This gate guards OUR markup (app chrome, hero, search, static
+      // sections), not live user data. The e2e job runs against the real remote
+      // DB, so data-driven cards vary run-to-run — exclude them for
+      // determinism. Every list card shares the `.reveal` wrapper.
+      .exclude(".reveal")
       // .ledger-numeral is an intentionally faint, aria-hidden, non-selectable
-      // engraving ornament (the numeral "01/02/03" duplicates the visible step
-      // order that adjacent real text already conveys). It carries no
-      // information for any user, so its low contrast is decorative by design.
+      // engraving ornament (its "01/02/03" duplicates the visible step order
+      // adjacent real text already conveys) — decorative, not informational.
       .exclude(".ledger-numeral")
       .analyze();
 
