@@ -1,6 +1,7 @@
 import { NextResponse, type NextRequest } from "next/server";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { getComplianceClient } from "@/lib/compliance/client";
+import { processSavedSearchAlerts } from "@/lib/search/alerts";
 
 // Polling fallback + staleness sweep (docs/ARCHITECTURE.md §5.4, BR-5).
 // Scheduled via vercel.json crons — daily on the Hobby plan (its cron limit);
@@ -34,10 +35,20 @@ export async function GET(request: NextRequest) {
   // Staleness fail-safe: hide orgs whose sync went quiet (BR-5).
   const { error: sweepError } = await supabase.rpc("recompute_all_visibility");
 
+  // Match-alert digest (MKT-6) — folded in here rather than a third cron slot.
+  // Runs after the visibility sweep so alerts reflect current visibility.
+  let alerts = { processed: 0, notified: 0 };
+  try {
+    alerts = await processSavedSearchAlerts(supabase);
+  } catch (error) {
+    console.error("[cron] saved-search alerts failed:", error);
+  }
+
   return NextResponse.json({
     ok: !sweepError,
     polled: orgIds.length,
     refreshed,
     sweep: sweepError?.message ?? "done",
+    alerts,
   });
 }

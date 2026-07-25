@@ -35,7 +35,7 @@ function RailModule({
   return (
     <Card className="p-0">
       <div className="flex items-center justify-between px-4 pb-2 pt-4">
-        <h2 className="flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.16em] text-emerald-dark">
+        <h2 className="flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.16em] text-emerald-deeper dark:text-emerald-brand">
           <span aria-hidden className="h-3.5 w-1 rounded-full bg-emerald-brand" />
           {title}
         </h2>
@@ -274,7 +274,7 @@ export function GrowReach({
 }) {
   return (
     <Card className="p-5">
-      <p className="text-xs font-semibold uppercase tracking-[0.2em] text-emerald-dark">
+      <p className="text-xs font-semibold uppercase tracking-[0.2em] text-emerald-deeper dark:text-emerald-brand">
         Grow your reach
       </p>
       <p className="mt-2 text-sm text-muted-foreground">

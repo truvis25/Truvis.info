@@ -178,7 +178,7 @@ export default async function ListingPage({
       {detail ? (
         <section className="mt-8 flex flex-col gap-6">
           <div className="rounded-2xl border border-emerald-200 p-6 dark:border-emerald-900">
-            <p className="text-xs font-semibold uppercase tracking-[0.16em] text-emerald-dark">
+            <p className="text-xs font-semibold uppercase tracking-[0.16em] text-emerald-deeper dark:text-emerald-brand">
               Full detail unlocked
             </p>
             <h2 className="mt-2 text-xl font-semibold">
