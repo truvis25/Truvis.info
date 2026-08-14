@@ -501,7 +501,7 @@ export function PublicLanding({ data }: { data: HomeData }) {
         </section>
       )}
 
-      <section className="relative isolate overflow-hidden">
+      <section className="relative isolate overflow-hidden bg-petroleum">
         <Image
           src="/photos/network-harbour.jpg"
           alt=""
@@ -514,7 +514,7 @@ export function PublicLanding({ data }: { data: HomeData }) {
           className="absolute inset-0 -z-10 bg-gradient-to-r from-petroleum-deep/95 via-petroleum/80 to-petroleum/25"
         />
         <div className="mx-auto max-w-7xl px-5 py-24 sm:px-8 lg:px-10 lg:py-28">
-          <p className="font-display text-[11px] font-semibold uppercase tracking-[0.22em] text-white">
+          <p className="font-display text-[11px] font-semibold uppercase tracking-[0.22em] text-cyan-accent">
             Built in Abu Dhabi
           </p>
           <h2 className="mt-4 max-w-2xl font-display text-3xl font-bold tracking-[-0.035em] text-white sm:text-5xl">
