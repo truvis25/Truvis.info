@@ -101,7 +101,7 @@ export function PublicLanding({ data }: { data: HomeData }) {
         />
         <div className="mx-auto grid max-w-7xl items-center gap-12 px-5 py-14 sm:px-8 sm:py-20 lg:grid-cols-[1.02fr_.98fr] lg:gap-16 lg:px-10 lg:py-24">
           <div className="max-w-2xl">
-            <p className="inline-flex items-center gap-2 font-display text-[11px] font-semibold uppercase tracking-[0.22em] text-[#087eaa] dark:text-cyan-accent">
+            <p className="inline-flex items-center gap-2 font-display text-[11px] font-semibold uppercase tracking-[0.22em] text-deep-teal dark:text-cyan-accent">
               <ShieldCheck className="size-4 text-emerald-brand" aria-hidden />
               Verified business network
             </p>
@@ -203,7 +203,7 @@ export function PublicLanding({ data }: { data: HomeData }) {
           <div>
             <p
               id="client-proof-title"
-              className="font-display text-[10px] font-semibold uppercase tracking-[0.2em] text-[#087eaa] dark:text-cyan-accent"
+              className="font-display text-[10px] font-semibold uppercase tracking-[0.2em] text-deep-teal dark:text-cyan-accent"
             >
               Selected client relationships
             </p>
@@ -236,7 +236,7 @@ export function PublicLanding({ data }: { data: HomeData }) {
         <div className="mx-auto max-w-7xl px-5 py-20 sm:px-8 lg:px-10 lg:py-24">
           <div className="grid gap-8 lg:grid-cols-[.78fr_1.22fr] lg:items-end">
             <div>
-              <p className="font-display text-[11px] font-semibold uppercase tracking-[0.22em] text-[#087eaa] dark:text-cyan-accent">
+              <p className="font-display text-[11px] font-semibold uppercase tracking-[0.22em] text-deep-teal dark:text-cyan-accent">
                 One trusted starting point
               </p>
               <h2 className="mt-4 max-w-md font-display text-3xl font-bold tracking-[-0.035em] text-petroleum dark:text-white sm:text-4xl">
@@ -402,7 +402,7 @@ export function PublicLanding({ data }: { data: HomeData }) {
           <div className="mx-auto max-w-7xl px-5 py-20 sm:px-8 lg:px-10 lg:py-24">
             <div className="flex flex-col justify-between gap-6 sm:flex-row sm:items-end">
               <div>
-                <p className="font-display text-[11px] font-semibold uppercase tracking-[0.22em] text-[#087eaa] dark:text-cyan-accent">
+                <p className="font-display text-[11px] font-semibold uppercase tracking-[0.22em] text-deep-teal dark:text-cyan-accent">
                   Live from the network
                 </p>
                 <h2 className="mt-4 font-display text-3xl font-bold tracking-[-0.035em] text-petroleum dark:text-white sm:text-4xl">
@@ -514,7 +514,7 @@ export function PublicLanding({ data }: { data: HomeData }) {
           className="absolute inset-0 -z-10 bg-gradient-to-r from-petroleum-deep/95 via-petroleum/80 to-petroleum/25"
         />
         <div className="mx-auto max-w-7xl px-5 py-24 sm:px-8 lg:px-10 lg:py-28">
-          <p className="font-display text-[11px] font-semibold uppercase tracking-[0.22em] text-cyan-accent">
+          <p className="font-display text-[11px] font-semibold uppercase tracking-[0.22em] text-white">
             Built in Abu Dhabi
           </p>
           <h2 className="mt-4 max-w-2xl font-display text-3xl font-bold tracking-[-0.035em] text-white sm:text-5xl">
