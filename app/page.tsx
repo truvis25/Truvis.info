@@ -35,6 +35,7 @@ import {
   HowItWorks,
   PhotoBand,
 } from "@/components/home/showcase";
+import { PublicLanding } from "@/components/home/public-landing";
 
 export const dynamic = "force-dynamic";
 
@@ -63,6 +64,10 @@ export default async function Home({
   const nowMs = Date.parse(new Date().toISOString());
 
   const data = await getHomeData(supabase);
+
+  if (!signedIn) {
+    return <PublicLanding data={data} />;
+  }
 
   // Per-request personalization (never cached).
   let followedOrgIds = new Set<string>();

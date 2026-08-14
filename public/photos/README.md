@@ -1,17 +1,16 @@
 # Home-page photography
 
-These JPGs are **branded placeholders** generated in-repo (abstract scenes in
-the Truvis palette). To swap in real photography, overwrite the file with the
-same name — no code changes needed. Keep roughly the same aspect ratio.
+These JPGs are production photography generated for Truvis.info in the
+approved brand direction: real professional environments, UAE architecture,
+natural interaction, and a subtle cool grade. They contain no logos, readable
+private documents, or watermarks.
 
-| File | Used in | Aspect | Suggested subject |
+| File | Used in | Aspect | Subject |
 | --- | --- | --- | --- |
-| `hero-summit.jpg` | Home hero photo card | 4:3 | Skyline / flagship venue |
-| `network-signing.jpg` | "How admission works" (large) | 4:3 | Deal signing, boardroom |
-| `network-forum.jpg` | "How admission works" (inset) | 4:3 | Audience / panel at an event |
-| `network-harbour.jpg` | Full-width band above the feed | 16:9-ish | Trade / logistics / city harbour |
+| `hero-summit.jpg` | Home hero | 4:3 | Strategic advisory meeting in Abu Dhabi |
+| `network-signing.jpg` | Verification section (large) | 4:3 | Compliance document review |
+| `network-forum.jpg` | Verification section (inset) | 4:3 | Focused UAE business forum |
+| `network-harbour.jpg` | Full-width CTA band | 16:9 | Abu Dhabi trade waterfront |
 
-Photos render through the site's duotone treatment (brand-tinted at rest,
-full colour on hover), so images with clear subjects and good contrast work
-best. Recommended minimum widths: 1600px for `hero-summit` and
-`network-harbour`, 1200px for the others.
+The anonymous landing page renders these photographs in full colour. Keep the
+same aspect ratios if a future production shoot replaces them.
