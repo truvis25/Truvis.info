@@ -8,6 +8,7 @@ import { Notice, inputCls, buttonCls, buttonGhostCls } from "@/components/form-f
 import { StatusBadge } from "@/components/status-badge";
 import { ConfirmSubmitButton } from "@/components/confirm-submit-button";
 import { formatDateTime, toGstLocalInput } from "@/lib/format";
+import { getLumaIntegrationMode } from "@/lib/luma/client";
 
 export const metadata: Metadata = { title: "Manage event" };
 
@@ -36,6 +37,7 @@ export default async function ManageEventPage({
   if (!user) redirect(`/login?next=/dashboard/events/${id}`);
   const org = await getManagedOrg(supabase, user.id);
   if (!org || !org.canManageEvents) redirect("/dashboard");
+  const lumaEnabled = getLumaIntegrationMode() !== "unconfigured";
 
   const { data: event } = await supabase
     .from("events")
@@ -87,6 +89,13 @@ export default async function ManageEventPage({
       </div>
 
       <Notice error={error} saved={saved} />
+
+      {!lumaEnabled ? (
+        <p className="rounded-xl border border-amber-300/60 bg-amber-50 px-4 py-3 text-sm text-amber-900 dark:border-amber-700/50 dark:bg-amber-950/30 dark:text-amber-200">
+          Luma publishing is not active for this deployment. Existing event
+          settings are preserved until the calendar API key is connected.
+        </p>
+      ) : null}
 
       {/* Edit event (EVT-1) */}
       <section className="rounded-xl border border-border bg-card p-6">
@@ -140,10 +149,14 @@ export default async function ManageEventPage({
               name="luma_publish"
               defaultChecked={Boolean(event.luma_publish)}
               className="mt-1"
+              disabled={!lumaEnabled}
             />
+            {!lumaEnabled && event.luma_publish ? (
+              <input type="hidden" name="luma_publish" value="on" />
+            ) : null}
             <span>
-              Also publish on Luma (Truvis community calendar). Registration
-              stays on Truvis.
+              Also publish on Luma (Truvis community calendar). The Luma listing
+              links back here; registration stays on Truvis.
             </span>
           </label>
           <button type="submit" className={`${buttonCls} self-start`}>Save changes</button>
