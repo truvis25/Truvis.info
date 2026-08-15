@@ -1,142 +1,136 @@
-import Link from "next/link";
 import Image from "next/image";
-import { Mail, Globe, ShieldCheck } from "lucide-react";
-import { BrandArt } from "@/components/brand-art";
+import Link from "next/link";
+import { Mail, MapPin, ShieldCheck } from "lucide-react";
 
 const linkClass =
-  "text-sm text-white/60 hover:text-white transition-colors rounded-sm";
+  "text-sm text-white/62 transition-colors hover:text-white";
 
-const ecosystem = [
-  { href: "https://truvis.ae/", label: "Corporate Advisory" },
-  { href: "https://hub.truvis.ae/", label: "Jurisdiction Hub" },
-  { href: "https://prop.truvis.ae/", label: "Business Presence" },
-  { href: "https://licensing.truvis.ae/", label: "Financial Licensing" },
-  { href: "https://truvis.tech/", label: "Technology" },
-];
-
-// Modeled on hub.truvis.ae's footer (JurisdictionDecisionHub Footer.tsx).
 export function SiteFooter() {
   return (
-    <footer className="bg-petroleum text-gray-300">
-      <div className="mx-auto max-w-7xl px-6 py-12 lg:px-12 lg:py-16">
-        <div className="mb-12 grid gap-8 md:grid-cols-2 lg:grid-cols-4">
-          {/* Brand */}
-          <div>
-            <div className="mb-4 flex items-center gap-3">
-              <Image src="/brand/logo.png" alt="" width={36} height={36} className="shrink-0" />
-              <div className="font-display text-lg font-bold tracking-tight text-white">
-                TRUVIS<span className="text-emerald-brand">.info</span>
+    <footer className="bg-[#1c1c1e] text-white">
+      <div className="mx-auto max-w-7xl px-5 py-14 sm:px-8 lg:px-10 lg:py-16">
+        <div className="grid gap-10 border-b border-white/12 pb-12 sm:grid-cols-2 lg:grid-cols-[1.35fr_.8fr_.9fr_1fr]">
+          <div className="max-w-sm">
+            <div className="flex items-center gap-3">
+              <Image
+                src="/brand/logo.png"
+                alt=""
+                width={40}
+                height={40}
+                className="size-10 object-contain"
+              />
+              <div className="font-display text-xl font-bold tracking-[-0.02em]">
+                TRUVIS<span className="text-[#6fc5a3]">.info</span>
               </div>
             </div>
-            <p className="text-sm leading-relaxed text-gray-400">
-              The verified business network — directory, events, and a
-              marketplace where every organization maintains compliance
-              standing.
+            <p className="mt-5 text-sm leading-6 text-white/62">
+              A verified business network for discovering organizations,
+              professional events and selected opportunities with more
+              confidence.
             </p>
-            <p className="mt-4 inline-flex items-center gap-2 text-xs text-emerald-brand">
+            <p className="mt-5 inline-flex items-center gap-2 text-xs font-semibold text-[#6fc5a3]">
               <ShieldCheck className="size-4" aria-hidden />
-              Continuously vetted via Truvis Compliance
+              Verified through Truvis Compliance
             </p>
           </div>
 
-          {/* Platform */}
           <nav aria-label="Platform">
-            <h4 className="mb-4 text-xs font-semibold uppercase tracking-widest text-white/60">
+            <h2 className="font-display text-xs font-semibold uppercase tracking-[0.18em] text-white">
               Platform
-            </h4>
-            <ul className="space-y-2 text-sm">
-              <li><Link href="/directory" className={linkClass}>Business Directory</Link></li>
+            </h2>
+            <ul className="mt-5 space-y-3">
+              <li><Link href="/directory" className={linkClass}>Directory</Link></li>
               <li><Link href="/events" className={linkClass}>Events</Link></li>
               <li><Link href="/marketplace" className={linkClass}>Marketplace</Link></li>
-              <li><Link href="/feed" className={linkClass}>Updates Feed</Link></li>
+              <li><Link href="/feed" className={linkClass}>Network feed</Link></li>
               <li><Link href="/pricing" className={linkClass}>Pricing</Link></li>
             </ul>
           </nav>
 
-          {/* For organizations */}
-          <nav aria-label="For organizations">
-            <h4 className="mb-4 text-xs font-semibold uppercase tracking-widest text-white/60">
-              For Organizations
-            </h4>
-            <ul className="space-y-2 text-sm">
-              <li><Link href="/signup" className={linkClass}>Get listed</Link></li>
-              <li><Link href="/dashboard" className={linkClass}>Organization dashboard</Link></li>
+          <nav aria-label="TRUVIS ecosystem">
+            <h2 className="font-display text-xs font-semibold uppercase tracking-[0.18em] text-white">
+              TRUVIS
+            </h2>
+            <ul className="mt-5 space-y-3">
               <li>
-                <a
-                  href="https://compliance.truvis.tech"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className={linkClass}
-                >
-                  Compliance platform
+                <a href="https://truvis.ae/" className={linkClass}>
+                  Corporate services
                 </a>
               </li>
-              <li><Link href="/dashboard/events" className={linkClass}>Host an event</Link></li>
-              <li><Link href="/dashboard/listings" className={linkClass}>List an opportunity</Link></li>
+              <li>
+                <a href="https://hub.truvis.ae/" className={linkClass}>
+                  Jurisdiction hub
+                </a>
+              </li>
+              <li>
+                <a href="https://licensing.truvis.ae/" className={linkClass}>
+                  Financial licensing
+                </a>
+              </li>
+              <li>
+                <a href="https://truvis.tech/" className={linkClass}>
+                  Technology
+                </a>
+              </li>
+              <li>
+                <a href="https://compliance.truvis.tech/" className={linkClass}>
+                  Compliance
+                </a>
+              </li>
             </ul>
           </nav>
 
-          {/* Contact */}
           <div>
-            <h4 className="mb-4 text-xs font-semibold uppercase tracking-widest text-white/60">
+            <h2 className="font-display text-xs font-semibold uppercase tracking-[0.18em] text-white">
               Contact
-            </h4>
-            <ul className="space-y-3 text-sm">
-              <li className="flex items-start gap-2">
-                <Mail className="mt-0.5 size-4 shrink-0 text-emerald-brand" aria-hidden />
-                <a href="mailto:info@truvis.ae" className={linkClass}>info@truvis.ae</a>
-              </li>
-              <li className="flex items-start gap-2">
-                <Globe className="mt-0.5 size-4 shrink-0 text-emerald-brand" aria-hidden />
-                <a href="https://www.truvis.ae" target="_blank" rel="noopener noreferrer" className={linkClass}>
-                  www.TRUVIS.ae
+            </h2>
+            <ul className="mt-5 space-y-4">
+              <li className="flex items-start gap-3">
+                <Mail className="mt-0.5 size-4 shrink-0 text-[#6fc5a3]" aria-hidden />
+                <a href="mailto:info@truvis.ae" className={linkClass}>
+                  info@truvis.ae
                 </a>
               </li>
+              <li className="flex items-start gap-3 text-sm leading-6 text-white/62">
+                <MapPin className="mt-1 size-4 shrink-0 text-[#6fc5a3]" aria-hidden />
+                Abu Dhabi, United Arab Emirates
+              </li>
             </ul>
-            <p className="mt-6 text-xs leading-relaxed text-gray-400">
-              Truvis.info is an introduction service only; it does not provide
-              investment advice, broker transactions, or hold client funds.
+            <Link
+              href="/signup"
+              className="mt-7 inline-flex h-11 items-center justify-center rounded-xl bg-white px-5 font-display text-sm font-semibold text-petroleum transition hover:bg-[#faf7f5]"
+            >
+              Get listed
+            </Link>
+          </div>
+        </div>
+
+        <div className="flex flex-col gap-5 pt-8 text-xs leading-5 text-white/48 lg:flex-row lg:items-start lg:justify-between">
+          <div className="max-w-2xl">
+            <p>
+              © {new Date().getFullYear()} TRUVIS International Services.
+              Licensed Corporate Services Provider.
+            </p>
+            <p className="mt-2">
+              Truvis.info provides discovery and introductions only. It does
+              not provide investment advice, broker transactions or hold
+              client funds.
             </p>
           </div>
-        </div>
-
-        {/* Colophon — the certificate metaphor closes every page */}
-        <div className="art-on-petroleum mb-8 flex flex-col items-center gap-3">
-          <div aria-hidden className="rule-engraved w-full max-w-md" />
-          <span aria-hidden className="relative -mt-6 inline-flex size-6 items-center justify-center rounded-full bg-petroleum">
-            <BrandArt seed="truvis-hero" variant="medallion" rings={2} accent="emerald" />
-          </span>
-          <p className="text-[10px] font-semibold uppercase tracking-[0.3em] text-gray-400">
-            Printed by the Truvis Registry · Every card verified
-          </p>
-        </div>
-
-        {/* Bottom bar */}
-        <div className="border-t border-white/20 pt-8">
-          <div className="flex flex-col items-center justify-between gap-4 text-sm text-gray-400 md:flex-row">
-            <p>© {new Date().getFullYear()} TRUVIS International Services. Licensed Corporate Services Provider.</p>
-            <div className="flex flex-wrap gap-x-6 gap-y-2">
-              <a href="https://truvis.ae/privacy-policy/" target="_blank" rel="noopener noreferrer" className={linkClass}>Privacy Policy</a>
-              <a href="https://truvis.ae/terms-and-conditions/" target="_blank" rel="noopener noreferrer" className={linkClass}>Terms &amp; Conditions</a>
-              <a href="https://truvis.ae/cookie-policy/" target="_blank" rel="noopener noreferrer" className={linkClass}>Cookie Policy</a>
-              <a href="https://truvis.ae/disclaimer/" target="_blank" rel="noopener noreferrer" className={linkClass}>Disclaimer</a>
-            </div>
-          </div>
-        </div>
-
-        {/* Ecosystem pills */}
-        <div className="mt-5 flex flex-wrap items-center justify-center gap-2 border-t border-white/10 pt-5">
-          {ecosystem.map((item) => (
-            <a
-              key={item.href}
-              href={item.href}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="inline-block whitespace-nowrap rounded-full border border-white/[0.22] px-3 py-1 text-[10px] font-semibold uppercase tracking-[0.08em] text-white/70 transition-all hover:-translate-y-px hover:border-cyan-accent hover:text-cyan-accent"
-            >
-              {item.label}
+          <div className="flex flex-wrap gap-x-5 gap-y-2">
+            <a href="https://truvis.ae/privacy-policy/" className={linkClass}>
+              Privacy
             </a>
-          ))}
+            <a href="https://truvis.ae/terms-and-conditions/" className={linkClass}>
+              Terms
+            </a>
+            <a href="https://truvis.ae/cookie-policy/" className={linkClass}>
+              Cookies
+            </a>
+            <a href="https://truvis.ae/disclaimer/" className={linkClass}>
+              Disclaimer
+            </a>
+          </div>
         </div>
       </div>
     </footer>

@@ -24,7 +24,7 @@ export const metadata: Metadata = {
     template: "%s · Truvis.info",
   },
   description:
-    "Discover compliance-verified organizations, their products and services, events, and business opportunities.",
+    "Search verified organizations, discover professional events, and review selected business opportunities on one trusted network.",
   metadataBase: new URL(SITE_URL),
   openGraph: {
     siteName: "Truvis.info",

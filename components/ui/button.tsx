@@ -8,11 +8,10 @@ const buttonVariants = cva(
   {
     variants: {
       variant: {
-        // Hub-style emerald gradient CTA
         default:
-          "bg-gradient-to-r from-emerald-dark to-emerald-deeper text-white shadow-[0_6px_20px_-6px_rgba(16,185,129,0.45)] hover:shadow-[0_10px_28px_-6px_rgba(16,185,129,0.55)] hover:-translate-y-0.5 active:translate-y-0",
+          "bg-petroleum text-white shadow-sm hover:bg-petroleum-light hover:-translate-y-0.5 active:translate-y-0",
         primary:
-          "bg-petroleum text-white hover:bg-petroleum-deep shadow-sm",
+          "bg-petroleum text-white hover:bg-petroleum-light shadow-sm",
         outline:
           "border border-border bg-transparent hover:bg-secondary text-foreground",
         ghost: "hover:bg-secondary text-foreground",
