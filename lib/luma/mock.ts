@@ -29,6 +29,8 @@ function fixtures(): LumaEvent[] {
       url: "https://lu.ma/truvis-fintech-mixer",
       meetingUrl: null,
       address: "DIFC Innovation Hub, Gate Avenue, Dubai",
+      visibility: "public",
+      registrationOpen: true,
     },
     {
       apiId: "evt-mock-2",
@@ -42,6 +44,8 @@ function fixtures(): LumaEvent[] {
       url: "https://lu.ma/truvis-esg-webinar",
       meetingUrl: "https://meet.example.com/truvis-esg",
       address: null,
+      visibility: "public",
+      registrationOpen: true,
     },
     {
       apiId: "evt-mock-3",
@@ -54,6 +58,8 @@ function fixtures(): LumaEvent[] {
       url: "https://lu.ma/truvis-renewal-clinic",
       meetingUrl: null,
       address: "Truvis HQ, Business Bay, Dubai",
+      visibility: "public",
+      registrationOpen: false,
     },
   ];
 }
@@ -70,7 +76,11 @@ function seeded(): Map<string, LumaEvent> {
 
 export const mockLumaClient: LumaClient = {
   async listCalendarEvents() {
-    return { events: [...seeded().values()], nextCursor: null };
+    return {
+      events: [...seeded().values()],
+      nextCursor: null,
+      invalidEntries: 0,
+    };
   },
 
   async getEvent(apiId: string) {
@@ -96,6 +106,8 @@ export const mockLumaClient: LumaClient = {
       url: `https://lu.ma/truvis-${slugish}`,
       meetingUrl: input.meetingUrl ?? null,
       address: input.address ?? null,
+      visibility: input.visibility ?? "public",
+      registrationOpen: input.registrationOpen ?? true,
     };
     seeded().set(apiId, event);
     return event;
@@ -115,6 +127,8 @@ export const mockLumaClient: LumaClient = {
       meetingUrl:
         input.meetingUrl !== undefined ? (input.meetingUrl ?? null) : existing.meetingUrl,
       address: input.address !== undefined ? (input.address ?? null) : existing.address,
+      visibility: input.visibility ?? existing.visibility,
+      registrationOpen: input.registrationOpen ?? existing.registrationOpen,
     };
     seeded().set(apiId, updated);
     return updated;

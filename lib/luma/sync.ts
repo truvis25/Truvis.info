@@ -2,13 +2,15 @@ import "server-only";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { getLumaClient } from "./client";
 import type { LumaEventInput } from "./types";
+import { makeLumaSlug } from "./identity";
+import { SITE_URL } from "@/lib/config";
 
 type SyncableEvent = {
   id: string;
+  slug: string;
   title: string;
   description: string | null;
   venue_address: string | null;
-  online_url: string | null;
   starts_at: string;
   ends_at: string;
   timezone: string | null;
@@ -16,17 +18,30 @@ type SyncableEvent = {
   external_source: string | null;
   luma_publish: boolean;
   luma_event_id: string | null;
+  luma_slug: string | null;
 };
 
-function toLumaInput(row: SyncableEvent): LumaEventInput {
+function toLumaInput(row: SyncableEvent, lumaSlug: string): LumaEventInput {
+  const registerUrl = `${SITE_URL}/events/${row.slug}`;
+  const description = [
+    row.description,
+    `View details and register on Truvis: ${registerUrl}`,
+  ]
+    .filter(Boolean)
+    .join("\n\n");
   return {
     name: row.title,
-    description: row.description,
+    description,
     startAt: row.starts_at,
     endAt: row.ends_at,
     timezone: row.timezone ?? "Asia/Dubai",
     address: row.venue_address,
-    meetingUrl: row.online_url,
+    // Registration and any protected online link stay on Truvis. Luma is the
+    // distribution listing, not a second attendee database.
+    slug: lumaSlug,
+    visibility: "public",
+    registrationOpen: false,
+    suppressNotifications: true,
   };
 }
 
@@ -42,7 +57,7 @@ export async function syncEventToLuma(
   const { data } = await supabase
     .from("events")
     .select(
-      "id, title, description, venue_address, online_url, starts_at, ends_at, timezone, status, external_source, luma_publish, luma_event_id",
+      "id, slug, title, description, venue_address, starts_at, ends_at, timezone, status, external_source, luma_publish, luma_event_id, luma_slug",
     )
     .eq("id", eventId)
     .maybeSingle();
@@ -52,17 +67,19 @@ export async function syncEventToLuma(
   const wantsLive = row.status === "published" && row.luma_publish;
   if (!wantsLive && !row.luma_event_id) return;
 
-  const client = getLumaClient();
   try {
+    const client = getLumaClient();
     if (!wantsLive && row.luma_event_id) {
-      // Unpublished/cancelled locally (or opt-out): Luma's public API has no
-      // confirmed delete — best-effort rename so the Luma listing is clearly
-      // dead. luma_event_id is kept for audit and loop-guarding.
+      // Full Luma cancellation is irreversible and may refund/notify guests,
+      // so a local status change safely closes and labels the distribution
+      // listing without invoking that destructive endpoint.
       await client.updateEvent(row.luma_event_id, {
-        name: `[Cancelled] ${row.title}`,
+        name: row.title.startsWith("[Cancelled]") ? row.title : `[Cancelled] ${row.title}`,
         description: `This event has been cancelled.\n\n${row.description ?? ""}`.trim(),
+        registrationOpen: false,
+        suppressNotifications: true,
       });
-      await supabase
+      const { error } = await supabase
         .from("events")
         .update({
           luma_synced_at: new Date().toISOString(),
@@ -70,14 +87,24 @@ export async function syncEventToLuma(
           luma_sync_error: null,
         })
         .eq("id", row.id);
+      if (error) throw error;
       return;
     }
 
-    const result = row.luma_event_id
-      ? await client.updateEvent(row.luma_event_id, toLumaInput(row))
-      : await client.createEvent(toLumaInput(row));
+    const lumaSlug = row.luma_slug ?? makeLumaSlug(row.slug, row.id);
+    if (!row.luma_slug) {
+      const { error } = await supabase
+        .from("events")
+        .update({ luma_slug: lumaSlug, luma_sync_status: "pending" })
+        .eq("id", row.id);
+      if (error) throw error;
+    }
 
-    await supabase
+    const result = row.luma_event_id
+      ? await client.updateEvent(row.luma_event_id, toLumaInput(row, lumaSlug))
+      : await client.createEvent(toLumaInput(row, lumaSlug));
+
+    const { error } = await supabase
       .from("events")
       .update({
         luma_event_id: result.apiId,
@@ -87,6 +114,7 @@ export async function syncEventToLuma(
         luma_sync_error: null,
       })
       .eq("id", row.id);
+    if (error) throw error;
   } catch (err) {
     await supabase
       .from("events")
