@@ -1,10 +1,10 @@
-import { defineConfig } from "vitest/config";
+import { configDefaults, defineConfig } from "vitest/config";
 import { fileURLToPath } from "node:url";
 
 export default defineConfig({
   test: {
     // Playwright specs live in e2e/ and run via `playwright test`, not vitest.
-    exclude: ["e2e/**", "node_modules/**"],
+    exclude: [...configDefaults.exclude, "e2e/**", "apps/founder-house/**"],
   },
   resolve: {
     alias: {

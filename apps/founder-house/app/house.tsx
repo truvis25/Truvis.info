@@ -1,0 +1,1011 @@
+"use client";
+import { useEffect, useRef, useState, type FormEvent } from "react";
+import {
+  ArrowUpRight,
+  ArrowRight,
+  Check,
+  MapPin,
+  Menu,
+  X,
+  Coffee,
+  Users,
+  HeartHandshake,
+  LockKeyhole,
+  Plus,
+  CalendarDays,
+  Bell,
+  CircleDot,
+} from "lucide-react";
+import type { PublicEvent } from "../lib/events";
+
+const roleCopy = {
+  Founder: true,
+  "Startup team": true,
+  "Angel investor": true,
+  VC: true,
+  "Family office": true,
+  "Ecosystem operator": true,
+};
+const interests = [
+  "Breakfasts",
+  "Founder circles",
+  "Investor conversations",
+  "Padel",
+  "Football",
+  "Volleyball",
+  "UAE market entry",
+];
+const formats = [
+  {
+    name: "Coffee & founder breakfasts",
+    icon: Coffee,
+    text: "Meet a small group of founders and investors over coffee. Introduce yourself, share what you’re working on and get to know each other.",
+  },
+  {
+    name: "Founder & investor conversations",
+    icon: HeartHandshake,
+    text: "Talk through a business challenge, share your experience and meet people with relevant ideas or introductions.",
+  },
+  {
+    name: "Padel & team sports",
+    icon: CircleDot,
+    text: "Get to know people through padel, football and volleyball. A relaxed way to make friends in the founder community.",
+  },
+];
+const faqs = [
+  {
+    q: "Who can join?",
+    a: "Founders, startup teams, angel investors, venture capital and family office professionals, and people who help startups grow. We’re starting in Abu Dhabi and welcome people with a clear connection to the UAE.",
+  },
+  {
+    q: "Is Founder House a physical venue?",
+    a: "Founder House is a community by TRUVIS. We’re starting with gatherings at selected venues around Abu Dhabi. We don’t have a permanent clubhouse or offer accommodation at this stage.",
+  },
+  {
+    q: "How do I attend an event?",
+    a: "Apply to join the community first. Once approved, you’ll receive private member access, where you can reserve a place at upcoming events. Each event has its own capacity; membership alone doesn’t reserve a place.",
+  },
+  {
+    q: "Does it cost anything?",
+    a: "Applying is free. We’ll share any membership terms or event costs, such as food or court fees, before you commit. There is no paid membership plan at this stage.",
+  },
+  {
+    q: "Can I meet investors?",
+    a: "Investor conversations are part of the community we’re building. Introductions depend on relevance and both people agreeing. Membership doesn’t guarantee an introduction or funding.",
+  },
+  {
+    q: "Can I join before moving to Abu Dhabi?",
+    a: "Yes. If you’re building a startup or working in the startup community and planning to come to the UAE, tell us your plans in your application.",
+  },
+];
+export function Brand() {
+  return (
+    <a href="/" className="brand" aria-label="Founder House by TRUVIS home">
+      <img src="/favicon.svg" alt="" width="42" height="42" />
+      <span>
+        founder house<small>by TRUVIS.info</small>
+      </span>
+    </a>
+  );
+}
+export function Footer() {
+  return (
+    <footer className="footer wrap">
+      <div>
+        <Brand />
+        <p>
+          A community for founders and investors in Abu Dhabi.
+          <br />
+          Meet through coffee, conversations and shared interests.
+        </p>
+      </div>
+      <div className="footer-links">
+        <a href="https://truvis.info" target="_blank" rel="noreferrer">
+          Explore TRUVIS.info <ArrowUpRight size={15} />
+        </a>
+        <a href="mailto:info@truvis.info">
+          Contact us <ArrowUpRight size={15} />
+        </a>
+        <a href="/privacy">Privacy</a>
+        <a href="/community">Community principles</a>
+      </div>
+      <div className="footer-bottom">
+        <span>© 2026 TRUVIS INTERNATIONAL SERVICES</span>
+        <span>Abu Dhabi, UAE</span>
+        <a href="/admin">Organiser access</a>
+      </div>
+    </footer>
+  );
+}
+export default function House() {
+  const [menu, setMenu] = useState(false),
+    [filter, setFilter] = useState("All events"),
+    [events, setEvents] = useState<PublicEvent[]>([]),
+    [eventsState, setEventsState] = useState<"loading" | "ready" | "error">(
+      "loading",
+    ),
+    [step, setStep] = useState(1),
+    [busy, setBusy] = useState(false),
+    [error, setError] = useState(""),
+    [success, setSuccess] = useState(false),
+    [chosen, setChosen] = useState(["Breakfasts"]),
+    [fileName, setFileName] = useState(""),
+    [applicationRole, setApplicationRole] = useState("Founder");
+  const form = useRef<HTMLFormElement>(null);
+  async function loadEvents(signal?: AbortSignal) {
+    setEventsState("loading");
+    try {
+      const response = await fetch("/api/events", { signal });
+      if (!response.ok) throw Error();
+      const data = await response.json();
+      if (!Array.isArray(data.events)) throw Error();
+      setEvents(data.events);
+      setEventsState("ready");
+    } catch {
+      if (!signal?.aborted) setEventsState("error");
+    }
+  }
+  useEffect(() => {
+    const controller = new AbortController();
+    void loadEvents(controller.signal);
+    return () => controller.abort();
+  }, []);
+  useEffect(() => {
+    if (success) document.getElementById("application-success")?.focus();
+  }, [success]);
+  function next() {
+    setError("");
+    for (const node of form.current?.querySelectorAll(
+      "[data-step='1'] input,[data-step='1'] select",
+    ) ?? []) {
+      const el = node as unknown as {
+        checkValidity(): boolean;
+        reportValidity(): boolean;
+      };
+      if (!el.checkValidity()) {
+        el.reportValidity();
+        return;
+      }
+    }
+    const values = new FormData(form.current!);
+    const cv = values.get("cv") as File;
+    if (!values.get("linkedin") && !cv?.size) {
+      setError(
+        "Add your personal LinkedIn profile or a PDF CV before continuing.",
+      );
+      return;
+    }
+    setStep(2);
+    setTimeout(() => document.getElementById("about")?.focus(), 0);
+  }
+  async function submit(e: FormEvent<HTMLFormElement>) {
+    e.preventDefault();
+    if (busy) return;
+    setError("");
+    const data = new FormData(e.currentTarget),
+      file = data.get("cv") as File;
+    if (!data.get("linkedin") && !file?.size) {
+      setError("Add a personal LinkedIn profile or a PDF CV.");
+      setStep(1);
+      return;
+    }
+    if (!chosen.length) {
+      setError("Choose at least one interest.");
+      return;
+    }
+    setBusy(true);
+    try {
+      const r = await fetch("/api/apply", { method: "POST", body: data }),
+        d = (await r.json()) as { error?: string };
+      if (!r.ok) throw Error(d.error || "Please try again.");
+      setSuccess(true);
+    } catch (e) {
+      setError(e instanceof Error ? e.message : "Please try again.");
+    } finally {
+      setBusy(false);
+    }
+  }
+  const shownEvents = events.filter(
+    (e) =>
+      filter === "All events" ||
+      (filter === "Sport & social"
+        ? /padel|football|volleyball|sport/i.test(e.format)
+        : !/padel|football|volleyball|sport/i.test(e.format)),
+  );
+  return (
+    <>
+      <a className="skip-link" href="#main-content">
+        Skip to content
+      </a>
+      <header className="header wrap">
+        <Brand />
+        <nav
+          id="main-nav"
+          className={menu ? "nav open" : "nav"}
+          aria-label="Main navigation"
+        >
+          <a href="#about" onClick={() => setMenu(false)}>
+            About us
+          </a>
+          <a href="#events" onClick={() => setMenu(false)}>
+            Upcoming events
+          </a>
+          <a href="/members">
+            Member access <ArrowUpRight size={14} />
+          </a>
+        </nav>
+        <a className="button dark nav-cta" href="#apply">
+          Join the community <ArrowUpRight size={17} />
+        </a>
+        <button
+          className="mobile-menu icon-button"
+          aria-controls="main-nav"
+          aria-label={menu ? "Close menu" : "Open menu"}
+          aria-expanded={menu}
+          onClick={() => setMenu(!menu)}
+        >
+          {menu ? <X /> : <Menu />}
+        </button>
+      </header>
+      <main id="main-content">
+        <section className="hero wrap" id="first-hello">
+          <div className="hero-copy">
+            <div className="eyebrow">
+              <span className="live-dot" /> A FOUNDER COMMUNITY IN ABU DHABI
+            </div>
+            <h1>
+              Meet founders
+              <br />
+              and investors
+              <br />
+              <span>in Abu Dhabi.</span>
+            </h1>
+            <p>
+              Founder House brings founders, startup teams and investors
+              together through small events, useful conversations and shared
+              interests.
+            </p>
+            <div className="hero-actions">
+              <a className="button dark" href="#apply">
+                Join the community <ArrowUpRight size={19} />
+              </a>
+              <a className="button outline" href="#events">
+                See upcoming events <ArrowRight size={18} />
+              </a>
+            </div>
+            <div className="hero-note">
+              <Check size={16} />
+              Free to apply · Every application personally reviewed
+            </div>
+          </div>
+          <figure className="hero-art">
+            <div className="photo-wrap">
+              <img
+                className="hero-photo"
+                src="/assets/community-terrace.webp"
+                width="1536"
+                height="1024"
+                fetchPriority="high"
+                alt="Illustration of founders sharing a breakfast conversation in Abu Dhabi"
+              />
+              <span className="photo-caption">
+                Community concept · Illustrative image
+              </span>
+            </div>
+            <figcaption>
+              <span>
+                <MapPin size={16} />
+                Abu Dhabi, UAE
+              </span>
+              <span>Coffee. Conversations. Connections.</span>
+            </figcaption>
+          </figure>
+        </section>
+        <div className="community-strip">
+          <div className="wrap">
+            <span>
+              <Users size={19} />
+              Founders & startup teams
+            </span>
+            <span>
+              <HeartHandshake size={19} />
+              Angels, VCs & family offices
+            </span>
+            <span>
+              <Coffee size={19} />
+              Small gatherings. Personal connections.
+            </span>
+          </div>
+        </div>
+        <section id="events" className="wrap section events-section">
+          <div className="section-top">
+            <div>
+              <div className="section-label">MEET IN PERSON</div>
+              <h2>What’s coming up</h2>
+            </div>
+            <p>
+              Find your next coffee, conversation or game.
+              <br />
+              Event times are shown in Abu Dhabi time.
+            </p>
+          </div>
+          <div className="filter-row">
+            <div
+              className="filter-options"
+              role="group"
+              aria-label="Filter upcoming events"
+            >
+              {["All events", "Conversations", "Sport & social"].map((f) => (
+                <button
+                  key={f}
+                  className={filter === f ? "filter active" : "filter"}
+                  aria-pressed={filter === f}
+                  onClick={() => setFilter(f)}
+                >
+                  {f}
+                </button>
+              ))}
+            </div>
+            <a className="quiet-link calendar-link" href="/events/calendar.ics">
+              <CalendarDays size={17} />
+              Subscribe to calendar
+            </a>
+          </div>
+          <div aria-live="polite" aria-busy={eventsState === "loading"}>
+            {eventsState === "loading" ? (
+              <div className="event-empty loading-events">
+                <CalendarDays size={28} />
+                <p>Loading upcoming events…</p>
+              </div>
+            ) : eventsState === "error" ? (
+              <div className="event-empty">
+                <CalendarDays size={28} />
+                <div>
+                  <h3>We couldn’t load the events.</h3>
+                  <p>Please try again, or contact us at info@truvis.info.</p>
+                </div>
+                <button
+                  className="button outline"
+                  onClick={() => void loadEvents()}
+                >
+                  Try again <ArrowRight size={17} />
+                </button>
+              </div>
+            ) : !events.length ? (
+              <div className="event-empty">
+                <div className="empty-icon">
+                  <CalendarDays size={28} />
+                </div>
+                <div>
+                  <span className="section-label">
+                    FIRST EVENTS COMING SOON
+                  </span>
+                  <h3>We’re planning our first gatherings.</h3>
+                  <p>
+                    Dates and venues will appear here as soon as they’re
+                    confirmed.
+                    <br />
+                    Apply to join and choose the events you’re interested in.
+                  </p>
+                  <div className="empty-formats">
+                    <span>
+                      <Coffee size={15} />
+                      Founder breakfasts
+                    </span>
+                    <span>
+                      <Users size={15} />
+                      Small group conversations
+                    </span>
+                    <span>
+                      <CircleDot size={15} />
+                      Padel & team sports
+                    </span>
+                  </div>
+                </div>
+                <a className="button dark" href="#apply">
+                  Keep me posted <Bell size={17} />
+                </a>
+              </div>
+            ) : !shownEvents.length ? (
+              <div className="event-empty">
+                <p>No upcoming events in this category yet.</p>
+                <button
+                  className="button outline"
+                  onClick={() => setFilter("All events")}
+                >
+                  See all events
+                </button>
+              </div>
+            ) : (
+              <div className="event-grid">
+                {shownEvents.map((e) => (
+                  <a
+                    className="public-event-card"
+                    href={"/events/" + e.id}
+                    key={e.id}
+                  >
+                    <div className="event-date">
+                      <strong>
+                        {new Intl.DateTimeFormat("en-GB", {
+                          day: "2-digit",
+                          timeZone: "Asia/Dubai",
+                        }).format(new Date(e.starts_at))}
+                      </strong>
+                      <span>
+                        {new Intl.DateTimeFormat("en-GB", {
+                          month: "short",
+                          timeZone: "Asia/Dubai",
+                        }).format(new Date(e.starts_at))}
+                      </span>
+                    </div>
+                    <div>
+                      <span className="section-label">{e.format}</span>
+                      <h3>{e.title}</h3>
+                      <p>
+                        {new Intl.DateTimeFormat("en-GB", {
+                          weekday: "long",
+                          hour: "2-digit",
+                          minute: "2-digit",
+                          timeZone: "Asia/Dubai",
+                        }).format(new Date(e.starts_at))}{" "}
+                        GST
+                      </p>
+                      <p>
+                        <MapPin size={14} />
+                        {e.area}
+                      </p>
+                      <span className="event-members">
+                        Approved members · {e.capacity} places
+                      </span>
+                    </div>
+                    <ArrowUpRight size={21} />
+                  </a>
+                ))}
+              </div>
+            )}
+          </div>
+          <div className="events-footnote">
+            <LockKeyhole size={15} />
+            <p>
+              Events are for approved members. Reserve your place through your{" "}
+              <a href="/members">member access</a>.
+            </p>
+          </div>
+        </section>
+        <section id="people" className="people-intro wrap section">
+          <div>
+            <div className="section-label">WHO YOU’LL MEET</div>
+            <h2>
+              Different experience.
+              <br />
+              Plenty in common.
+            </h2>
+            <p>
+              Building a company, backing one or helping a team grow? There’s a
+              place to start a conversation here.
+            </p>
+          </div>
+          <div className="people-types">
+            <article>
+              <h3>Founders & startup teams</h3>
+              <p>
+                Meet people building businesses and navigating similar
+                challenges.
+              </p>
+            </article>
+            <article>
+              <h3>Angels & venture capital</h3>
+              <p>
+                Get to know founders through conversations and shared interests.
+              </p>
+            </article>
+            <article>
+              <h3>Family offices</h3>
+              <p>
+                Build relationships with founders and others active in the local
+                community.
+              </p>
+            </article>
+            <article>
+              <h3>People who help startups</h3>
+              <p>
+                Share your experience in building, hiring, growing or entering
+                the UAE.
+              </p>
+            </article>
+          </div>
+        </section>
+        <section id="about" className="about-section">
+          <div className="wrap section">
+            <div className="section-top">
+              <div>
+                <div className="section-label">WHAT IS FOUNDER HOUSE?</div>
+                <h2>
+                  A local community.
+                  <br />
+                  People you get to know.
+                </h2>
+              </div>
+              <p>
+                We’re a community by TRUVIS for people building businesses,
+                backing founders and helping startups grow. We meet at venues
+                across Abu Dhabi.
+              </p>
+            </div>
+            <div className="format-grid">
+              {formats.map((f, i) => (
+                <article className="format-card" key={f.name}>
+                  <div className="format-top">
+                    <f.icon size={26} strokeWidth={1.6} />
+                    <span>0{i + 1}</span>
+                  </div>
+                  <h3>{f.name}</h3>
+                  <p>{f.text}</p>
+                  <span className="format-bottom">
+                    Planned gathering format
+                  </span>
+                </article>
+              ))}
+            </div>
+            <div className="house-invite">
+              <div>
+                <h3>Come as a person. Bring what you know.</h3>
+                <p>
+                  A useful introduction, an honest question or time for a game.
+                  Start with something you share, and get to know each other
+                  from there.
+                </p>
+              </div>
+              <a className="button" href="#apply">
+                Find your place <ArrowUpRight size={18} />
+              </a>
+            </div>
+          </div>
+        </section>
+        <section className="journey wrap section">
+          <div>
+            <div className="section-label">HOW TO JOIN</div>
+            <h2>
+              Start with
+              <br />
+              an introduction.
+            </h2>
+            <p className="journey-intro">
+              Founders, startup teams, angels, VCs, family offices and people
+              supporting startups are welcome to apply.
+            </p>
+          </div>
+          <ol>
+            {[
+              [
+                "Apply to join",
+                "Tell us about your work, who you’d like to meet and what you could share.",
+              ],
+              [
+                "We review your application",
+                "Our team reads every application to build a relevant, welcoming community.",
+              ],
+              [
+                "Choose an event and meet",
+                "Once approved, use your member access to reserve a place at an upcoming gathering.",
+              ],
+            ].map(([title, text], i) => (
+              <li key={title}>
+                <span>0{i + 1}</span>
+                <div>
+                  <h3>{title}</h3>
+                  <p>{text}</p>
+                </div>
+              </li>
+            ))}
+          </ol>
+        </section>
+        <section id="apply" className="apply-section">
+          <div className="wrap apply-grid">
+            <div className="apply-copy">
+              <div className="eyebrow">
+                <span className="live-dot" /> JOIN THE COMMUNITY
+              </div>
+              <h2>
+                A few details.
+                <br />
+                Then let’s meet.
+              </h2>
+              <p>
+                Tell us what you do and who you’d like to meet. Our team reviews
+                every application and gets in touch personally.
+              </p>
+              <div className="apply-reassurance">
+                <LockKeyhole size={21} />
+                <p>
+                  Your details stay with the review team.
+                  <br />
+                  Your profile is never a public listing.
+                </p>
+              </div>
+            </div>
+            <div className="application-card">
+              {success ? (
+                <div
+                  className="success-message"
+                  role="status"
+                  id="application-success"
+                  tabIndex={-1}
+                >
+                  <div className="success-icon">
+                    <Check size={42} />
+                  </div>
+                  <span className="section-label">APPLICATION RECEIVED</span>
+                  <h3>Thanks for applying.</h3>
+                  <p>
+                    We’ll review your application and contact you using the
+                    details you shared. If you’ve applied before, your existing
+                    application is still with us.
+                  </p>
+                  <div className="success-next">
+                    <span>WHAT HAPPENS NEXT</span>
+                    <p>
+                      Team review → Membership decision →<br />
+                      Member access and event invitations.
+                    </p>
+                  </div>
+                  <a href="#events" className="text-link">
+                    See upcoming events <ArrowUpRight size={18} />
+                  </a>
+                </div>
+              ) : (
+                <form ref={form} onSubmit={submit}>
+                  <div className="form-heading">
+                    <span>MEMBERSHIP APPLICATION</span>
+                    <span>{step} / 2</span>
+                  </div>
+                  <div className="form-step-labels">
+                    <span className={step === 1 ? "current" : "complete"}>
+                      01 · Your details
+                    </span>
+                    <span className={step === 2 ? "current" : ""}>
+                      02 · Your interests
+                    </span>
+                  </div>
+                  <div
+                    className="progress-track"
+                    role="progressbar"
+                    aria-label="Application progress"
+                    aria-valuenow={step}
+                    aria-valuemin={0}
+                    aria-valuemax={2}
+                  >
+                    <i style={{ width: step === 1 ? "50%" : "100%" }} />
+                  </div>
+                  <h3>
+                    {step === 1 ? "Your details" : "Your work and interests"}
+                  </h3>
+                  <p className="form-subtitle">
+                    {step === 1
+                      ? "A few details to help us get to know you."
+                      : "Help us understand what you’re working on and how we can connect you."}
+                  </p>
+                  <div data-step="1" hidden={step !== 1}>
+                    <div className="form-row">
+                      <label>
+                        Full name
+                        <input
+                          required
+                          autoComplete="name"
+                          name="name"
+                          placeholder="Your name"
+                          minLength={2}
+                          maxLength={100}
+                        />
+                      </label>
+                      <label>
+                        Email
+                        <input
+                          required
+                          autoComplete="email"
+                          name="email"
+                          type="email"
+                          placeholder="you@company.com"
+                        />
+                      </label>
+                    </div>
+                    <div className="form-row">
+                      <label>
+                        Phone number
+                        <input
+                          required
+                          name="phone"
+                          type="tel"
+                          autoComplete="tel"
+                          placeholder="+971 50 123 4567"
+                          pattern={"\\+?[0-9\\s\\(\\)\\-]{7,30}"}
+                        />
+                      </label>
+                      <label>
+                        Based in
+                        <input
+                          required
+                          name="city"
+                          placeholder="e.g. Abu Dhabi"
+                          minLength={2}
+                          maxLength={100}
+                        />
+                      </label>
+                    </div>
+                    <label>
+                      I’m joining as
+                      <select
+                        required
+                        name="role"
+                        value={applicationRole}
+                        onChange={(e) => setApplicationRole(e.target.value)}
+                      >
+                        {Object.keys(roleCopy).map((r) => (
+                          <option key={r}>{r}</option>
+                        ))}
+                      </select>
+                    </label>
+                    <div className="form-row">
+                      <label>
+                        Company / organisation
+                        <input
+                          required
+                          name="organisation"
+                          placeholder="Company, fund or project"
+                          minLength={2}
+                          maxLength={150}
+                        />
+                      </label>
+                      <label>
+                        Your role / title
+                        <input
+                          required
+                          name="title"
+                          placeholder="e.g. Co-founder"
+                          minLength={2}
+                          maxLength={100}
+                        />
+                      </label>
+                    </div>
+                    <label>
+                      Personal LinkedIn profile
+                      <span className="optional">or a CV below</span>
+                      <input
+                        name="linkedin"
+                        type="url"
+                        placeholder="https://www.linkedin.com/in/you"
+                      />
+                    </label>
+                    <label className="upload-label">
+                      <span>
+                        {fileName || "Prefer a CV? Upload a PDF"}
+                        <small>PDF only · up to 3 MB</small>
+                      </span>
+                      <Plus size={21} />
+                      <input
+                        type="file"
+                        name="cv"
+                        accept="application/pdf,.pdf"
+                        aria-label="Upload PDF CV"
+                        onChange={(e) => {
+                          const f = e.target.files?.[0];
+                          if (f && f.size > 3145728) {
+                            setError("Your PDF must be under 3 MB.");
+                            e.target.value = "";
+                            setFileName("");
+                          } else {
+                            setFileName(f?.name || "");
+                            setError("");
+                          }
+                        }}
+                      />
+                    </label>
+                    <button
+                      type="button"
+                      className="button dark full"
+                      onClick={next}
+                    >
+                      Continue <ArrowRight size={18} />
+                    </button>
+                  </div>
+                  <div data-step="2" hidden={step !== 2}>
+                    <label>
+                      What are you building or working on?
+                      <textarea
+                        id="about"
+                        required={step === 2}
+                        minLength={30}
+                        maxLength={1500}
+                        name="about"
+                        rows={3}
+                        placeholder="Your startup, investment focus or work in the ecosystem. A few useful sentences."
+                      />
+                    </label>
+                    <div className="form-row">
+                      <label>
+                        What could you share?
+                        <textarea
+                          required={step === 2}
+                          minLength={20}
+                          maxLength={1500}
+                          name="offer"
+                          rows={3}
+                          placeholder="Experience, introductions, skills…"
+                        />
+                      </label>
+                      <label>
+                        What would help you?
+                        <span className="optional">optional</span>
+                        <textarea
+                          name="ask"
+                          rows={3}
+                          maxLength={1500}
+                          placeholder="People, perspectives, a next step…"
+                        />
+                      </label>
+                    </div>
+                    <fieldset className="interests">
+                      <legend>
+                        Events I’m interested in{" "}
+                        <span className="optional">choose a few</span>
+                      </legend>
+                      <div>
+                        {interests.map((i) => (
+                          <label
+                            key={i}
+                            className={
+                              chosen.includes(i)
+                                ? "interest chosen"
+                                : "interest"
+                            }
+                          >
+                            <input
+                              type="checkbox"
+                              name="interests"
+                              value={i}
+                              checked={chosen.includes(i)}
+                              onChange={() =>
+                                setChosen((a) =>
+                                  a.includes(i)
+                                    ? a.filter((x) => x !== i)
+                                    : [...a, i],
+                                )
+                              }
+                            />
+                            {chosen.includes(i) ? (
+                              <Check size={14} />
+                            ) : (
+                              <Plus size={14} />
+                            )}{" "}
+                            {i}
+                          </label>
+                        ))}
+                      </div>
+                    </fieldset>
+                    <div className="form-row">
+                      <label>
+                        Introduced by<span className="optional">optional</span>
+                        <input
+                          name="referral"
+                          placeholder="Member or contact name"
+                          maxLength={150}
+                        />
+                      </label>
+                      <label>
+                        Where did you find us?
+                        <span className="optional">optional</span>
+                        <select name="source" defaultValue="">
+                          <option value="">Choose an option</option>
+                          {[
+                            "TRUVIS",
+                            "Friend / member",
+                            "Luma",
+                            "Meetup",
+                            "Eventbrite",
+                            "LinkedIn",
+                            "Other",
+                          ].map((s) => (
+                            <option key={s}>{s}</option>
+                          ))}
+                        </select>
+                      </label>
+                    </div>
+                    <label className="check-label">
+                      <input
+                        required={step === 2}
+                        type="checkbox"
+                        name="consent"
+                      />
+                      <span>
+                        I agree to the{" "}
+                        <a href="/privacy" target="_blank">
+                          privacy notice
+                        </a>{" "}
+                        and{" "}
+                        <a href="/community" target="_blank">
+                          community principles
+                        </a>
+                        , and to being contacted about my application and
+                        membership.
+                      </span>
+                    </label>
+                    <label className="check-label">
+                      <input type="checkbox" name="updates" />
+                      <span>
+                        I’d also like occasional community news and future event
+                        announcements. Optional.
+                      </span>
+                    </label>
+                    <div className="form-buttons">
+                      <button
+                        type="button"
+                        className="back-button"
+                        onClick={() => setStep(1)}
+                      >
+                        ← Back
+                      </button>
+                      <button
+                        type="submit"
+                        disabled={busy}
+                        className="button dark"
+                      >
+                        {busy ? (
+                          <>
+                            <span
+                              className="expressive-loader"
+                              aria-hidden="true"
+                            />
+                            Sending application…
+                          </>
+                        ) : (
+                          <>
+                            Submit application
+                            <ArrowUpRight size={18} />
+                          </>
+                        )}
+                      </button>
+                    </div>
+                  </div>
+                  <label className="honeypot" aria-hidden="true">
+                    Leave blank
+                    <input tabIndex={-1} name="website" autoComplete="off" />
+                  </label>
+                  {error && (
+                    <p className="form-error" role="alert">
+                      {error}
+                    </p>
+                  )}
+                  <p className="form-footnote">
+                    Our team reviews every application. Applying is free and
+                    does not guarantee membership or an event place.
+                  </p>
+                </form>
+              )}
+            </div>
+          </div>
+        </section>
+        <section className="faq-section wrap section">
+          <div>
+            <div className="section-label">A FEW PRACTICAL DETAILS</div>
+            <h2>Good to know.</h2>
+            <a className="text-link" href="mailto:info@truvis.info">
+              Talk to our team <ArrowUpRight size={17} />
+            </a>
+          </div>
+          <div className="faq-list">
+            {faqs.map((f) => (
+              <details key={f.q}>
+                <summary>
+                  {f.q}
+                  <Plus size={19} />
+                </summary>
+                <p>{f.a}</p>
+              </details>
+            ))}
+          </div>
+        </section>
+      </main>
+      <Footer />
+    </>
+  );
+}

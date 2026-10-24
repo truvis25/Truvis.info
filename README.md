@@ -40,3 +40,7 @@ docs/             BRD, PRD, architecture, development plan
 ## Status
 
 Phase 0 (Foundations) — see [docs/DEVELOPMENT_PLAN.md](docs/DEVELOPMENT_PLAN.md) for what ships next.
+
+## Founder House
+
+The curated Abu Dhabi founder community lives in [apps/founder-house](apps/founder-house/README.md), with a separate Vercel project and the shared Supabase database and admin identity. Its own install, tests and build run from that folder.

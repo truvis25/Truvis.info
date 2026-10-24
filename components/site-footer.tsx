@@ -41,6 +41,7 @@ export function SiteFooter() {
             <ul className="mt-5 space-y-3">
               <li><Link href="/directory" className={linkClass}>Directory</Link></li>
               <li><Link href="/events" className={linkClass}>Events</Link></li>
+              <li><a href="https://house.truvis.info" className={linkClass}>Founder House</a></li>
               <li><Link href="/marketplace" className={linkClass}>Marketplace</Link></li>
               <li><Link href="/feed" className={linkClass}>Network feed</Link></li>
               <li><Link href="/pricing" className={linkClass}>Pricing</Link></li>

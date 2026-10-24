@@ -7,6 +7,8 @@ const eslintConfig = defineConfig([
   ...nextTs,
   // Override default ignores of eslint-config-next.
   globalIgnores([
+    "apps/founder-house/**",
+    "supabase/functions/**",
     // Default ignores of eslint-config-next:
     ".next/**",
     "out/**",
