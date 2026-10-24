@@ -18,8 +18,11 @@ import {
   Sprout,
   Lightbulb,
   Compass,
+  Phone,
+  Mail,
 } from "lucide-react";
 import type { PublicEvent } from "../lib/events";
+import { HouseMark } from "./brand-mark";
 
 const roleCopy = {
   Founder: true,
@@ -93,48 +96,77 @@ export function Brand() {
     </a>
   );
 }
-function HouseMark({ className = "" }: { className?: string }) {
-  return (
-    <svg
-      className={className}
-      viewBox="0 0 100 100"
-      fill="currentColor"
-      aria-hidden="true"
-    >
-      {[0, 90, 180, 270].map((angle) => (
-        <g transform={`rotate(${angle} 50 50)`} key={angle}>
-          <circle cx="50" cy="12" r="10" />
-          <path d="M29 18Q29 14 34 14H36Q40 14 40 19V24Q40 27 44 27H56Q60 27 60 24V19Q60 14 64 14H66Q71 14 71 19V25Q71 39 57 39H43Q29 39 29 25Z" />
-        </g>
-      ))}
-    </svg>
-  );
-}
 export function Footer() {
   return (
-    <footer className="footer wrap">
-      <div>
-        <Brand />
-        <p>
-          A community for founders and investors in Abu Dhabi.
-          <br />
-          Meet through coffee, conversations and shared interests.
-        </p>
-      </div>
-      <div className="footer-links">
-        <a href="https://truvis.info" target="_blank" rel="noreferrer">
-          Explore TRUVIS.info <ArrowUpRight size={15} />
-        </a>
-        <a href="mailto:info@truvis.info">
-          Contact us <ArrowUpRight size={15} />
-        </a>
-        <a href="/privacy">Privacy</a>
-        <a href="/community">Community principles</a>
-      </div>
-      <div className="footer-bottom">
-        <span>© 2026 TRUVIS INTERNATIONAL SERVICES</span>
-        <span>Abu Dhabi, UAE</span>
-        <a href="/admin">Organiser access</a>
+    <footer className="site-footer">
+      <div className="footer wrap">
+        <div className="footer-threshold" aria-hidden="true">
+          <span />
+          <HouseMark />
+          <span />
+        </div>
+        <div>
+          <Brand />
+          <p>
+            A community for founders and investors in Abu Dhabi.
+            <br />
+            Meet through coffee, conversations and shared interests.
+          </p>
+        </div>
+        <nav className="footer-links" aria-label="Footer navigation">
+          <h3>Explore the house</h3>
+          <a href="/#events">
+            Upcoming gatherings <ArrowUpRight size={16} />
+          </a>
+          <a href="https://truvis.info" target="_blank" rel="noreferrer">
+            Explore TRUVIS.info <ArrowUpRight size={15} />
+          </a>
+          <a href="mailto:info@truvis.info">
+            Community enquiries <ArrowUpRight size={15} />
+          </a>
+          <a href="/privacy">Privacy</a>
+          <a href="/community">Community principles</a>
+        </nav>
+        <div className="footer-contact">
+          <h3>TRUVIS International Services</h3>
+          <address>
+            <div className="footer-address">
+              <MapPin size={19} aria-hidden="true" />
+              <span>
+                Level 36, Tower 3, Etihad Towers
+                <br />
+                Abu Dhabi, United Arab Emirates
+              </span>
+            </div>
+            <a href="tel:+97124093184">
+              <Phone size={18} aria-hidden="true" />
+              <span>+971 2 409 3184</span>
+            </a>
+            <a href="mailto:info@truvis.ae">
+              <Mail size={18} aria-hidden="true" />
+              <span>info@truvis.ae</span>
+            </a>
+          </address>
+          <a
+            className="footer-company-link"
+            href="https://truvis.ae/"
+            target="_blank"
+            rel="noreferrer"
+          >
+            Visit TRUVIS.ae <ArrowUpRight size={16} />
+          </a>
+        </div>
+        <div className="footer-bottom">
+          <span className="copyright">
+            © 2026{" "}
+            <a href="https://truvis.ae/" target="_blank" rel="noreferrer">
+              TRUVIS.ae
+            </a>
+            . All rights reserved.
+          </span>
+          <span>Abu Dhabi, UAE</span>
+          <a href="/admin">Organiser access</a>
+        </div>
       </div>
     </footer>
   );

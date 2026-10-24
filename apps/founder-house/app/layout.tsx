@@ -17,8 +17,8 @@ export const metadata: Metadata = {
     type: "website",
   },
   icons: {
-    icon: "/favicon.svg",
-    shortcut: "/favicon.svg",
+    icon: { url: "/founder-house-icon.svg", type: "image/svg+xml" },
+    shortcut: "/founder-house-icon.svg",
   },
 };
 

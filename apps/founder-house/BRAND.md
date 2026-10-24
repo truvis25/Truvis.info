@@ -23,3 +23,9 @@ Founders Running Club (https://foundersrc.com/) grounds its community in shared 
 The user-supplied green identity supersedes the earlier warm neutral/terracotta direction. WCAG does not prescribe brand colours. Contrast and control sizing follow https://www.w3.org/WAI/WCAG22/Understanding/contrast-minimum.html and https://www.w3.org/WAI/WCAG22/Understanding/target-size-minimum.html. Statuses also have text labels.
 
 The audience-section photo is AI-generated concept photography, visibly labelled illustrative. It does not depict an actual Founder House gathering. Asset: public/assets/community-terrace.webp. Original image-generation brief: five Emirati and international founders in a candid coffee conversation on an Abu Dhabi waterfront cafe terrace, without branded venues or specific landmark claims.
+
+## Footer and brand finishing
+
+The shared footer credits “© 2026 TRUVIS.ae. All rights reserved.” and links to https://truvis.ae/. Corporate contact information is taken from the current TRUVIS website, verified October 24, 2026: Level 36, Tower 3, Etihad Towers, Abu Dhabi, UAE; office telephone +971 2 409 3184; info@truvis.ae. Source: https://truvis.ae/contact-us/. No company mobile or WhatsApp number is included. Community enquiries continue to use info@truvis.info. The office address is labelled as TRUVIS International Services; event venues are still disclosed through the member flow.
+
+The original supplied logo mark is traced into native vector contours for the shared decorative HouseMark and the favicon. `public/founder-house-icon.svg` uses the actual four-person logo symbol on a light sage tile for contrast in browser tabs, and has a fresh asset URL to avoid the previous icon cache. The full wordmark remains the supplied PNG. Small geometric section markers, arch-shaped joining steps, framed FAQ rows and the footer's patterned threshold carry the courtyard identity into the page details.
