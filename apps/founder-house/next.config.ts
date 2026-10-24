@@ -1,8 +1,9 @@
 import type { NextConfig } from "next";
+import path from "node:path";
 const config: NextConfig = {
   poweredByHeader: false,
-  turbopack: { root: process.cwd() },
-  outputFileTracingRoot: process.cwd(),
+  turbopack: { root: path.resolve(process.cwd(), "../..") },
+  outputFileTracingRoot: path.resolve(process.cwd(), "../.."),
   async headers() {
     return [
       {
