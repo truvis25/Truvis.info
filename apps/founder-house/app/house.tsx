@@ -15,6 +15,9 @@ import {
   CalendarDays,
   Bell,
   CircleDot,
+  Sprout,
+  Lightbulb,
+  Compass,
 } from "lucide-react";
 import type { PublicEvent } from "../lib/events";
 
@@ -81,11 +84,30 @@ const faqs = [
 export function Brand() {
   return (
     <a href="/" className="brand" aria-label="Founder House by TRUVIS home">
-      <img src="/favicon.svg" alt="" width="42" height="42" />
-      <span>
-        founder house<small>by TRUVIS.info</small>
-      </span>
+      <img
+        src="/assets/founder-house-truvis.png"
+        alt="Founder House by TRUVIS"
+        width="2172"
+        height="724"
+      />
     </a>
+  );
+}
+function HouseMark({ className = "" }: { className?: string }) {
+  return (
+    <svg
+      className={className}
+      viewBox="0 0 100 100"
+      fill="currentColor"
+      aria-hidden="true"
+    >
+      {[0, 90, 180, 270].map((angle) => (
+        <g transform={`rotate(${angle} 50 50)`} key={angle}>
+          <circle cx="50" cy="12" r="10" />
+          <path d="M29 18Q29 14 34 14H36Q40 14 40 19V24Q40 27 44 27H56Q60 27 60 24V19Q60 14 64 14H66Q71 14 71 19V25Q71 39 57 39H43Q29 39 29 25Z" />
+        </g>
+      ))}
+    </svg>
   );
 }
 export function Footer() {
@@ -224,18 +246,18 @@ export default function House() {
           className={menu ? "nav open" : "nav"}
           aria-label="Main navigation"
         >
-          <a href="#about" onClick={() => setMenu(false)}>
-            About us
-          </a>
           <a href="#events" onClick={() => setMenu(false)}>
-            Upcoming events
+            Events
+          </a>
+          <a href="#about" onClick={() => setMenu(false)}>
+            The community
           </a>
           <a href="/members">
             Member access <ArrowUpRight size={14} />
           </a>
         </nav>
         <a className="button dark nav-cta" href="#apply">
-          Join the community <ArrowUpRight size={17} />
+          Join us <ArrowUpRight size={17} />
         </a>
         <button
           className="mobile-menu icon-button"
@@ -248,28 +270,34 @@ export default function House() {
         </button>
       </header>
       <main id="main-content">
-        <section className="hero wrap" id="first-hello">
-          <div className="hero-copy">
+        <section className="hero courtyard-hero" id="first-hello">
+          <picture className="courtyard-art" aria-hidden="true">
+            <source
+              media="(max-width: 700px)"
+              srcSet="/assets/courtyard-mobile.svg"
+            />
+            <img src="/assets/courtyard.svg" alt="" width="1440" height="860" />
+          </picture>
+          <HouseMark className="hero-house-mark" />
+          <div className="hero-copy wrap">
             <div className="eyebrow">
-              <span className="live-dot" /> A FOUNDER COMMUNITY IN ABU DHABI
+              <span className="live-dot" /> FOUNDER HOUSE · ABU DHABI
             </div>
             <h1>
-              Meet founders
+              A home for founders.
               <br />
-              and investors
-              <br />
-              <span>in Abu Dhabi.</span>
+              <span>A future built together.</span>
             </h1>
             <p>
-              Founder House brings founders, startup teams and investors
-              together through small events, useful conversations and shared
-              interests.
+              A community for founders, startup teams and investors in Abu
+              Dhabi. Meet over coffee, share what you know and build lasting
+              friendships.
             </p>
             <div className="hero-actions">
-              <a className="button dark" href="#apply">
+              <a className="button lime" href="#apply">
                 Join the community <ArrowUpRight size={19} />
               </a>
-              <a className="button outline" href="#events">
+              <a className="button outline hero-secondary" href="#events">
                 See upcoming events <ArrowRight size={18} />
               </a>
             </div>
@@ -278,28 +306,12 @@ export default function House() {
               Free to apply · Every application personally reviewed
             </div>
           </div>
-          <figure className="hero-art">
-            <div className="photo-wrap">
-              <img
-                className="hero-photo"
-                src="/assets/community-terrace.webp"
-                width="1536"
-                height="1024"
-                fetchPriority="high"
-                alt="Illustration of founders sharing a breakfast conversation in Abu Dhabi"
-              />
-              <span className="photo-caption">
-                Community concept · Illustrative image
-              </span>
-            </div>
-            <figcaption>
-              <span>
-                <MapPin size={16} />
-                Abu Dhabi, UAE
-              </span>
-              <span>Coffee. Conversations. Connections.</span>
-            </figcaption>
-          </figure>
+          <div className="hero-welcome">
+            <span>Make yourself at home.</span>
+            <a href="#events" aria-label="Explore upcoming gatherings">
+              <ArrowRight size={22} />
+            </a>
+          </div>
         </section>
         <div className="community-strip">
           <div className="wrap">
@@ -372,9 +384,10 @@ export default function House() {
                 </button>
               </div>
             ) : !events.length ? (
-              <div className="event-empty">
+              <div className="event-empty first-events">
                 <div className="empty-icon">
-                  <CalendarDays size={28} />
+                  <CalendarDays size={37} strokeWidth={1.5} />
+                  <span>See you soon.</span>
                 </div>
                 <div>
                   <span className="section-label">
@@ -473,12 +486,25 @@ export default function House() {
           </div>
         </section>
         <section id="people" className="people-intro wrap section">
+          <figure className="community-photo">
+            <img
+              src="/assets/community-terrace.webp"
+              width="1536"
+              height="1024"
+              loading="lazy"
+              alt="Illustration of founders sharing a breakfast conversation in Abu Dhabi"
+            />
+            <figcaption>
+              <span>Good company starts with a hello.</span>
+              <small>Community concept · Illustrative image</small>
+            </figcaption>
+          </figure>
           <div>
             <div className="section-label">WHO YOU’LL MEET</div>
             <h2>
-              Different experience.
+              Come for the ideas.
               <br />
-              Plenty in common.
+              Stay for the people.
             </h2>
             <p>
               Building a company, backing one or helping a team grow? There’s a
@@ -487,6 +513,7 @@ export default function House() {
           </div>
           <div className="people-types">
             <article>
+              <Sprout size={23} aria-hidden="true" />
               <h3>Founders & startup teams</h3>
               <p>
                 Meet people building businesses and navigating similar
@@ -494,12 +521,14 @@ export default function House() {
               </p>
             </article>
             <article>
+              <Lightbulb size={23} aria-hidden="true" />
               <h3>Angels & venture capital</h3>
               <p>
                 Get to know founders through conversations and shared interests.
               </p>
             </article>
             <article>
+              <HeartHandshake size={23} aria-hidden="true" />
               <h3>Family offices</h3>
               <p>
                 Build relationships with founders and others active in the local
@@ -507,6 +536,7 @@ export default function House() {
               </p>
             </article>
             <article>
+              <Compass size={23} aria-hidden="true" />
               <h3>People who help startups</h3>
               <p>
                 Share your experience in building, hiring, growing or entering
@@ -521,9 +551,8 @@ export default function House() {
               <div>
                 <div className="section-label">WHAT IS FOUNDER HOUSE?</div>
                 <h2>
-                  A local community.
-                  <br />
-                  People you get to know.
+                  A coffee. A conversation.
+                  <br />A game. A good start.
                 </h2>
               </div>
               <p>
@@ -539,6 +568,25 @@ export default function House() {
                     <f.icon size={26} strokeWidth={1.6} />
                     <span>0{i + 1}</span>
                   </div>
+                  <div className="format-visual" aria-hidden="true">
+                    {i === 0 ? (
+                      <>
+                        <Coffee />
+                        <span className="conversation-dot">hello.</span>
+                      </>
+                    ) : i === 1 ? (
+                      <>
+                        <span className="speech speech-one">What if?</span>
+                        <span className="speech speech-two">Let’s talk.</span>
+                      </>
+                    ) : (
+                      <>
+                        <span className="court-line" />
+                        <CircleDot />
+                        <span className="sport-ball" />
+                      </>
+                    )}
+                  </div>
                   <h3>{f.name}</h3>
                   <p>{f.text}</p>
                   <span className="format-bottom">
@@ -548,6 +596,7 @@ export default function House() {
               ))}
             </div>
             <div className="house-invite">
+              <HouseMark className="invite-mark" />
               <div>
                 <h3>Come as a person. Bring what you know.</h3>
                 <p>
@@ -562,7 +611,7 @@ export default function House() {
             </div>
           </div>
         </section>
-        <section className="journey wrap section">
+        <section id="how-it-works" className="journey wrap section">
           <div>
             <div className="section-label">HOW TO JOIN</div>
             <h2>
@@ -623,6 +672,7 @@ export default function House() {
                   Your profile is never a public listing.
                 </p>
               </div>
+              <HouseMark className="apply-mark" />
             </div>
             <div className="application-card">
               {success ? (

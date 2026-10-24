@@ -1,0 +1,13 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 720 1400" fill="none">
+<defs><pattern id="screen" width="70" height="70" patternUnits="userSpaceOnUse"><path d="m35 4 9 16 17 6-9 15 1 18-18-2-18 2 1-18-9-15 17-6Z" stroke="#428A7A"/><path d="m35 22 13 13-13 13-13-13Z" fill="#43C6C5" fill-opacity=".25"/></pattern><pattern id="tile" width="90" height="90" patternUnits="userSpaceOnUse"><path d="m45 0 45 45-45 45L0 45Z" stroke="#327465"/><path d="m45 25 7 13 13 7-13 7-7 13-7-13-13-7 13-7Z" fill="#43C6C5" fill-opacity=".3"/></pattern></defs>
+<path fill="#07362D" d="M0 0h720v1400H0z"/>
+<path d="M25 1270V298Q25 113 360 20q335 93 335 278v972" stroke="#28695A" stroke-width="2"/>
+<path d="M42 1270V300Q42 130 360 40q318 90 318 260v970" stroke="#43C6C5" stroke-opacity=".25"/>
+<path d="M0 410h22v840H0zm698 0h22v840h-22z" fill="url(#screen)"/>
+<path d="M0 1250h720v150H0z" fill="url(#tile)"/>
+<path d="M0 1250h720M0 1264h720" stroke="#438C7B"/>
+<path d="M268 1295h184l75 105H193Z" fill="#43C6C5" fill-opacity=".25" stroke="#43C6C5" stroke-opacity=".55"/>
+<path d="M282 1309h156l49 75H233Z" stroke="#69D8D1" stroke-opacity=".55"/>
+<path d="M303 1344q57-18 114 0m-130 20q73-19 146 0" stroke="#69D8D1" stroke-opacity=".55"/>
+<g fill="#43C6C5" fill-opacity=".45"><path d="m83 128 8 12 15-1-1 15 12 8-12 8 1 15-15-1-8 12-8-12-15 1 1-15-12-8 12-8-1-15 15 1Zm554 0 8 12 15-1-1 15 12 8-12 8 1 15-15-1-8 12-8-12-15 1 1-15-12-8 12-8-1-15 15 1Z"/></g>
+</svg>

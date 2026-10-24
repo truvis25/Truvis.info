@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import "@fontsource-variable/dm-sans";
-import "@fontsource-variable/newsreader/standard-italic.css";
+import "@fontsource-variable/outfit";
 import "./globals.css";
 
 export const metadata: Metadata = {

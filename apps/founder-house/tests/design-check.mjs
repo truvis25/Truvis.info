@@ -13,14 +13,16 @@ function contrast(a, b) {
   return (Math.max(x, y) + 0.05) / (Math.min(x, y) + 0.05);
 }
 const pairs = [
-  ["Primary text / page", "#252420", "#fbfaf7", 4.5],
-  ["Secondary text / page", "#655f58", "#fbfaf7", 4.5],
-  ["Secondary text / section", "#655f58", "#f2eee7", 4.5],
-  ["White text / primary action", "#fbfaf7", "#b64b30", 4.5],
-  ["Accent text / page", "#b64b30", "#fbfaf7", 4.5],
-  ["Selected interest / tint", "#963a23", "#f6e7db", 4.5],
-  ["Input outline / white", "#8b8278", "#fbfaf7", 3],
-  ["Input outline / section", "#8b8278", "#f2eee7", 3],
+  ["Primary text / page", "#07362d", "#f5f7f2", 4.5],
+  ["Secondary text / page", "#53675c", "#f5f7f2", 4.5],
+  ["Secondary text / section", "#53675c", "#e2efe8", 4.5],
+  ["White text / primary action", "#ffffff", "#07362d", 4.5],
+  ["Forest text / turquoise", "#07362d", "#43c6c5", 4.5],
+  ["Selected interest / tint", "#07362d", "#e2efe8", 4.5],
+  ["Input outline / white", "#7a8c83", "#ffffff", 3],
+  ["Input outline / section", "#7a8c83", "#edf1e9", 3],
+  ["Light text / dark section", "#c7d9cb", "#07362d", 4.5],
+  ["Hero turquoise heading / forest", "#69d8d1", "#07362d", 4.5],
 ];
 for (const [label, a, b, min] of pairs) {
   const r = contrast(a, b);
@@ -28,5 +30,5 @@ for (const [label, a, b, min] of pairs) {
   console.log("PASS " + label + ": " + r.toFixed(2) + ":1");
 }
 console.log(
-  "8 semantic colour pairs pass their applicable contrast thresholds. This is not a full WCAG audit.",
+  "10 semantic colour pairs pass their applicable contrast thresholds. This is not a full WCAG audit.",
 );
