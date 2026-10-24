@@ -182,7 +182,8 @@ export default function House() {
     [success, setSuccess] = useState(false),
     [chosen, setChosen] = useState(["Breakfasts"]),
     [fileName, setFileName] = useState(""),
-    [applicationRole, setApplicationRole] = useState("Founder");
+    [applicationRole, setApplicationRole] = useState("Founder"),
+    [cityChoice, setCityChoice] = useState("");
   const form = useRef<HTMLFormElement>(null);
   async function loadEvents(signal?: AbortSignal) {
     setEventsState("loading");
@@ -205,8 +206,37 @@ export default function House() {
   useEffect(() => {
     if (success) document.getElementById("application-success")?.focus();
   }, [success]);
+  useEffect(() => {
+    if (error) document.getElementById("application-error")?.focus();
+  }, [error, step]);
+  function changeStep(value: number) {
+    setError("");
+    setStep(value);
+    setTimeout(
+      () => document.getElementById("application-step-title")?.focus(),
+      0,
+    );
+  }
   function next() {
     setError("");
+    const linkedin = form.current?.elements.namedItem(
+      "linkedin",
+    ) as HTMLInputElement;
+    if (linkedin?.value) {
+      let valid = false;
+      try {
+        const url = new URL(linkedin.value.trim());
+        valid =
+          url.protocol === "https:" &&
+          /(^|\.)linkedin\.com$/.test(url.hostname) &&
+          url.pathname.startsWith("/in/");
+      } catch {}
+      linkedin.setCustomValidity(
+        valid
+          ? ""
+          : "Use your personal LinkedIn profile: https://www.linkedin.com/in/your-name",
+      );
+    }
     for (const node of form.current?.querySelectorAll(
       "[data-step='1'] input,[data-step='1'] select",
     ) ?? []) {
@@ -227,13 +257,26 @@ export default function House() {
       );
       return;
     }
-    setStep(2);
-    setTimeout(() => document.getElementById("application-about")?.focus(), 0);
+    changeStep(2);
   }
   async function submit(e: FormEvent<HTMLFormElement>) {
     e.preventDefault();
     if (busy) return;
+    if (step === 1) {
+      next();
+      return;
+    }
     setError("");
+    for (const node of form.current?.querySelectorAll<
+      HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement
+    >(
+      "[data-step='2'] input,[data-step='2'] textarea,[data-step='2'] select",
+    ) ?? []) {
+      if (!node.checkValidity()) {
+        node.reportValidity();
+        return;
+      }
+    }
     const data = new FormData(e.currentTarget),
       file = data.get("cv") as File;
     if (!data.get("linkedin") && !file?.size) {
@@ -724,27 +767,34 @@ export default function House() {
                   </p>
                   <div className="success-next">
                     <span>WHAT HAPPENS NEXT</span>
-                    <p>
-                      Team review → Membership decision →<br />
-                      Member access and event invitations.
-                    </p>
+                    <ol>
+                      <li>Our team reviews your application.</li>
+                      <li>We contact you with a membership decision.</li>
+                      <li>If approved, you receive access to member events.</li>
+                    </ol>
                   </div>
                   <a href="#events" className="text-link">
                     See upcoming events <ArrowUpRight size={18} />
                   </a>
                 </div>
               ) : (
-                <form ref={form} onSubmit={submit}>
+                <form ref={form} onSubmit={submit} aria-busy={busy} noValidate>
                   <div className="form-heading">
                     <span>MEMBERSHIP APPLICATION</span>
-                    <span>{step} / 2</span>
+                    <span>Step {step} of 2</span>
                   </div>
                   <div className="form-step-labels">
-                    <span className={step === 1 ? "current" : "complete"}>
+                    <span
+                      className={step === 1 ? "current" : "complete"}
+                      aria-current={step === 1 ? "step" : undefined}
+                    >
                       01 · Your details
                     </span>
-                    <span className={step === 2 ? "current" : ""}>
-                      02 · Your interests
+                    <span
+                      className={step === 2 ? "current" : ""}
+                      aria-current={step === 2 ? "step" : undefined}
+                    >
+                      02 · Work & interests
                     </span>
                   </div>
                   <div
@@ -757,13 +807,16 @@ export default function House() {
                   >
                     <i style={{ width: step === 1 ? "50%" : "100%" }} />
                   </div>
-                  <h3>
+                  <h3 id="application-step-title" tabIndex={-1}>
                     {step === 1 ? "Your details" : "Your work and interests"}
                   </h3>
                   <p className="form-subtitle">
                     {step === 1
                       ? "A few details to help us get to know you."
                       : "Help us understand what you’re working on and how we can connect you."}
+                  </p>
+                  <p className="form-required-note">
+                    All fields are required unless marked optional.
                   </p>
                   <div data-step="1" hidden={step !== 1}>
                     <div className="form-row">
@@ -785,6 +838,8 @@ export default function House() {
                           autoComplete="email"
                           name="email"
                           type="email"
+                          maxLength={254}
+                          autoCapitalize="none"
                           placeholder="you@company.com"
                         />
                       </label>
@@ -803,15 +858,45 @@ export default function House() {
                       </label>
                       <label>
                         Based in
+                        <select
+                          required
+                          name={cityChoice === "other" ? undefined : "city"}
+                          autoComplete="address-level2"
+                          value={cityChoice}
+                          onChange={(e) => setCityChoice(e.target.value)}
+                        >
+                          <option value="" disabled>
+                            Select your city
+                          </option>
+                          {[
+                            "Abu Dhabi",
+                            "Dubai",
+                            "Al Ain",
+                            "Sharjah",
+                            "Ajman",
+                            "Ras Al Khaimah",
+                            "Fujairah",
+                            "Umm Al Quwain",
+                          ].map((city) => (
+                            <option key={city}>{city}</option>
+                          ))}
+                          <option value="other">Another city</option>
+                        </select>
+                      </label>
+                    </div>
+                    {cityChoice === "other" && (
+                      <label>
+                        City and country
                         <input
                           required
                           name="city"
-                          placeholder="e.g. Abu Dhabi"
+                          autoComplete="address-level2"
+                          placeholder="e.g. London, United Kingdom"
                           minLength={2}
                           maxLength={100}
                         />
                       </label>
-                    </div>
+                    )}
                     <label>
                       I’m joining as
                       <select
@@ -831,6 +916,7 @@ export default function House() {
                         <input
                           required
                           name="organisation"
+                          autoComplete="organization"
                           placeholder="Company, fund or project"
                           minLength={2}
                           maxLength={150}
@@ -841,51 +927,89 @@ export default function House() {
                         <input
                           required
                           name="title"
+                          autoComplete="organization-title"
                           placeholder="e.g. Co-founder"
                           minLength={2}
                           maxLength={100}
                         />
                       </label>
                     </div>
-                    <label>
-                      Personal LinkedIn profile
-                      <span className="optional">or a CV below</span>
-                      <input
-                        name="linkedin"
-                        type="url"
-                        placeholder="https://www.linkedin.com/in/you"
-                      />
-                    </label>
-                    <label className="upload-label">
-                      <span>
-                        {fileName || "Prefer a CV? Upload a PDF"}
-                        <small>PDF only · up to 3 MB</small>
-                      </span>
-                      <Plus size={21} />
-                      <input
-                        type="file"
-                        name="cv"
-                        accept="application/pdf,.pdf"
-                        aria-label="Upload PDF CV"
-                        onChange={(e) => {
-                          const f = e.target.files?.[0];
-                          if (f && f.size > 3145728) {
-                            setError("Your PDF must be under 3 MB.");
-                            e.target.value = "";
+                    <fieldset className="profile-options">
+                      <legend>LinkedIn or CV</legend>
+                      <p className="field-hint" id="profile-help">
+                        Share your personal LinkedIn profile or upload a PDF CV.
+                        One is enough.
+                      </p>
+                      <label>
+                        LinkedIn profile
+                        <input
+                          name="linkedin"
+                          type="url"
+                          maxLength={400}
+                          autoCapitalize="none"
+                          spellCheck={false}
+                          aria-describedby="profile-help"
+                          onInput={(e) => e.currentTarget.setCustomValidity("")}
+                          placeholder="https://www.linkedin.com/in/you"
+                        />
+                      </label>
+                      <label className="upload-label">
+                        <span>
+                          {fileName || "Upload your CV"}
+                          <small>PDF only · up to 3 MB</small>
+                        </span>
+                        <Plus size={21} />
+                        <input
+                          type="file"
+                          name="cv"
+                          accept="application/pdf,.pdf"
+                          aria-label="Upload PDF CV"
+                          onChange={(e) => {
+                            const f = e.target.files?.[0];
+                            if (
+                              f &&
+                              (f.size > 3145728 ||
+                                !f.name.toLowerCase().endsWith(".pdf"))
+                            ) {
+                              setError("Choose a PDF file up to 3 MB.");
+                              e.target.value = "";
+                              setFileName("");
+                            } else {
+                              setFileName(f?.name || "");
+                              setError("");
+                            }
+                          }}
+                        />
+                      </label>
+                      {fileName && (
+                        <button
+                          type="button"
+                          className="remove-file"
+                          onClick={() => {
+                            const input = form.current?.elements.namedItem(
+                              "cv",
+                            ) as HTMLInputElement;
+                            if (input) input.value = "";
                             setFileName("");
-                          } else {
-                            setFileName(f?.name || "");
                             setError("");
-                          }
-                        }}
-                      />
-                    </label>
-                    <button
-                      type="button"
-                      className="button dark full"
-                      onClick={next}
-                    >
-                      Continue <ArrowRight size={18} />
+                          }}
+                        >
+                          Remove CV <X size={16} />
+                        </button>
+                      )}
+                    </fieldset>
+                    {step === 1 && error && (
+                      <p
+                        id="application-error"
+                        className="form-error"
+                        role="alert"
+                        tabIndex={-1}
+                      >
+                        {error}
+                      </p>
+                    )}
+                    <button type="submit" className="button dark full">
+                      Continue to step 2 <ArrowRight size={18} />
                     </button>
                   </div>
                   <div data-step="2" hidden={step !== 2}>
@@ -898,10 +1022,14 @@ export default function House() {
                         maxLength={1500}
                         name="about"
                         rows={3}
-                        placeholder="Your startup, investment focus or work in the ecosystem. A few useful sentences."
+                        placeholder="Tell us about your startup, investment focus or work with founders."
+                        aria-describedby="about-help"
                       />
+                      <span className="field-hint" id="about-help">
+                        A few sentences · at least 30 characters.
+                      </span>
                     </label>
-                    <div className="form-row">
+                    <div className="contribution-fields">
                       <label>
                         What could you share?
                         <textarea
@@ -911,11 +1039,18 @@ export default function House() {
                           name="offer"
                           rows={3}
                           placeholder="Experience, introductions, skills…"
+                          aria-describedby="offer-help"
                         />
+                        <span className="field-hint" id="offer-help">
+                          Tell us how you could help others · at least 20
+                          characters.
+                        </span>
                       </label>
                       <label>
-                        What would help you?
-                        <span className="optional">optional</span>
+                        <span className="field-label">
+                          What would help you?{" "}
+                          <span className="optional">Optional</span>
+                        </span>
                         <textarea
                           name="ask"
                           rows={3}
@@ -925,10 +1060,10 @@ export default function House() {
                       </label>
                     </div>
                     <fieldset className="interests">
-                      <legend>
-                        Events I’m interested in{" "}
-                        <span className="optional">choose a few</span>
-                      </legend>
+                      <legend>What interests you?</legend>
+                      <p className="field-hint">
+                        Choose at least one. You can select more than one.
+                      </p>
                       <div>
                         {interests.map((i) => (
                           <label
@@ -964,7 +1099,10 @@ export default function House() {
                     </fieldset>
                     <div className="form-row">
                       <label>
-                        Introduced by<span className="optional">optional</span>
+                        <span className="field-label">
+                          Introduced by{" "}
+                          <span className="optional">Optional</span>
+                        </span>
                         <input
                           name="referral"
                           placeholder="Member or contact name"
@@ -972,12 +1110,15 @@ export default function House() {
                         />
                       </label>
                       <label>
-                        Where did you find us?
-                        <span className="optional">optional</span>
+                        <span className="field-label">
+                          How did you hear about us?{" "}
+                          <span className="optional">Optional</span>
+                        </span>
                         <select name="source" defaultValue="">
                           <option value="">Choose an option</option>
                           {[
                             "TRUVIS",
+                            "Hub71",
                             "Friend / member",
                             "Luma",
                             "Meetup",
@@ -990,37 +1131,51 @@ export default function House() {
                         </select>
                       </label>
                     </div>
-                    <label className="check-label">
-                      <input
-                        required={step === 2}
-                        type="checkbox"
-                        name="consent"
-                      />
-                      <span>
-                        I agree to the{" "}
-                        <a href="/privacy" target="_blank">
-                          privacy notice
-                        </a>{" "}
-                        and{" "}
-                        <a href="/community" target="_blank">
-                          community principles
-                        </a>
-                        , and to being contacted about my application and
-                        membership.
-                      </span>
-                    </label>
-                    <label className="check-label">
-                      <input type="checkbox" name="updates" />
-                      <span>
-                        I’d also like occasional community news and future event
-                        announcements. Optional.
-                      </span>
-                    </label>
+                    <div className="consent-panel">
+                      <label className="check-label">
+                        <input
+                          required={step === 2}
+                          type="checkbox"
+                          name="consent"
+                        />
+                        <span>
+                          I agree to the{" "}
+                          <a href="/privacy" target="_blank">
+                            privacy notice
+                          </a>{" "}
+                          and{" "}
+                          <a href="/community" target="_blank">
+                            community principles
+                          </a>
+                          , and to being contacted about my application and
+                          membership.
+                        </span>
+                      </label>
+                      <label className="check-label">
+                        <input type="checkbox" name="updates" />
+                        <span>
+                          I’d also like occasional community news and future
+                          event announcements.{" "}
+                          <span className="optional">Optional</span>
+                        </span>
+                      </label>
+                    </div>
+                    {step === 2 && error && (
+                      <p
+                        id="application-error"
+                        className="form-error"
+                        role="alert"
+                        tabIndex={-1}
+                      >
+                        {error}
+                      </p>
+                    )}
                     <div className="form-buttons">
                       <button
                         type="button"
                         className="back-button"
-                        onClick={() => setStep(1)}
+                        disabled={busy}
+                        onClick={() => changeStep(1)}
                       >
                         ← Back
                       </button>
@@ -1050,11 +1205,6 @@ export default function House() {
                     Leave blank
                     <input tabIndex={-1} name="website" autoComplete="off" />
                   </label>
-                  {error && (
-                    <p className="form-error" role="alert">
-                      {error}
-                    </p>
-                  )}
                   <p className="form-footnote">
                     Our team reviews every application. Applying is free and
                     does not guarantee membership or an event place.

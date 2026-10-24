@@ -809,6 +809,10 @@ select:focus {
   letter-spacing: 1px;
   color: var(--muted);
 }
+.form-heading > span:last-child {
+  white-space: nowrap;
+  letter-spacing: 0;
+}
 .form-step-labels {
   display: flex;
   justify-content: space-between;
@@ -836,13 +840,86 @@ select:focus {
   transition: width 0.2s;
 }
 .application-card h3 {
-  font-size: 25px;
+  font-size: 30px;
   letter-spacing: -0.7px;
 }
 .form-subtitle {
   font-size: 17px;
   line-height: 1.6;
   margin: 9px 0 24px;
+}
+.application-card .form-subtitle {
+  margin-bottom: 8px;
+}
+.form-required-note {
+  font-size: 15px;
+  margin-bottom: 26px;
+}
+.field-label {
+  display: flex;
+  align-items: baseline;
+  flex-wrap: wrap;
+  gap: 3px 8px;
+}
+.field-hint {
+  display: block;
+  color: var(--muted);
+  font-size: 15px;
+  font-weight: 400;
+  line-height: 1.6;
+}
+.form-group-hint {
+  margin: -4px 0 22px;
+}
+#application-step-title,
+#application-error,
+.success-message {
+  scroll-margin-block: 28px;
+}
+#application-step-title:focus,
+#application-error:focus,
+.success-message:focus {
+  outline: none;
+}
+.profile-options {
+  min-width: 0;
+  margin: 7px 0 24px;
+  padding: 18px;
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  background: var(--paper);
+}
+.profile-options legend {
+  padding-inline: 6px;
+  font-size: 18px;
+  font-weight: 650;
+}
+.profile-options > .field-hint {
+  margin-bottom: 18px;
+}
+.profile-options .upload-label {
+  background: #fff;
+  margin-bottom: 0;
+}
+.upload-label > span {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+.remove-file {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  background: transparent;
+  color: var(--ink);
+  border: 0;
+  padding: 10px 0;
+  min-height: 44px;
+  font-size: 15px;
+  text-decoration: underline;
+  text-underline-offset: 4px;
+}
+.contribution-fields {
+  margin-block: 22px 28px;
 }
 form label {
   display: flex;
@@ -857,7 +934,8 @@ form input:not([type="checkbox"]):not([type="file"]),
 form textarea,
 form select {
   width: 100%;
-  min-height: 45px;
+  min-height: 52px;
+  min-width: 0;
   border: 1px solid var(--outline);
   border-radius: 10px;
   padding: 10px 11px;
@@ -877,8 +955,13 @@ textarea {
 }
 .form-row {
   display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 14px;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 18px;
+  align-items: start;
+}
+.form-row .field-label {
+  min-height: 50px;
+  align-content: start;
 }
 .optional {
   font-weight: 400;
@@ -925,9 +1008,12 @@ textarea {
   min-width: 0;
 }
 .interests legend {
-  font-size: 16px;
+  font-size: 18px;
   font-weight: 600;
   margin-bottom: 10px;
+}
+.interests > .field-hint {
+  margin-bottom: 14px;
 }
 .interests > div {
   display: flex;
@@ -967,16 +1053,24 @@ textarea {
   flex-direction: row;
   align-items: flex-start;
   gap: 9px;
-  font-size: 14px;
+  font-size: 16px;
   font-weight: 400;
   line-height: 1.7;
 }
 .check-label input {
   accent-color: var(--accent);
   flex-shrink: 0;
-  width: 16px;
-  height: 16px;
-  margin: 2px 0 0;
+  width: 20px;
+  height: 20px;
+  margin: 4px 0 0;
+}
+.consent-panel {
+  border-top: 1px solid var(--line);
+  margin-top: 12px;
+  padding-top: 22px;
+}
+.consent-panel .check-label:last-child {
+  margin-bottom: 0;
 }
 .check-label a {
   color: var(--accent);
@@ -1057,6 +1151,16 @@ textarea {
 .success-next p {
   font-size: 17px;
   margin-top: 9px;
+}
+.success-next ol {
+  margin: 12px 0 0;
+  padding-left: 22px;
+  color: var(--muted);
+  font-size: 17px;
+  line-height: 1.7;
+}
+.success-next li + li {
+  margin-top: 10px;
 }
 
 .faq-section {
@@ -1381,6 +1485,16 @@ textarea {
 .admin-form h3 {
   font-size: 24px;
   margin-bottom: 25px;
+}
+.login-form {
+  max-width: 540px;
+}
+.form-actions {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin-top: 24px;
 }
 .admin-tabs {
   display: flex;
@@ -2361,6 +2475,9 @@ th {
     grid-template-columns: 1fr;
     gap: 0;
   }
+  .form-row .field-label {
+    min-height: 0;
+  }
   form label {
     font-size: 16px;
     margin-bottom: 18px;
@@ -2373,7 +2490,7 @@ th {
     border-radius: 9px;
   }
   .interest {
-    font-size: 14px;
+    font-size: 16px;
     padding: 10px 12px;
     min-height: 44px;
   }
@@ -2385,13 +2502,21 @@ th {
   }
   .form-buttons {
     gap: 10px;
+    flex-wrap: wrap;
   }
   .form-buttons .button {
-    font-size: 14px;
+    font-size: 16px;
     padding: 13px 16px;
+    flex: 1;
   }
   .check-label {
-    font-size: 14px;
+    font-size: 16px;
+  }
+  .profile-options {
+    padding: 14px;
+  }
+  .form-actions .button {
+    width: 100%;
   }
   .faq-section {
     grid-template-columns: 1fr;

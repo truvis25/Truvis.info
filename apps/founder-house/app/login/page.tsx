@@ -1,5 +1,6 @@
 import { Brand, Footer } from "../house";
 import { signIn } from "./actions";
+import { LoginSubmit } from "./submit";
 export const metadata = { title: "Organiser sign in | Founder House" };
 export default async function Login({
   searchParams,
@@ -19,13 +20,20 @@ export default async function Login({
         <div className="section-label">THE ORGANISER DESK</div>
         <h1>Welcome back.</h1>
         <p>
-          Use your existing truvis.info account. Organiser access requires the
-          platform administrator role.
+          Sign in with your TRUVIS organiser account to review applications and
+          manage events.
         </p>
-        <form className="admin-form" action={signIn}>
+        <form className="admin-form login-form" action={signIn}>
           <label>
             Email
-            <input type="email" name="email" required autoComplete="email" />
+            <input
+              type="email"
+              name="email"
+              required
+              autoComplete="email"
+              autoCapitalize="none"
+              placeholder="you@company.com"
+            />
           </label>
           <label>
             Password
@@ -41,9 +49,11 @@ export default async function Login({
               {error}
             </p>
           )}
-          <button className="button dark" type="submit">
-            Sign in to the organiser desk ↗
-          </button>
+          <LoginSubmit />
+          <p className="form-footnote">
+            Need help signing in?{" "}
+            <a href="mailto:info@truvis.info">Contact the team</a>.
+          </p>
         </form>
       </main>
       <Footer />

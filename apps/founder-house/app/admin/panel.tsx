@@ -503,12 +503,13 @@ export default function Admin() {
                   id="event-form"
                   key={String(editing?.id ?? "new")}
                   onSubmit={create}
+                  aria-busy={busy}
                 >
                   <h3>{editing ? "Edit event" : "Create an event"}</h3>
                   <p className="form-subtitle">
-                    Publishing saves the event on this site and sends it to
-                    every configured channel. Drafts stay private. Check
-                    Distribution for confirmed links and any errors.
+                    Save a private draft or publish your event. Published events
+                    are also sent to connected channels; check Distribution for
+                    confirmed listings.
                   </p>
                   <div className="form-row">
                     <label>
@@ -538,7 +539,7 @@ export default function Admin() {
                   </div>
                   <div className="form-row">
                     <label>
-                      Starts · Abu Dhabi time (UTC+4)
+                      Start date and time
                       <input
                         type="datetime-local"
                         name="startsAt"
@@ -556,7 +557,7 @@ export default function Admin() {
                       />
                     </label>
                     <label>
-                      Ends · Abu Dhabi time (UTC+4)
+                      End date and time
                       <input
                         type="datetime-local"
                         name="endsAt"
@@ -574,6 +575,9 @@ export default function Admin() {
                       />
                     </label>
                   </div>
+                  <p className="field-hint form-group-hint">
+                    All dates and times are in Abu Dhabi time (UTC+4).
+                  </p>
                   <div className="form-row">
                     <label>
                       Public area
@@ -598,7 +602,7 @@ export default function Admin() {
                     </label>
                   </div>
                   <label>
-                    Private venue · approved members only
+                    Private venue
                     <input
                       name="venue"
                       defaultValue={String(editing?.venue ?? "")}
@@ -606,16 +610,23 @@ export default function Admin() {
                       placeholder="Venue name, exact address and arrival instructions"
                       maxLength={300}
                     />
+                    <span className="field-hint">
+                      Only approved members can see the exact location.
+                    </span>
                   </label>
                   <label>
-                    Description · include any ticket, food or court cost
+                    Event description
                     <textarea
                       name="description"
                       defaultValue={String(editing?.description ?? "")}
                       required
                       rows={4}
                       maxLength={4000}
+                      placeholder="What will happen, who is it for and what should guests know?"
                     />
+                    <span className="field-hint">
+                      Include any ticket price, food cost or court fee.
+                    </span>
                   </label>
                   <label>
                     Visibility
@@ -631,19 +642,30 @@ export default function Admin() {
                       </option>
                     </select>
                   </label>
-                  <button disabled={busy} className="button dark" type="submit">
-                    {editing ? "Save changes & sync channels" : "Save event"}{" "}
-                    <ArrowUpRight size={17} />
-                  </button>
-                  {editing && (
+                  <div className="form-actions">
                     <button
-                      className="small-button"
-                      type="button"
-                      onClick={() => setEditing(null)}
+                      disabled={busy}
+                      className="button dark"
+                      type="submit"
                     >
-                      Cancel editing
+                      {busy
+                        ? "Saving event…"
+                        : editing
+                          ? "Save changes"
+                          : "Save event"}{" "}
+                      <ArrowUpRight size={17} />
                     </button>
-                  )}
+                    {editing && (
+                      <button
+                        className="small-button"
+                        type="button"
+                        disabled={busy}
+                        onClick={() => setEditing(null)}
+                      >
+                        Cancel editing
+                      </button>
+                    )}
+                  </div>
                 </form>
                 {!events.length && (
                   <p className="notice">
@@ -889,7 +911,7 @@ export default function Admin() {
                               />
                             </label>
                             <label>
-                              Event / post ID
+                              Listing ID
                               <input
                                 name="externalId"
                                 required
