@@ -19,7 +19,6 @@ import {
   Lightbulb,
   Compass,
   Phone,
-  Mail,
 } from "lucide-react";
 import type { PublicEvent } from "../lib/events";
 import { HouseMark } from "./brand-mark";
@@ -100,72 +99,71 @@ export function Footer() {
   return (
     <footer className="site-footer">
       <div className="footer wrap">
-        <div className="footer-threshold" aria-hidden="true">
-          <span />
-          <HouseMark />
-          <span />
+        <div className="footer-art" aria-hidden="true">
+          <div className="footer-art-door">
+            <span />
+          </div>
+          <div className="footer-art-star" />
+          <HouseMark className="footer-art-people" />
+          <div className="footer-art-window">
+            <span />
+          </div>
         </div>
-        <div>
-          <Brand />
-          <p>
-            A community for founders and investors in Abu Dhabi.
-            <br />
-            Meet through coffee, conversations and shared interests.
-          </p>
-        </div>
-        <nav className="footer-links" aria-label="Footer navigation">
-          <h3>Explore the house</h3>
-          <a href="/#events">
-            Upcoming gatherings <ArrowUpRight size={16} />
-          </a>
-          <a href="https://truvis.info" target="_blank" rel="noreferrer">
-            Explore TRUVIS.info <ArrowUpRight size={15} />
-          </a>
-          <a href="mailto:info@truvis.info">
-            Community enquiries <ArrowUpRight size={15} />
-          </a>
-          <a href="/privacy">Privacy</a>
-          <a href="/community">Community principles</a>
-        </nav>
-        <div className="footer-contact">
-          <h3>TRUVIS International Services</h3>
-          <address>
-            <div className="footer-address">
-              <MapPin size={19} aria-hidden="true" />
-              <span>
-                Level 36, Tower 3, Etihad Towers
-                <br />
-                Abu Dhabi, United Arab Emirates
-              </span>
-            </div>
+        <div className="footer-info">
+          <div className="footer-intro">
+            <p>
+              A community by{" "}
+              <a href="https://truvis.ae/" target="_blank" rel="noreferrer">
+                truvis.ae <ArrowUpRight size={16} />
+              </a>
+            </p>
+            <nav className="footer-quicklinks" aria-label="Community links">
+              <a href="/#apply">
+                Join the house <ArrowUpRight size={16} />
+              </a>
+              <a href="/#events">
+                Upcoming gatherings <ArrowUpRight size={16} />
+              </a>
+            </nav>
+          </div>
+          <address className="footer-office">
+            <span className="footer-office-name">
+              TRUVIS International Services
+            </span>
+            <span>
+              Level 36, Tower 3, Etihad Towers
+              <br />
+              Abu Dhabi, United Arab Emirates
+            </span>
             <a href="tel:+97124093184">
-              <Phone size={18} aria-hidden="true" />
-              <span>+971 2 409 3184</span>
-            </a>
-            <a href="mailto:info@truvis.ae">
-              <Mail size={18} aria-hidden="true" />
-              <span>info@truvis.ae</span>
+              <Phone size={17} aria-hidden="true" />
+              +971 2 409 3184
             </a>
           </address>
-          <a
-            className="footer-company-link"
-            href="https://truvis.ae/"
-            target="_blank"
-            rel="noreferrer"
-          >
-            Visit TRUVIS.ae <ArrowUpRight size={16} />
+          <a className="footer-email" href="mailto:info@truvis.info">
+            info@truvis.info <ArrowUpRight size={25} />
           </a>
         </div>
+        <a className="footer-wordmark" href="/" aria-label="Founder House home">
+          <span>founder</span>
+          <span>house</span>
+        </a>
         <div className="footer-bottom">
           <span className="copyright">
             © 2026{" "}
             <a href="https://truvis.ae/" target="_blank" rel="noreferrer">
-              TRUVIS.ae
+              truvis.ae
             </a>
             . All rights reserved.
           </span>
-          <span>Abu Dhabi, UAE</span>
-          <a href="/admin">Organiser access</a>
+          <nav className="footer-legal" aria-label="Footer navigation">
+            <a href="https://truvis.info/" target="_blank" rel="noreferrer">
+              truvis.info <ArrowUpRight size={14} />
+            </a>
+            <a href="/privacy">Privacy</a>
+            <a href="/community">Community principles</a>
+            <a href="/admin">Organiser access</a>
+          </nav>
         </div>
       </div>
     </footer>

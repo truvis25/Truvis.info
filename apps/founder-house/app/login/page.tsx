@@ -19,7 +19,7 @@ export default async function Login({
         <div className="section-label">THE ORGANISER DESK</div>
         <h1>Welcome back.</h1>
         <p>
-          Use your existing TRUVIS.info account. Organiser access requires the
+          Use your existing truvis.info account. Organiser access requires the
           platform administrator role.
         </p>
         <form className="admin-form" action={signIn}>
