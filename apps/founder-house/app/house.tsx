@@ -198,7 +198,7 @@ export default function House() {
       return;
     }
     setStep(2);
-    setTimeout(() => document.getElementById("about")?.focus(), 0);
+    setTimeout(() => document.getElementById("application-about")?.focus(), 0);
   }
   async function submit(e: FormEvent<HTMLFormElement>) {
     e.preventDefault();
@@ -862,7 +862,7 @@ export default function House() {
                     <label>
                       What are you building or working on?
                       <textarea
-                        id="about"
+                        id="application-about"
                         required={step === 2}
                         minLength={30}
                         maxLength={1500}
