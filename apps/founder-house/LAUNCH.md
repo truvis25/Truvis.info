@@ -24,7 +24,7 @@ These are recommendations, not scheduled events or promised attendance.
 
 The application lives in `apps/founder-house`, deployed as a separate Vercel project. Supabase Auth, the database and administrator roles are shared with TRUVIS.info. Application tables are namespaced `fh_`; CVs are private. The project-bound Edge Function owns backend operations. The Vercel app needs only public Supabase configuration and never receives a service-role credential.
 
-Publication accounts and email delivery remain unconnected. Organisers can create and manage events and copy member invitations. The app attempts configured channels automatically when an event is published or changed. Luma and Meetup adapters and the Eventbrite/LinkedIn workflow contract still need organiser account connections and live tests. Do not advertise live simultaneous external publication until those tests succeed.
+Publication accounts remain unconnected. Transactional email now has application receipts, approval invitations, private delivery logs and an organiser-only test action; real SMTP credentials and inbox verification are still required. Organisers can create and manage events and copy member invitations. The app attempts configured channels automatically when an event is published or changed. Luma and Meetup adapters and the Eventbrite/LinkedIn workflow contract still need organiser account connections and live tests. Do not advertise live simultaneous external publication until those tests succeed. See [EMAIL-AND-ADMIN.md](EMAIL-AND-ADMIN.md) for the remaining owner-access and email checks.
 
 ## Reference research
 

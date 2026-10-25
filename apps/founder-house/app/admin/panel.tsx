@@ -2,6 +2,8 @@
 import { useCallback, useEffect, useState, type FormEvent } from "react";
 import { ArrowUpRight, Download, Check, Copy } from "lucide-react";
 import { Brand, Footer } from "../house";
+import LaunchChecks, { deliveryLabel } from "./launch-checks";
+import { signOut } from "../login/actions";
 type Row = Record<string, string | number | null>;
 type Channel = {
   name: string;
@@ -33,6 +35,8 @@ type ApiResult = {
   channels: Channel[];
   jobs: Row[];
   inviteUrl?: string;
+  emailResult?: { status: string; logged: boolean };
+  email?: string;
   attendees: Row[];
   message: string;
   results: { channel: string; status: string }[];
@@ -68,8 +72,10 @@ export default function Admin() {
       admin: boolean;
       authenticated: boolean;
       configured: boolean;
+      email?: string;
     } | null>(null),
-    [tab, setTab] = useState("Applications"),
+    [tab, setTab] = useState("Launch checks"),
+    [databaseReady, setDatabaseReady] = useState(false),
     [apps, setApps] = useState<Row[]>([]),
     [events, setEvents] = useState<Row[]>([]),
     [channels, setChannels] = useState<Channel[]>([]),
@@ -96,6 +102,7 @@ export default function Admin() {
     setEvents(e.events);
     setChannels(d.channels);
     setJobs(d.jobs);
+    setDatabaseReady(true);
   }, []);
   useEffect(() => {
     let live = true;
@@ -134,9 +141,20 @@ export default function Admin() {
         setInvite({ url: d.inviteUrl, name: String(a.name) });
         setCopied(false);
       } else setInvite(null);
+      if (d.emailResult && !d.emailResult.logged)
+        setError(
+          "The email activity log could not be updated. Check the mailbox before sending this invitation again.",
+        );
       setMessage(
         s === "approved"
-          ? "Approved. Copy the private invitation below and send it directly to the member. It has not been emailed."
+          ? "Approved. " +
+              (d.emailResult?.status === "accepted"
+                ? "The mail server accepted the invitation. The private link is also available below."
+                : d.emailResult?.status === "unknown"
+                  ? "Email delivery is uncertain. Check the mailbox before sending the private link again."
+                  : "The invitation has not been emailed. " +
+                    deliveryLabel(d.emailResult?.status ?? "not_configured") +
+                    ". You can copy the private link below.")
           : "Membership status updated. Any previous access has been revoked.",
       );
       await load();
@@ -269,6 +287,16 @@ export default function Admin() {
           </div>
         ) : (
           <>
+            <div className="admin-session">
+              <p>
+                Signed in as <strong>{auth.email}</strong>
+              </p>
+              <form action={signOut}>
+                <button className="small-button" type="submit">
+                  Sign out
+                </button>
+              </form>
+            </div>
             <div className="admin-stats">
               {["pending", "approved", "waitlisted", "declined"].map((s) => (
                 <div key={s}>
@@ -286,10 +314,16 @@ export default function Admin() {
               ))}
             </div>
             <div className="admin-tabs">
-              {["Applications", "Gatherings", "Distribution"].map((t) => (
+              {[
+                "Launch checks",
+                "Applications",
+                "Gatherings",
+                "Distribution",
+              ].map((t) => (
                 <button
                   key={t}
                   className={tab === t ? "active" : ""}
+                  aria-pressed={tab === t}
                   onClick={() => {
                     setTab(t);
                     setMessage("");
@@ -300,6 +334,19 @@ export default function Admin() {
                 </button>
               ))}
             </div>
+            {tab === "Launch checks" && (
+              <LaunchChecks
+                databaseReady={databaseReady}
+                eventCount={
+                  events.filter(
+                    (e) =>
+                      e.status === "published" &&
+                      new Date(String(e.ends_at)).getTime() > Date.now(),
+                  ).length
+                }
+                connectedChannels={channels.filter((c) => c.connected).length}
+              />
+            )}
             {message && (
               <div className="notice" role="status">
                 {message}
@@ -396,8 +443,8 @@ export default function Admin() {
                   <div className="empty-state">
                     <h3>The first hello starts here.</h3>
                     <p>
-                      New applications will appear here for personal review.
-                      There are no demo applicants in the live list.
+                      New applications will appear here for personal review. Use
+                      the status filter to find applications already reviewed.
                     </p>
                   </div>
                 )}
@@ -466,8 +513,8 @@ export default function Admin() {
                           onClick={() => review(a, "approved")}
                         >
                           {a.status === "approved"
-                            ? "Renew private invitation"
-                            : "Approve & create invitation"}
+                            ? "Renew & email invitation"
+                            : "Approve & email invitation"}
                         </button>
                         <button
                           disabled={busy}

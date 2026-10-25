@@ -8,7 +8,14 @@ import {
 type Row = Record<string, any>;
 import { channelConfig, type PublishConfig } from "./publishing.ts";
 import { distributeEvent, reconcilePublication } from "./distribution.ts";
-type Config = PublishConfig;
+import {
+  deliverEmail,
+  HOUSE_EMAIL,
+  HOUSE_URL,
+  EMAIL_FROM,
+  type Mailer,
+} from "./email.ts";
+type Config = PublishConfig & { mailer?: Mailer };
 const now = () => new Date().toISOString();
 const hash = async (s: string) =>
   Array.from(
@@ -95,7 +102,7 @@ export function createHandler(db: SupabaseClient, config: Config = {}) {
             .gt("ends_at", now())
             .order("starts_at"),
         );
-        return json({ events: rows.map(publicEvent) });
+        return json({ events: (rows ?? []).map(publicEvent) });
       }
       if (path === "/api/apply" && method === "POST") {
         const hour = new Date().toISOString().slice(0, 13),
@@ -173,6 +180,11 @@ export function createHandler(db: SupabaseClient, config: Config = {}) {
           if (error.code === "23505") return json({ received: true }, 202);
           throw Error(error.code);
         }
+        await deliverEmail(db, config.mailer, "application_received", {
+          id,
+          name: data.name,
+          email: data.email,
+        });
         return json({ received: true }, 202);
       }
       if (path === "/api/member/login" && method === "POST") {
@@ -214,7 +226,7 @@ export function createHandler(db: SupabaseClient, config: Config = {}) {
           db.from("fh_rsvps").select("event_id,status").eq("member_id", m.id),
         ]);
         const statuses = new Map(
-          result(rsvps).map((x) => [x.event_id, x.status]),
+          (result(rsvps) ?? []).map((x) => [x.event_id, x.status]),
         );
         return json({
           member: {
@@ -223,7 +235,7 @@ export function createHandler(db: SupabaseClient, config: Config = {}) {
             role: m.role,
             organisation: m.organisation,
           },
-          events: result(events).map((e) => ({
+          events: (result(events) ?? []).map((e) => ({
             ...e,
             rsvp_status: statuses.get(e.id) ?? null,
           })),
@@ -253,6 +265,45 @@ export function createHandler(db: SupabaseClient, config: Config = {}) {
             "Sign in with an authorised TRUVIS organiser account.",
             403,
           );
+        if (path === "/api/admin/email" && method === "GET") {
+          const deliveries = result(
+            await db
+              .from("fh_email_deliveries")
+              .select(
+                "id,application_id,kind,recipient,status,created_at,updated_at",
+              )
+              .order("created_at", { ascending: false })
+              .limit(50),
+          );
+          return json({
+            email: {
+              configured: config.mailer?.configured ?? false,
+              missing: config.mailer?.missing ?? ["SMTP connection"],
+              from: EMAIL_FROM,
+              replyTo: HOUSE_EMAIL,
+              testRecipient: HOUSE_EMAIL,
+              deliveries: deliveries ?? [],
+            },
+          });
+        }
+        if (path === "/api/admin/email/test" && method === "POST") {
+          const allowed = result(
+            await db.rpc("fh_take_rate_slot", {
+              p_key: "email-test:" + new Date().toISOString().slice(0, 13),
+              p_limit: 6,
+            }),
+          );
+          if (!allowed)
+            return fail(
+              "Please wait before sending another test. Six tests are allowed per hour.",
+              429,
+            );
+          const email = await deliverEmail(db, config.mailer, "test", {
+            name: "TRUVIS team",
+            email: HOUSE_EMAIL,
+          });
+          return json({ emailResult: email });
+        }
         if (path === "/api/admin/applications" && method === "GET") {
           const rows = result(
             await db
@@ -263,7 +314,7 @@ export function createHandler(db: SupabaseClient, config: Config = {}) {
               .order("created_at", { ascending: false })
               .limit(1000),
           );
-          return json({ applications: rows });
+          return json({ applications: rows ?? [] });
         }
         if (
           /^\/api\/admin\/applications\/[^/]+\/cv$/.test(path) &&
@@ -301,6 +352,18 @@ export function createHandler(db: SupabaseClient, config: Config = {}) {
             )
           )
             return fail("Invalid status.");
+          const recipient =
+            b.status === "approved"
+              ? result(
+                  await db
+                    .from("fh_applications")
+                    .select("id,name,email")
+                    .eq("id", path.split("/")[4])
+                    .maybeSingle(),
+                )
+              : null;
+          if (b.status === "approved" && !recipient)
+            return fail("Application not found.", 404);
           const access = b.status === "approved" ? token() : null,
             expires = access
               ? new Date(Date.now() + 30 * 86400000).toISOString()
@@ -313,12 +376,24 @@ export function createHandler(db: SupabaseClient, config: Config = {}) {
             p_reviewer: user.id,
           });
           if (error) return fail("The application could not be updated.", 400);
-          const origin =
-            r.headers.get("x-fh-origin") ?? "https://house.truvis.info";
+          const inviteUrl = access
+            ? HOUSE_URL + "/members#access=" + access
+            : null;
+          let emailResult;
+          if (inviteUrl && recipient) {
+            emailResult = await deliverEmail(
+              db,
+              config.mailer,
+              "member_invitation",
+              recipient,
+              inviteUrl,
+            );
+          }
           return json({
             ok: true,
-            inviteUrl: access ? origin + "/members#access=" + access : null,
+            inviteUrl,
             expiresAt: expires,
+            emailResult,
           });
         }
         if (path === "/api/admin/events" && method === "GET") {
@@ -332,9 +407,9 @@ export function createHandler(db: SupabaseClient, config: Config = {}) {
               .select("event_id,status")
               .neq("status", "cancelled"),
           ]);
-          const rows = result(rsvps);
+          const rows = result(rsvps) ?? [];
           return json({
-            events: result(events).map((e) => ({
+            events: (result(events) ?? []).map((e) => ({
               ...e,
               confirmed: rows.filter(
                 (x) => x.event_id === e.id && x.status === "confirmed",
@@ -359,6 +434,7 @@ export function createHandler(db: SupabaseClient, config: Config = {}) {
               .select("id")
               .single(),
           );
+          if (!row) throw Error("event_not_created");
           const distribution =
             event.status === "published"
               ? await savedDistribution(row.id)
@@ -379,7 +455,7 @@ export function createHandler(db: SupabaseClient, config: Config = {}) {
               .order("created_at"),
           );
           return json({
-            attendees: rows.map((r: Row) => ({
+            attendees: (rows ?? []).map((r: Row) => ({
               ...r.member,
               status: r.status,
             })),

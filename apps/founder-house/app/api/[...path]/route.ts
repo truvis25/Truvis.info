@@ -24,6 +24,7 @@ async function handle(request: Request) {
         authenticated: !!identity.user,
         admin: identity.admin,
         configured: true,
+        email: identity.user?.email ?? null,
       });
     if (!identity.admin || !identity.accessToken)
       return json(

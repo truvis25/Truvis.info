@@ -32,20 +32,30 @@ The homepage shows confirmed upcoming events before the community description. P
 
 Saving a published event automatically attempts all configured channels. Luma and Meetup have native API adapters. Eventbrite and LinkedIn use an authenticated publishing-workflow contract. Each channel has a persisted result, duplicate-create protection, safe retries for definite failures and manual receipt reconciliation for uncertain results. Credentials, paid platform requirements, lifecycle behaviour and the workflow contract are documented in [DISTRIBUTION.md](DISTRIBUTION.md).
 
-Account connections and live external publication tests are not complete. A configured workflow or accepted request is never reported as a confirmed publication. No external accounts or subscriptions were created. Invitation emails are not connected; the organiser desk provides private links for direct delivery.
+Account connections and live external publication tests are not complete. A configured workflow or accepted request is never reported as a confirmed publication. No external accounts or subscriptions were created.
+
+## Email and launch checks
+
+The organiser desk opens on **Launch checks**, showing live database access, upcoming gatherings, channel connections and email activity. It also shows the signed-in email and a local sign-out action.
+
+Application receipts are attempted only after a new application is saved. Duplicate submissions keep the same generic response and do not send another receipt. Approval creates a private invitation and attempts its email. Failed or unconfigured email never undoes the saved application or approval; the organiser receives a clear result and can copy the invitation. Reserved test domains are suppressed. No newsletter, bulk sending or historical backfill runs automatically.
+
+The Edge Function sends via authenticated SMTP with implicit TLS on port 465. The sender is `Founder House by TRUVIS <info@truvis.info>` and replies go to `info@truvis.info`. Only delivery metadata is stored in private `fh_email_deliveries`; SMTP passwords, bodies and invitation tokens are never logged. “Accepted” means accepted by the mail server, not delivered to an inbox. Uncertain sends are not retried automatically.
+
+The sending account still needs its real SMTP credentials and an inbox test. See [EMAIL-AND-ADMIN.md](EMAIL-AND-ADMIN.md) for setup and verification. Do not mark email or owner access launch-ready until those live checks succeed.
 
 ## Hostinger DNS
 
-Vercel has added and verified `house.truvis.info` on this project. The DNS record is still pending at the external provider.
+`https://house.truvis.info` is serving the production site over HTTPS. Keep its existing DNS record:
 
 | Type | Name | Target | TTL |
 | --- | --- | --- | --- |
 | CNAME | house | 65427143e9ea06c8.vercel-dns-016.com | Auto / default |
 
-Use the project-specific target returned by Vercel. Resolve only a conflicting record for `house`; do not change apex, mail, or unrelated subdomains. After DNS propagation, verify the domain configuration and HTTPS before announcing the public URL.
+Use the project-specific target returned by Vercel. Do not change apex, mail, or unrelated subdomains when maintaining this site.
 
 ## Verification
 
-`npm test` checks membership validation, publication privacy and retry behaviour, calendar formatting, and eight semantic contrast pairs. `tests/database.sql` tests approval, capacity, duplicate reservations, cancellation, waitlist promotion, revocation, rate limiting and anonymous access inside a transaction that is rolled back. Production build and the parent app's own test/build are checked separately.
+`npm test` checks membership validation, email delivery and failure handling, publication privacy and retry behaviour, calendar formatting, and ten semantic contrast pairs. `tests/database.sql` tests approval, capacity, duplicate reservations, cancellation, waitlist promotion, revocation, rate limiting and anonymous access inside a transaction that is rolled back. Production build and the parent app's own test/build are checked separately.
 
 See `BRAND.md` for design choices and `LAUNCH.md` for the proposed community launch rhythm. These are implementation and launch notes, not evidence of existing attendance, investor partnerships or promised outcomes.

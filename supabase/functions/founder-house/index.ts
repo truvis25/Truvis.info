@@ -1,5 +1,6 @@
 import { createClient } from "npm:@supabase/supabase-js@2.110.7";
 import { createHandler } from "./handler.ts";
+import { smtpMailer } from "./smtp.ts";
 const url = Deno.env.get("SUPABASE_URL")!,
   key = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
 const client = createClient(url, key, {
@@ -7,6 +8,7 @@ const client = createClient(url, key, {
 });
 Deno.serve(
   createHandler(client, {
+    mailer: smtpMailer((key) => Deno.env.get(key)),
     lumaKey: Deno.env.get("FOUNDER_HOUSE_LUMA_API_KEY"),
     meetupToken: Deno.env.get("FOUNDER_HOUSE_MEETUP_ACCESS_TOKEN"),
     meetupGroup: Deno.env.get("FOUNDER_HOUSE_MEETUP_GROUP"),

@@ -14,3 +14,9 @@ export async function signIn(form: FormData) {
     );
   redirect("/admin");
 }
+
+export async function signOut() {
+  const client = await serverClient();
+  await client.auth.signOut({ scope: "local" });
+  redirect("/login");
+}
