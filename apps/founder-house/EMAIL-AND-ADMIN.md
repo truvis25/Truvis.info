@@ -1,22 +1,18 @@
 # Email and organiser access
 
-## Live setup still needed
+## Verified live setup
 
-The email implementation and organiser launch-check panel are complete. Hostinger SMTP is configured for transactional mail and shared Auth mail. A company-owned synthetic application was saved and its receipt accepted by SMTP on 25 October 2026 (`FH-9D687440`, subsequently declined as QA). Inbox delivery and verified owner sign-in remain launch requirements. Do not publish demo credentials or treat a code review as a verified owner login.
+The email implementation and organiser launch-check panel are complete. Hostinger SMTP is configured for transactional mail and shared Auth mail. A company-owned synthetic application was saved and its receipt accepted by SMTP on 25 October 2026 (`FH-9D687440`, subsequently declined as QA). The owner completed email verification and set a dedicated password. Real browser sign-in as `info@truvis.info` and loading the live administrator panel were verified. A second mail test from the organiser panel was accepted by SMTP. Receipt/test inbox placement and a reply still need confirmation. Do not publish demo credentials or treat a code review as a verified owner login.
 
 ## Connect the sending mailbox
-
-Verified on 25 October 2026: the domain MX points to Google Workspace (`smtp.google.com`), SPF includes `_spf.google.com`, and a DMARC monitoring record exists. No DKIM selector has been verified. In the authenticated project dashboard, `FOUNDER_HOUSE_SMTP_HOST=smtp.gmail.com`, `FOUNDER_HOUSE_SMTP_USER=info@truvis.ae` and `FOUNDER_HOUSE_SMTP_PORT=465` have been saved. **The SMTP password has not been saved, and no real email delivery has been confirmed.** The owner must enter the mailbox's Google App Password directly in the secure settings; never use the normal account password or paste a secret in chat. The owner confirmed that `info@truvis.info` is an alias of the primary mailbox `info@truvis.ae`. SMTP authentication uses `info@truvis.ae` and its Google App Password; the alias has no separate mailbox password. The sender and reply address remain `info@truvis.info`.
-
-The separate Auth SMTP form has been prepared with sender `info@truvis.info`, sender name `TRUVIS`, host `smtp.gmail.com`, port 465 and username `info@truvis.ae`. It remains an **unsaved draft**, awaiting the owner's password entry and Save changes. This shared Auth setting also serves the parent Truvis app. The owner account has not been created or granted a role.
 
 The owner has replaced the earlier Google alias arrangement with an independent Hostinger mailbox `info@truvis.info`. SMTP uses `smtp.hostinger.com:465` and username `info@truvis.info`. Save credentials **in Supabase Edge Function secrets**, never in git, client code, chat or the Vercel public variables:
 
 | Secret | Value |
 | --- | --- |
 | `FOUNDER_HOUSE_SMTP_HOST` | The mailbox provider's SMTP hostname |
-| `FOUNDER_HOUSE_SMTP_USER` | `info@truvis.ae` (primary mailbox, not its alias) |
-| `FOUNDER_HOUSE_SMTP_PASS` | Its existing SMTP/app password, entered securely by its owner |
+| `FOUNDER_HOUSE_SMTP_USER` | `info@truvis.info` (independent Hostinger mailbox) |
+| `FOUNDER_HOUSE_SMTP_PASS` | Existing mailbox password, saved only in encrypted server settings |
 | `FOUNDER_HOUSE_SMTP_PORT` | `465` (also the default) |
 
 The sender and reply address are fixed to `info@truvis.info`; no mail settings are inherited from unrelated apps. Supabase Edge Functions block SMTP ports 25 and 587, so this adapter requires implicit TLS on 465 with normal certificate validation. For a Hostinger Email mailbox, confirm the mailbox product first; its documented server is `smtp.hostinger.com` on 465. Do not assume a domain's DNS provider is also its email provider.
@@ -28,6 +24,8 @@ Open `/admin` → **Launch checks**, refresh the email status and select **Send 
 Then run one owner-controlled real application and approval. Confirm both emails and member access. Use a fresh recipient or explicitly renew the invitation; old applications are not backfilled. A renewed invitation invalidates the old link. Never use a real applicant for testing.
 
 ## Owner access
+
+Verified on 25 October 2026: `info@truvis.info` is the only account with `platform_admin=true`. Email ownership and password setup were completed before the role was granted. The previous `demo-admin@truvis.info` administrator role was revoked. The owner signed in through the real `/login` form; Launch checks, Applications, Gatherings and Distribution loaded successfully from the live database. This did not publish events or approve real applicants. The role is shared with the parent TRUVIS platform.
 
 Existing organisers sign in at `https://house.truvis.info/login` with Supabase Auth email/password. Authorisation uses the existing `user_profiles.platform_admin` role, independently checked in Next.js and the Edge Function. This role is shared with the parent Truvis platform; it is not a Founder House-only role.
 
