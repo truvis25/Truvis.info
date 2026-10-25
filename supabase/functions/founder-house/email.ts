@@ -2,7 +2,7 @@ import type { SupabaseClient } from "npm:@supabase/supabase-js@2.110.7";
 
 export const HOUSE_URL = "https://house.truvis.info";
 export const HOUSE_EMAIL = "info@truvis.info";
-export const EMAIL_FROM = "Founder House by TRUVIS <info@truvis.info>";
+export const EMAIL_FROM = "Founder House <info@truvis.info>";
 export type EmailKind = "application_received" | "member_invitation" | "test";
 export type EmailStatus =
   | "sending"
