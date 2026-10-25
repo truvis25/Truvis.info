@@ -6,22 +6,22 @@ The email implementation and organiser launch-check panel are complete. Sending 
 
 ## Connect the sending mailbox
 
-Verified on 25 October 2026: the domain MX points to Google Workspace (`smtp.google.com`), SPF includes `_spf.google.com`, and a DMARC monitoring record exists. No DKIM selector has been verified. In the authenticated project dashboard, `FOUNDER_HOUSE_SMTP_HOST=smtp.gmail.com`, `FOUNDER_HOUSE_SMTP_USER=info@truvis.info` and `FOUNDER_HOUSE_SMTP_PORT=465` have been saved. **The SMTP password has not been entered, and no real email delivery has been confirmed.** The owner must enter the mailbox's Google App Password directly in the secure settings; never use the normal account password or paste a secret in chat. If the address is an alias, the owner must use its authorised primary mailbox credentials.
+Verified on 25 October 2026: the domain MX points to Google Workspace (`smtp.google.com`), SPF includes `_spf.google.com`, and a DMARC monitoring record exists. No DKIM selector has been verified. In the authenticated project dashboard, `FOUNDER_HOUSE_SMTP_HOST=smtp.gmail.com`, `FOUNDER_HOUSE_SMTP_USER=info@truvis.ae` and `FOUNDER_HOUSE_SMTP_PORT=465` have been saved. **The SMTP password has not been saved, and no real email delivery has been confirmed.** The owner must enter the mailbox's Google App Password directly in the secure settings; never use the normal account password or paste a secret in chat. The owner confirmed that `info@truvis.info` is an alias of the primary mailbox `info@truvis.ae`. SMTP authentication uses `info@truvis.ae` and its Google App Password; the alias has no separate mailbox password. The sender and reply address remain `info@truvis.info`.
 
-The separate Auth SMTP form has been prepared with sender `info@truvis.info`, sender name `TRUVIS`, host `smtp.gmail.com`, port 465 and username `info@truvis.info`. It remains an **unsaved draft**, awaiting the owner's password entry and Save changes. This shared Auth setting also serves the parent Truvis app. The owner account has not been created or granted a role.
+The separate Auth SMTP form has been prepared with sender `info@truvis.info`, sender name `TRUVIS`, host `smtp.gmail.com`, port 465 and username `info@truvis.ae`. It remains an **unsaved draft**, awaiting the owner's password entry and Save changes. This shared Auth setting also serves the parent Truvis app. The owner account has not been created or granted a role.
 
 Use the existing company mailbox authorised to send as `info@truvis.info`. Save these **in Supabase Edge Function secrets**, never in git, client code, chat or the Vercel public variables:
 
 | Secret | Value |
 | --- | --- |
 | `FOUNDER_HOUSE_SMTP_HOST` | The mailbox provider's SMTP hostname |
-| `FOUNDER_HOUSE_SMTP_USER` | The authenticated mailbox username |
+| `FOUNDER_HOUSE_SMTP_USER` | `info@truvis.ae` (primary mailbox, not its alias) |
 | `FOUNDER_HOUSE_SMTP_PASS` | Its existing SMTP/app password, entered securely by its owner |
 | `FOUNDER_HOUSE_SMTP_PORT` | `465` (also the default) |
 
 The sender and reply address are fixed to `info@truvis.info`; no mail settings are inherited from unrelated apps. Supabase Edge Functions block SMTP ports 25 and 587, so this adapter requires implicit TLS on 465 with normal certificate validation. For a Hostinger Email mailbox, confirm the mailbox product first; its documented server is `smtp.hostinger.com` on 465. Do not assume a domain's DNS provider is also its email provider.
 
-Check SPF, DKIM and DMARC in the actual mail provider before launch. Preserve existing MX records and other senders' records. The current task has not verified those records or modified mail DNS.
+Check SPF, DKIM and DMARC in the actual mail provider before launch. Preserve existing MX records and other senders' records. MX, SPF and the DMARC monitoring record were checked; DKIM has not been verified. No mail DNS records were modified.
 
 Open `/admin` → **Launch checks**, refresh the email status and select **Send test to info@truvis.info**. Confirm arrival in the inbox (including spam), sender identity, readable layout, links and a reply. “Accepted by mail server” is not proof of inbox delivery. The test endpoint is organiser-only, always targets the company mailbox and allows at most six tests per hour.
 

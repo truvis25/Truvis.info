@@ -151,16 +151,8 @@ export function Footer() {
           </a>
         </div>
         <a className="footer-wordmark" href="/" aria-label="Founder House home">
-          <img
-            src="/assets/brand/house-horizontal-green-1200.webp"
-            srcSet="/assets/brand/house-horizontal-green-600.webp 600w, /assets/brand/house-horizontal-green-1200.webp 1200w, /assets/brand/house-horizontal-green-1831.webp 1831w"
-            sizes="(max-width: 700px) calc(100vw - 40px), (max-width: 1080px) calc(100vw - 64px), 1000px"
-            alt="Founder House by TRUVIS"
-            width="1831"
-            height="680"
-            loading="lazy"
-            decoding="async"
-          />
+          <span>founder</span>
+          <span>house</span>
         </a>
         <div className="footer-bottom">
           <span className="copyright">
