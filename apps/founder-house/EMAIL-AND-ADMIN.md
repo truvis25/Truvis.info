@@ -2,7 +2,7 @@
 
 ## Live setup still needed
 
-The email implementation and organiser launch-check panel are complete. Sending credentials, a real inbox test and verified owner sign-in remain launch requirements. As checked on 25 October 2026, the shared project has one platform administrator (`demo-admin@truvis.info`); `info@truvis.info` does not yet have an Auth account. Do not publish demo credentials or treat a code review as a verified owner login.
+The email implementation and organiser launch-check panel are complete. Hostinger SMTP is configured for transactional mail and shared Auth mail. A company-owned synthetic application was saved and its receipt accepted by SMTP on 25 October 2026 (`FH-9D687440`, subsequently declined as QA). Inbox delivery and verified owner sign-in remain launch requirements. Do not publish demo credentials or treat a code review as a verified owner login.
 
 ## Connect the sending mailbox
 
@@ -10,7 +10,7 @@ Verified on 25 October 2026: the domain MX points to Google Workspace (`smtp.goo
 
 The separate Auth SMTP form has been prepared with sender `info@truvis.info`, sender name `TRUVIS`, host `smtp.gmail.com`, port 465 and username `info@truvis.ae`. It remains an **unsaved draft**, awaiting the owner's password entry and Save changes. This shared Auth setting also serves the parent Truvis app. The owner account has not been created or granted a role.
 
-Use the existing company mailbox authorised to send as `info@truvis.info`. Save these **in Supabase Edge Function secrets**, never in git, client code, chat or the Vercel public variables:
+The owner has replaced the earlier Google alias arrangement with an independent Hostinger mailbox `info@truvis.info`. SMTP uses `smtp.hostinger.com:465` and username `info@truvis.info`. Save credentials **in Supabase Edge Function secrets**, never in git, client code, chat or the Vercel public variables:
 
 | Secret | Value |
 | --- | --- |
@@ -31,7 +31,9 @@ Then run one owner-controlled real application and approval. Confirm both emails
 
 Existing organisers sign in at `https://house.truvis.info/login` with Supabase Auth email/password. Authorisation uses the existing `user_profiles.platform_admin` role, independently checked in Next.js and the Edge Function. This role is shared with the parent Truvis platform; it is not a Founder House-only role.
 
-To provision the company's owner account, use the project owner's authenticated Supabase dashboard and the secure Auth user invitation/setup flow for `info@truvis.info`. Complete email verification and password setup through the provider UI; never invent a password, ask for one in chat, reuse the demo account or mark email ownership as verified without the actual verification. Assign the existing administrator role only after the owner account and intended shared-platform access are confirmed. No account or role has been created by this change.
+To provision the company's owner account, send a Supabase Auth invitation to `info@truvis.info`. The shared invite template in `INVITATION-EMAIL.html` preserves the original confirmation link for parent-platform invitations, and adds the invitation code and the explicit Founder House setup link. `/login/setup` verifies only invitation codes (`type: invite`), then lets the verified owner set their own password and signs them out. The page does not create users, send unsolicited OTPs or assign roles. Codes and passwords are never returned in action state or logged. Complete email verification and password setup yourself; never invent a password, ask for one in chat, reuse the demo account or mark email ownership as verified without actual verification. Assign the administrator role only after the owner account and intended shared-platform access are confirmed.
+
+Profile column privileges now prevent ordinary authenticated users from inserting or changing `platform_admin`. The default remains false; ordinary profile editing is preserved. This applies to the shared TRUVIS platform, not just Founder House. Verified via transactional tests: self-promotion by INSERT and UPDATE are denied, while editing one's own display name works; all test mutations were rolled back.
 
 The Supabase Auth invitation/password-reset email settings are separate from this app's transactional SMTP settings. Do not change shared Auth SMTP or redirect settings without reviewing the parent app. The mail code here does not send Auth invitation or reset emails.
 
