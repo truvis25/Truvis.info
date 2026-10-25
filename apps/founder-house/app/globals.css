@@ -111,19 +111,17 @@ select:focus {
   z-index: 5;
 }
 .brand {
-  position: relative;
   display: block;
-  width: 208px;
-  height: 76px;
+  width: 238px;
+  aspect-ratio: 1831 / 680;
   flex-shrink: 0;
 }
 .brand > img {
-  position: absolute;
-  width: 260px;
+  width: 100%;
   height: auto;
-  max-width: none;
-  left: -24px;
-  top: -3px;
+}
+.house-mark {
+  object-fit: contain;
 }
 .nav {
   display: flex;
@@ -789,8 +787,6 @@ select:focus {
   width: 160px;
   height: 160px;
   margin-top: 48px;
-  color: #43c6c5;
-  transform: rotate(-13deg);
 }
 .application-card {
   color: var(--ink);
@@ -1268,10 +1264,8 @@ textarea {
   );
   transform: rotate(8deg);
 }
-.footer-art-people {
+.footer-art-mark {
   height: auto;
-  color: var(--ink);
-  transform: rotate(-10deg);
 }
 .footer-art-window {
   display: grid;
@@ -1351,19 +1345,14 @@ textarea {
   letter-spacing: -0.6px;
 }
 .footer-wordmark {
-  display: flex;
-  align-items: baseline;
-  justify-content: space-between;
-  gap: 0.16em;
-  padding: 16px 0 28px;
-  font-family: var(--display);
-  font-size: clamp(64px, 16.1vw, 246px);
-  font-weight: 650;
-  line-height: 1.06;
-  letter-spacing: -0.065em;
-}
-.footer-wordmark > span {
   display: block;
+  padding: 16px 0 28px;
+}
+.footer-wordmark > img {
+  display: block;
+  width: min(100%, 1000px);
+  height: auto;
+  margin-inline: auto;
 }
 .footer a:not(.footer-wordmark):hover {
   text-decoration: underline;
@@ -2082,13 +2071,7 @@ th {
     gap: 18px;
   }
   .brand {
-    width: 176px;
-    height: 65px;
-  }
-  .brand > img {
-    width: 220px;
-    left: -20px;
-    top: -1px;
+    width: 200px;
   }
   .nav {
     gap: 16px;
@@ -2230,13 +2213,7 @@ th {
     gap: 12px;
   }
   .brand {
-    width: 154px;
-    height: 58px;
-  }
-  .brand > img {
-    width: 192px;
-    left: -18px;
-    top: -1px;
+    width: 172px;
   }
   .nav-cta {
     margin-left: auto;
@@ -2691,11 +2668,6 @@ th {
   .brand {
     width: 136px;
   }
-  .brand > img {
-    width: 170px;
-    left: -16px;
-    top: 3px;
-  }
   .nav-cta {
     padding-inline: 12px;
     font-size: 14px;
@@ -2986,11 +2958,6 @@ th {
   .header .brand {
     width: 136px;
   }
-  .header .brand > img {
-    width: 170px;
-    left: -16px;
-    top: 3px;
-  }
   .nav-cta {
     font-size: 12px;
     padding-inline: 12px;
@@ -3081,10 +3048,7 @@ th {
     font-size: 29px;
   }
   .footer-wordmark {
-    font-size: clamp(46px, 15vw, 104px);
     padding: 11px 0 25px;
-    gap: 0.12em;
-    letter-spacing: -0.065em;
   }
   .footer-bottom {
     font-size: 13px;

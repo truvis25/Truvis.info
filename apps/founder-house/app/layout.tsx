@@ -13,12 +13,38 @@ export const metadata: Metadata = {
     title: "Founder House by TRUVIS",
     description:
       "Meet founders and investors in Abu Dhabi. Small events, useful conversations and shared interests.",
-    images: ["/assets/community-terrace.webp"],
+    images: [
+      {
+        url: "/assets/brand/house-share-1200x630.png",
+        width: 1200,
+        height: 630,
+        alt: "Founder House by TRUVIS · Abu Dhabi",
+      },
+    ],
     type: "website",
   },
   icons: {
-    icon: { url: "/founder-house-icon.svg", type: "image/svg+xml" },
-    shortcut: "/founder-house-icon.svg",
+    icon: [
+      {
+        url: "/assets/brand/favicon-32.png",
+        type: "image/png",
+        sizes: "32x32",
+      },
+      {
+        url: "/assets/brand/app-icon-192.png",
+        type: "image/png",
+        sizes: "192x192",
+      },
+    ],
+    shortcut: "/assets/brand/favicon-32.png",
+    apple: { url: "/assets/brand/apple-touch-icon-180.png", sizes: "180x180" },
+  },
+  manifest: "/house.webmanifest",
+  twitter: {
+    card: "summary_large_image",
+    title: "Founder House by TRUVIS",
+    description: "Meet founders, startup teams and investors in Abu Dhabi.",
+    images: ["/assets/brand/house-share-1200x630.png"],
   },
 };
 

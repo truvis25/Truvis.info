@@ -34,6 +34,14 @@ export async function generateMetadata({
       title: event.title,
       description: event.description.slice(0, 155),
       url: HOUSE_ORIGIN + "/events/" + event.id,
+      images: [
+        {
+          url: "/assets/brand/house-share-1200x630.png",
+          width: 1200,
+          height: 630,
+          alt: "Founder House by TRUVIS",
+        },
+      ],
     },
   };
 }

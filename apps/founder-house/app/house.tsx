@@ -87,10 +87,13 @@ export function Brand() {
   return (
     <a href="/" className="brand" aria-label="Founder House by TRUVIS home">
       <img
-        src="/assets/founder-house-truvis.png"
+        src="/assets/brand/house-horizontal-green-600.webp"
+        srcSet="/assets/brand/house-horizontal-green-600.webp 600w, /assets/brand/house-horizontal-green-1200.webp 1200w"
+        sizes="(max-width: 380px) 136px, (max-width: 700px) 172px, (max-width: 900px) 200px, 238px"
         alt="Founder House by TRUVIS"
-        width="2172"
-        height="724"
+        width="600"
+        height="223"
+        fetchPriority="high"
       />
     </a>
   );
@@ -104,7 +107,10 @@ export function Footer() {
             <span />
           </div>
           <div className="footer-art-star" />
-          <HouseMark className="footer-art-people" />
+          <HouseMark
+            className="footer-art-mark"
+            sizes="(max-width: 700px) 18vw, 220px"
+          />
           <div className="footer-art-window">
             <span />
           </div>
@@ -145,8 +151,16 @@ export function Footer() {
           </a>
         </div>
         <a className="footer-wordmark" href="/" aria-label="Founder House home">
-          <span>founder</span>
-          <span>house</span>
+          <img
+            src="/assets/brand/house-horizontal-green-1200.webp"
+            srcSet="/assets/brand/house-horizontal-green-600.webp 600w, /assets/brand/house-horizontal-green-1200.webp 1200w, /assets/brand/house-horizontal-green-1831.webp 1831w"
+            sizes="(max-width: 700px) calc(100vw - 40px), (max-width: 1080px) calc(100vw - 64px), 1000px"
+            alt="Founder House by TRUVIS"
+            width="1831"
+            height="680"
+            loading="lazy"
+            decoding="async"
+          />
         </a>
         <div className="footer-bottom">
           <span className="copyright">
@@ -351,7 +365,12 @@ export default function House() {
             />
             <img src="/assets/courtyard.svg" alt="" width="1440" height="860" />
           </picture>
-          <HouseMark className="hero-house-mark" />
+          <HouseMark
+            className="hero-house-mark"
+            tone="white"
+            sizes="48px"
+            eager
+          />
           <div className="hero-copy wrap">
             <div className="eyebrow">
               <span className="live-dot" /> FOUNDER HOUSE · ABU DHABI
@@ -669,7 +688,7 @@ export default function House() {
               ))}
             </div>
             <div className="house-invite">
-              <HouseMark className="invite-mark" />
+              <HouseMark className="invite-mark" sizes="72px" />
               <div>
                 <h3>Come as a person. Bring what you know.</h3>
                 <p>
@@ -745,7 +764,7 @@ export default function House() {
                   Your profile is never a public listing.
                 </p>
               </div>
-              <HouseMark className="apply-mark" />
+              <HouseMark className="apply-mark" tone="white" />
             </div>
             <div className="application-card">
               {success ? (
