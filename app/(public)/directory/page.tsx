@@ -13,6 +13,7 @@ import { BrandArt } from "@/components/brand-art";
 import { Pagination, pageCountFor, parsePage } from "@/components/pagination";
 import { SaveSearchButton } from "@/components/save-search-button";
 import { INDUSTRIES, industryLabel } from "@/lib/taxonomy/industries";
+import { jurisdictionLabel } from "@/lib/taxonomy/jurisdictions";
 
 const DIRECTORY_PAGE_SIZE = 24;
 
@@ -130,7 +131,7 @@ export default async function DirectoryPage({
         <Select name="jurisdiction" defaultValue={jurisdiction ?? ""} aria-label="Filter by jurisdiction" className="sm:w-44">
           <option value="">All jurisdictions</option>
           {jurisdictions.map((code) => (
-            <option key={code} value={code}>{code}</option>
+            <option key={code} value={code}>{jurisdictionLabel(code)}</option>
           ))}
         </Select>
         <Button type="submit" variant="primary">Search</Button>

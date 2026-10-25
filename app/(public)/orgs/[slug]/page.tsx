@@ -28,6 +28,7 @@ import { BrandArt } from "@/components/brand-art";
 import type { ContactPerson } from "@/types/domain";
 import { SectionHeading } from "@/components/section-heading";
 import { industryLabel, industryHref } from "@/lib/taxonomy/industries";
+import { jurisdictionLabel } from "@/lib/taxonomy/jurisdictions";
 
 export const dynamic = "force-dynamic";
 
@@ -182,7 +183,7 @@ export default async function OrgProfilePage({
   const socials = org.social_links ?? {};
   const industryLink = industryHref(org.industry_code);
   const facts: Array<[string, string | number | null]> = [
-    ["Jurisdiction", org.jurisdiction],
+    ["Jurisdiction", jurisdictionLabel(org.jurisdiction)],
     ["Trade license", org.trade_license_no],
     ["Founded", org.incorporation_year],
     ["Industry", industryLabel(org.industry_code) || org.industry_code],

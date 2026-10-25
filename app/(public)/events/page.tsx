@@ -35,9 +35,9 @@ type EventRow = {
 export default async function EventsPage({
   searchParams,
 }: {
-  searchParams: Promise<{ q?: string; mode?: string; page?: string }>;
+  searchParams: Promise<{ q?: string; mode?: string; source?: string; page?: string }>;
 }) {
-  const { q, mode, page: pageRaw } = await searchParams;
+  const { q, mode, source, page: pageRaw } = await searchParams;
   const page = parsePage(pageRaw);
   const supabase = await createClient();
 
@@ -61,6 +61,8 @@ export default async function EventsPage({
   }
   if (mode === "online") query = query.not("online_url", "is", null);
   if (mode === "in-person") query = query.not("venue_address", "is", null);
+  if (source === "luma") query = query.eq("external_source", "luma");
+  if (source === "truvis") query = query.is("external_source", null);
 
   // Paged filtered list (+ its total) and unfiltered head-count for the hero.
   const from = (page - 1) * EVENTS_PAGE_SIZE;
@@ -74,7 +76,7 @@ export default async function EventsPage({
         .gte("starts_at", new Date().toISOString()),
     ]);
   const list = (events ?? []) as unknown as EventRow[];
-  const filtersActive = Boolean(q?.trim() || mode);
+  const filtersActive = Boolean(q?.trim() || mode || source);
   const pageCount = pageCountFor(filteredCount ?? list.length, EVENTS_PAGE_SIZE);
 
   return (
@@ -160,6 +162,11 @@ export default async function EventsPage({
           <option value="in-person">In person</option>
           <option value="online">Online</option>
         </Select>
+        <Select name="source" defaultValue={source ?? ""} aria-label="Filter by source" className="sm:w-40">
+          <option value="">All sources</option>
+          <option value="truvis">Truvis hosts</option>
+          <option value="luma">Luma calendar</option>
+        </Select>
         <Button type="submit" variant="primary">Search</Button>
       </form>
 
@@ -168,9 +175,9 @@ export default async function EventsPage({
           <BrandArt seed="empty-events" variant="empty" />
           <CalendarDays className="relative z-10 size-10 text-muted-foreground/50" aria-hidden />
           <p className="relative z-10 font-medium">
-            {q || mode ? "No events match your search." : "No upcoming events right now."}
+            {q || mode || source ? "No events match your search." : "No upcoming events right now."}
           </p>
-          {q || mode ? (
+          {q || mode || source ? (
             <Link href="/events" className="link-engraved relative z-10 text-sm font-medium text-emerald-dark">
               Clear the filters
             </Link>
@@ -272,7 +279,7 @@ export default async function EventsPage({
           page={page}
           pageCount={pageCount}
           basePath="/events"
-          params={{ q, mode }}
+          params={{ q, mode, source }}
         />
         </>
       )}
