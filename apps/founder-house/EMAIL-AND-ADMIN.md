@@ -6,6 +6,10 @@ The email implementation and organiser launch-check panel are complete. Sending 
 
 ## Connect the sending mailbox
 
+Verified on 25 October 2026: the domain MX points to Google Workspace (`smtp.google.com`), SPF includes `_spf.google.com`, and a DMARC monitoring record exists. No DKIM selector has been verified. In the authenticated project dashboard, `FOUNDER_HOUSE_SMTP_HOST=smtp.gmail.com`, `FOUNDER_HOUSE_SMTP_USER=info@truvis.info` and `FOUNDER_HOUSE_SMTP_PORT=465` have been saved. **The SMTP password has not been entered, and no real email delivery has been confirmed.** The owner must enter the mailbox's Google App Password directly in the secure settings; never use the normal account password or paste a secret in chat. If the address is an alias, the owner must use its authorised primary mailbox credentials.
+
+The separate Auth SMTP form has been prepared with sender `info@truvis.info`, sender name `TRUVIS`, host `smtp.gmail.com`, port 465 and username `info@truvis.info`. It remains an **unsaved draft**, awaiting the owner's password entry and Save changes. This shared Auth setting also serves the parent Truvis app. The owner account has not been created or granted a role.
+
 Use the existing company mailbox authorised to send as `info@truvis.info`. Save these **in Supabase Edge Function secrets**, never in git, client code, chat or the Vercel public variables:
 
 | Secret | Value |
@@ -46,3 +50,9 @@ Verify: sign in → see the account email and launch checks → review a synthet
 No confirmed upcoming event is published yet. Luma, Meetup, Eventbrite and LinkedIn still require their actual account connections and a successful publication receipt. Connected configuration alone is not proof of publication.
 
 References: [Supabase runtime limits](https://supabase.com/docs/guides/functions/limits), [SMTP setup for Hostinger Email](https://www.hostinger.com/support/1575756-how-to-get-email-account-configuration-details-for-hostinger-email/), [Supabase Auth SMTP](https://supabase.com/docs/guides/auth/auth-smtp).
+
+Google Workspace setup reference: [Send email from an app](https://knowledge.workspace.google.com/admin/gmail/send-email-from-a-printer-scanner-or-app). Google requires an App Password for this SMTP flow and 2-Step Verification for creating one.
+
+## Hosting-account follow-up
+
+The authenticated Supabase dashboard currently displays an outstanding-invoices warning with a possible service-disruption notice. The owner must review billing before the public launch. No invoice has been paid and no billing settings have been changed during this work.
