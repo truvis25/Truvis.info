@@ -2,6 +2,7 @@ import assert from "node:assert/strict";
 import {
   deliverEmail,
   emailMessage,
+  HOUSE_EMAIL,
   HOUSE_URL,
   reservedRecipient,
 } from "../../../supabase/functions/founder-house/email.ts";
@@ -106,6 +107,37 @@ await check("HTML escapes applicant names; text alternative is present", () => {
       "membership and event places are confirmed separately",
     ),
   );
+});
+await check("organiser notification contains escaped application details", () => {
+  const message = emailMessage("application_notification", {
+    id: "FH-1234ABCD",
+    name: "Founder House team",
+    email: HOUSE_EMAIL,
+    application: {
+      id: "FH-1234ABCD",
+      name: '<img src=x onerror="alert(1)">',
+      email: "founder@startup.dev",
+      phone: "+971 50 123 4567",
+      role: "Founder",
+      organisation: "QA startup",
+      title: "CEO",
+      city: "Abu Dhabi",
+      linkedin: "https://www.linkedin.com/in/qa-founder",
+      about: "We are testing the internal application notification.",
+      offer: "We can contribute product testing and founder experience.",
+      ask: "Relevant investor introductions",
+      interests: ["Breakfasts", "Founder circles"],
+      referral: "Existing member",
+      source: "Website",
+      hasCv: true,
+    },
+  });
+  assert.equal(message.to, HOUSE_EMAIL);
+  assert.ok(message.subject.includes("FH-1234ABCD"));
+  assert.ok(message.text.includes("founder@startup.dev"));
+  assert.ok(message.text.includes("Review application: " + HOUSE_URL + "/admin"));
+  assert.ok(!message.html.includes("<img src=x"));
+  assert.ok(message.html.includes("&lt;img src=x"));
 });
 await check(
   "invitation accepts only the canonical host and valid token",
@@ -272,14 +304,14 @@ await check(
   "receipt is sent once after save; duplicate applications stay generic",
   async () => {
     const db = database();
-    let sends = 0;
+    const recipients = [];
     const handler = createHandler(db, {
       mailer: {
         configured: true,
         missing: [],
-        async send() {
+        async send(message) {
           assert.equal(db.applications.length, 1);
-          sends++;
+          recipients.push(message.to);
           return { accepted: true };
         },
       },
@@ -289,7 +321,10 @@ await check(
     assert.equal(first.status, 202);
     assert.equal(second.status, 202);
     assert.deepEqual(await first.json(), await second.json());
-    assert.equal(sends, 1);
+    assert.deepEqual(
+      recipients.sort(),
+      ["founder@startup.dev", HOUSE_EMAIL].sort(),
+    );
     assert.equal(db.applications.length, 1);
   },
 );
@@ -308,7 +343,8 @@ await check(
     });
     assert.equal((await handler(applicationRequest())).status, 202);
     assert.equal(db.applications.length, 1);
-    assert.equal(db.logs[0].status, "unknown");
+    assert.equal(db.logs.length, 2);
+    assert.ok(db.logs.every((log) => log.status === "unknown"));
   },
 );
 await check("honeypot never saves or sends a receipt", async () => {

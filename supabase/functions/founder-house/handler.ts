@@ -180,11 +180,36 @@ export function createHandler(db: SupabaseClient, config: Config = {}) {
           if (error.code === "23505") return json({ received: true }, 202);
           throw Error(error.code);
         }
-        await deliverEmail(db, config.mailer, "application_received", {
-          id,
-          name: data.name,
-          email: data.email,
-        });
+        await Promise.all([
+          deliverEmail(db, config.mailer, "application_received", {
+            id,
+            name: data.name,
+            email: data.email,
+          }),
+          deliverEmail(db, config.mailer, "application_notification", {
+            id,
+            name: "Founder House team",
+            email: HOUSE_EMAIL,
+            application: {
+              id,
+              name: data.name,
+              email: data.email,
+              phone: data.phone,
+              role: data.role,
+              organisation: data.organisation,
+              title: data.title,
+              city: data.city,
+              linkedin: data.linkedin,
+              about: data.about,
+              offer: data.offer,
+              ask: data.ask,
+              interests: data.interests,
+              referral: data.referral,
+              source: data.source,
+              hasCv: Boolean(file),
+            },
+          }),
+        ]);
         return json({ received: true }, 202);
       }
       if (path === "/api/member/login" && method === "POST") {

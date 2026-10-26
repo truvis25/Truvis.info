@@ -38,7 +38,7 @@ Account connections and live external publication tests are not complete. A conf
 
 The organiser desk opens on **Launch checks**, showing live database access, upcoming gatherings, channel connections and email activity. It also shows the signed-in email and a local sign-out action.
 
-Application receipts are attempted only after a new application is saved. Duplicate submissions keep the same generic response and do not send another receipt. Approval creates a private invitation and attempts its email. Failed or unconfigured email never undoes the saved application or approval; the organiser receives a clear result and can copy the invitation. Reserved test domains are suppressed. No newsletter, bulk sending or historical backfill runs automatically.
+Application receipts and a separate `info@truvis.info` organiser notification are attempted only after a new application is saved. Duplicate submissions keep the same generic response and do not send either message again. Approval creates a private invitation and attempts its email. Failed or unconfigured email never undoes the saved application or approval; the organiser receives a clear result and can copy the invitation. Reserved test domains are suppressed. No newsletter, bulk sending or historical backfill runs automatically.
 
 The Edge Function sends via authenticated SMTP with implicit TLS on port 465. The sender is `Founder House by TRUVIS <info@truvis.info>` and replies go to `info@truvis.info`. Only delivery metadata is stored in private `fh_email_deliveries`; SMTP passwords, bodies and invitation tokens are never logged. “Accepted” means accepted by the mail server, not delivered to an inbox. Uncertain sends are not retried automatically.
 

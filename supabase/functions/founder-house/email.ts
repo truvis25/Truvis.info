@@ -3,7 +3,11 @@ import type { SupabaseClient } from "npm:@supabase/supabase-js@2.110.7";
 export const HOUSE_URL = "https://house.truvis.info";
 export const HOUSE_EMAIL = "info@truvis.info";
 export const EMAIL_FROM = "Founder House <info@truvis.info>";
-export type EmailKind = "application_received" | "member_invitation" | "test";
+export type EmailKind =
+  | "application_received"
+  | "application_notification"
+  | "member_invitation"
+  | "test";
 export type EmailStatus =
   | "sending"
   | "accepted"
@@ -23,7 +27,30 @@ export type Mailer = {
   send: (message: EmailMessage) => Promise<{ accepted: boolean }>;
 };
 export type EmailResult = { status: EmailStatus; logged: boolean };
-type Recipient = { id?: string; name: string; email: string };
+export type ApplicationSummary = {
+  id: string;
+  name: string;
+  email: string;
+  phone: string;
+  role: string;
+  organisation: string;
+  title: string;
+  city: string;
+  linkedin: string | null;
+  about: string;
+  offer: string;
+  ask: string | null;
+  interests: string[];
+  referral: string | null;
+  source: string | null;
+  hasCv: boolean;
+};
+type Recipient = {
+  id?: string;
+  name: string;
+  email: string;
+  application?: ApplicationSummary;
+};
 const escape = (s: string) =>
   s.replace(
     /[&<>"']/g,
@@ -81,6 +108,37 @@ export function emailMessage(
     ];
     if (recipient.id)
       paragraphs.push("Your application reference: " + recipient.id + ".");
+  } else if (kind === "application_notification") {
+    const application = recipient.application;
+    if (
+      recipient.email.toLowerCase() !== HOUSE_EMAIL ||
+      !application ||
+      application.id !== recipient.id ||
+      !/^FH-[A-F0-9]{8}$/.test(application.id)
+    )
+      throw Error("invalid_application_notification");
+    title = "New Founder House application · " + application.id;
+    paragraphs = [
+      "A new membership application is ready for review.",
+      "Applicant: " + application.name,
+      "Role: " + application.role + " · " + application.title,
+      "Organisation: " + application.organisation,
+      "Location: " + application.city,
+      "Email: " + application.email,
+      "Phone: " + application.phone,
+      "Interests: " + application.interests.join(", "),
+      "LinkedIn: " + (application.linkedin ?? "Not provided"),
+      "CV: " + (application.hasCv ? "Uploaded" : "Not provided"),
+      "About: " + application.about,
+      "Can contribute: " + application.offer,
+      ...(application.ask ? ["Looking for: " + application.ask] : []),
+      ...(application.referral
+        ? ["Referral: " + application.referral]
+        : []),
+      ...(application.source ? ["Source: " + application.source] : []),
+    ];
+    link = HOUSE_URL + "/admin";
+    button = "Review application";
   } else {
     title = "Founder House email check";
     paragraphs = [

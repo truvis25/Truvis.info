@@ -39,7 +39,7 @@ Verify: sign in → see the account email and launch checks → review a synthet
 
 ## Delivery behaviour
 
-- New applications are saved before a receipt is attempted. Duplicate requests, honeypot submissions and reserved test addresses never trigger real mail.
+- New applications are saved before the applicant receipt and the separate organiser notification to `info@truvis.info` are attempted. Duplicate requests and honeypot submissions never trigger mail; reserved applicant addresses suppress the applicant receipt while the organiser notification still records the saved application.
 - Approval commits the membership state and creates a 30-day private invitation. Only the token hash is stored; the raw link exists in the response and email only.
 - A private metadata log records `accepted`, `not_configured`, `suppressed`, `failed` or `unknown`. Bodies, tokens, SMTP credentials and provider error payloads are never logged.
 - Email failure never undoes an application or approval. No blind retry or background campaign runs. For an unknown result, check the mailbox first; generating a new invitation revokes the previous one.

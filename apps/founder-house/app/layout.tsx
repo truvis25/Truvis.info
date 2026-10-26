@@ -26,17 +26,17 @@ export const metadata: Metadata = {
   icons: {
     icon: [
       {
-        url: "/assets/brand/favicon-32.png",
-        type: "image/png",
-        sizes: "32x32",
+        url: "/favicon.svg?v=20261026",
+        type: "image/svg+xml",
+        sizes: "any",
       },
       {
-        url: "/assets/brand/app-icon-192.png",
-        type: "image/png",
-        sizes: "192x192",
+        url: "/favicon.ico?v=20261026",
+        type: "image/x-icon",
+        sizes: "16x16 32x32",
       },
     ],
-    shortcut: "/assets/brand/favicon-32.png",
+    shortcut: "/favicon.ico?v=20261026",
     apple: { url: "/assets/brand/apple-touch-icon-180.png", sizes: "180x180" },
   },
   manifest: "/house.webmanifest",

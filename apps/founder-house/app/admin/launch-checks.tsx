@@ -107,9 +107,9 @@ export default function LaunchChecks({
                   : "Ready for a test"}
           </h3>
           <p>
-            Application receipts and approved-member invitations use
-            info@truvis.info. A successful server response still needs an inbox
-            check.
+            Applicant receipts, organiser notifications and approved-member
+            invitations use info@truvis.info. A successful server response
+            still needs an inbox check.
           </p>
         </article>
         <article className="launch-card">
@@ -237,6 +237,8 @@ export default function LaunchChecks({
                 <strong>
                   {d.kind === "application_received"
                     ? "Application receipt"
+                    : d.kind === "application_notification"
+                      ? "Organiser notification"
                     : d.kind === "member_invitation"
                       ? "Member invitation"
                       : "Connection test"}

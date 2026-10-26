@@ -274,11 +274,26 @@ export default function Admin() {
         ) : !auth.admin ? (
           <div className="notice">
             <h3>Organiser access is restricted.</h3>
-            <p>
-              {auth.configured
-                ? "Use the authorised organiser account to review members and manage events."
-                : "The organiser account must be configured before member records can be opened. Applicant data is protected."}
-            </p>
+            {auth.authenticated ? (
+              <>
+                <p>
+                  You are signed in as <strong>{auth.email}</strong>, but this
+                  account is not an authorised organiser. Sign out, then use
+                  the Founder House organiser account.
+                </p>
+                <form action={signOut}>
+                  <button className="button dark" type="submit">
+                    Sign out and use another account
+                  </button>
+                </form>
+              </>
+            ) : (
+              <p>
+                {auth.configured
+                  ? "Use the authorised organiser account to review members and manage events."
+                  : "The organiser account must be configured before member records can be opened. Applicant data is protected."}
+              </p>
+            )}
             {!auth.authenticated && (
               <a className="button dark" href="/login" target="_top">
                 Sign in to TRUVIS <ArrowUpRight size={17} />
