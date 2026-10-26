@@ -2,7 +2,8 @@ import type { SupabaseClient } from "npm:@supabase/supabase-js@2.110.7";
 
 export const HOUSE_URL = "https://house.truvis.info";
 export const HOUSE_EMAIL = "info@truvis.info";
-export const EMAIL_FROM = "Founder House <info@truvis.info>";
+export const EMAIL_BRAND = "Founder House by TRUVIS";
+export const EMAIL_FROM = `${EMAIL_BRAND} <info@truvis.info>`;
 export type EmailKind =
   | "application_received"
   | "application_notification"
@@ -91,7 +92,7 @@ export function emailMessage(
       ).test(inviteUrl)
     )
       throw Error("invalid_invitation");
-    title = "Welcome to Founder House";
+    title = EMAIL_BRAND + " — Welcome";
     paragraphs = [
       "Your membership has been approved. We’re glad you’re joining us.",
       "Use your private invitation to open the member room, see upcoming gatherings and reserve a place.",
@@ -101,7 +102,7 @@ export function emailMessage(
     link = inviteUrl;
     button = "Open your member room";
   } else if (kind === "application_received") {
-    title = "We’ve received your Founder House application";
+    title = EMAIL_BRAND + " — Application received";
     paragraphs = [
       "Thank you for introducing yourself. Your application is safely with our review team.",
       "We’ll read it personally and get in touch about the next step. This message confirms receipt; membership and event places are confirmed separately.",
@@ -117,7 +118,7 @@ export function emailMessage(
       !/^FH-[A-F0-9]{8}$/.test(application.id)
     )
       throw Error("invalid_application_notification");
-    title = "New Founder House application · " + application.id;
+    title = EMAIL_BRAND + " — New application · " + application.id;
     paragraphs = [
       "A new membership application is ready for review.",
       "Applicant: " + application.name,
@@ -140,7 +141,7 @@ export function emailMessage(
     link = HOUSE_URL + "/admin";
     button = "Review application";
   } else {
-    title = "Founder House email check";
+    title = EMAIL_BRAND + " — Email check";
     paragraphs = [
       "This is a test from the Founder House organiser desk.",
       "If this message reached your inbox, the website can send from info@truvis.info. Reply to this email to check that replies reach the team too.",

@@ -1,6 +1,8 @@
 import assert from "node:assert/strict";
 import {
   deliverEmail,
+  EMAIL_BRAND,
+  EMAIL_FROM,
   emailMessage,
   HOUSE_EMAIL,
   HOUSE_URL,
@@ -96,6 +98,42 @@ function applicationRequest(honeypot = false) {
     body: data,
   });
 }
+
+await check("all messages use the Founder House by TRUVIS identity", () => {
+  assert.equal(EMAIL_BRAND, "Founder House by TRUVIS");
+  assert.equal(EMAIL_FROM, "Founder House by TRUVIS <info@truvis.info>");
+  const application = {
+    id: "FH-1234ABCD",
+    name: "Test founder",
+    email: "founder@startup.dev",
+    phone: "+971 50 123 4567",
+    role: "Founder",
+    organisation: "QA startup",
+    title: "CEO",
+    city: "Abu Dhabi",
+    linkedin: "https://www.linkedin.com/in/qa-founder",
+    about: "We are testing the internal application notification.",
+    offer: "We can contribute product testing and founder experience.",
+    ask: null,
+    interests: ["Breakfasts"],
+    referral: null,
+    source: "Website",
+    hasCv: false,
+  };
+  const messages = [
+    emailMessage("application_received", recipient),
+    emailMessage("member_invitation", recipient, invitation),
+    emailMessage("test", recipient),
+    emailMessage("application_notification", {
+      id: application.id,
+      name: "Founder House team",
+      email: HOUSE_EMAIL,
+      application,
+    }),
+  ];
+  for (const message of messages)
+    assert.ok(message.subject.startsWith(EMAIL_BRAND + " — "));
+});
 
 await check("HTML escapes applicant names; text alternative is present", () => {
   const message = emailMessage("application_received", recipient);
