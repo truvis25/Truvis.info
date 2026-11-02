@@ -5,7 +5,7 @@ function unique<T>(items: T[]) {
   return Array.from(new Set(items));
 }
 
-function snippets(text: string, needle: RegExp, radius = 500) {
+function snippets(text: string, needle: RegExp, radius = 550) {
   const out: string[] = [];
   for (const match of text.matchAll(needle)) {
     const i = match.index ?? 0;
@@ -18,7 +18,7 @@ function snippets(text: string, needle: RegExp, radius = 500) {
 export async function GET() {
   const urls = [
     "https://luma.com/pk2m8tdp",
-    "https://luma.com/embed/event/evt-EoVSOdqTbsOowoI/simple",
+    "https://luma.com/Founderhouse",
     "https://luma.com/embed/calendar/cal-1asC7OUxbMbZXiV/events?lt=light",
   ];
 
@@ -30,21 +30,17 @@ export async function GET() {
         cache: "no-store",
       });
       const text = await response.text();
-      const calendars = unique(text.match(/cal-[A-Za-z0-9]+/g) ?? []);
-      const isoDates = unique(
-        text.match(/20\d{2}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(?:\.\d+)?Z/g) ?? [],
-      ).slice(0, 50);
       out.push({
         url,
         status: response.status,
         finalUrl: response.url,
-        calendars,
-        isoDates,
-        eventIds: unique(text.match(/evt-[A-Za-z0-9]+/g) ?? []).slice(0, 30),
-        slugs: unique(text.match(/\"url\":\"[^\"]+\"/g) ?? []).slice(0, 30),
+        calendars: unique(text.match(/cal-[A-Za-z0-9]+/g) ?? []),
+        isoDates: unique(
+          text.match(/20\d{2}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(?:\.\d+)?Z/g) ?? [],
+        ).slice(0, 80),
+        eventIds: unique(text.match(/evt-[A-Za-z0-9]+/g) ?? []).slice(0, 80),
         titleSnippets: snippets(text, /Founder House Breakfast/gi),
-        slugSnippets: snippets(text, /pk2m8tdp/gi),
-        eventKeySnippets: snippets(text, /event_api_id/gi),
+        eventKeySnippets: snippets(text, /calendar_api_id/gi),
         startKeySnippets: snippets(text, /start_at/gi),
         length: text.length,
       });
