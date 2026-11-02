@@ -13,11 +13,12 @@ const config: NextConfig = {
           { key: "Referrer-Policy", value: "strict-origin-when-cross-origin" },
           {
             key: "Permissions-Policy",
-            value: "camera=(), microphone=(), geolocation=(), payment=()",
+            value:
+              'camera=(), microphone=(), geolocation=(), payment=(self "https://luma.com")',
           },
           {
             key: "Content-Security-Policy",
-            value: `default-src 'self'; script-src 'self' 'unsafe-inline' ${process.env.NODE_ENV === "development" ? "'unsafe-eval'" : ""}; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob:; font-src 'self' data:; connect-src 'self' https://hyzotwxtqssefsgryawl.supabase.co; frame-ancestors ${process.env.NODE_ENV === "development" ? "'self'" : "'none'"}; base-uri 'self'; form-action 'self'`,
+            value: `default-src 'self'; script-src 'self' 'unsafe-inline' ${process.env.NODE_ENV === "development" ? "'unsafe-eval'" : ""}; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob:; font-src 'self' data:; connect-src 'self' https://hyzotwxtqssefsgryawl.supabase.co; frame-src 'self' https://luma.com https://*.luma.com; frame-ancestors ${process.env.NODE_ENV === "development" ? "'self'" : "'none'"}; base-uri 'self'; form-action 'self'`,
           },
         ],
       },
