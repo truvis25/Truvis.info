@@ -108,9 +108,13 @@ function eventsFromCalendarHtml(html: string): PublicEvent[] {
       if (!slug) return null;
       const endsAt = new Date(item.endDate).getTime();
       if (!Number.isFinite(endsAt) || endsAt <= now) return null;
-      const description = item.description?.trim() || item.name;
+      const known = FALLBACK_EVENTS.find((event) => event.id === `luma-${slug}`);
+      const description = item.description?.trim() || known?.description || item.name;
       const venue =
-        item.location?.name || item.location?.address?.streetAddress || "Abu Dhabi";
+        item.location?.name ||
+        item.location?.address?.streetAddress ||
+        known?.area ||
+        "Abu Dhabi";
       const remaining = spotsRemaining(html, slug);
       return {
         id: `luma-${slug}`,
@@ -122,7 +126,7 @@ function eventsFromCalendarHtml(html: string): PublicEvent[] {
         capacity:
           typeof remaining === "number" && Number.isFinite(remaining)
             ? remaining
-            : 20,
+            : known?.capacity ?? 20,
         area: venue,
         status: "published",
         external_url: item.url,
