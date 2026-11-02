@@ -2,14 +2,18 @@
 import { useCallback, useEffect, useState } from "react";
 import { ArrowUpRight, LockKeyhole } from "lucide-react";
 import { Brand, Footer } from "../house";
-type Row = Record<string, string | number | null>;
+
+type Row = Record<string, string | number | null | undefined>;
 type MemberResult = { error?: string; member: Row; events: Row[] };
+type PublicEventsResult = { events?: Row[] };
+
 const date = (s: unknown) =>
   new Intl.DateTimeFormat("en-GB", {
     dateStyle: "full",
     timeStyle: "short",
     timeZone: "Asia/Dubai",
   }).format(new Date(String(s))) + " GST";
+
 function calendar(e: Row) {
   const esc = (s: unknown) =>
       String(s ?? "")
@@ -32,7 +36,7 @@ function calendar(e: Row) {
     "DTSTART:" + t(e.starts_at),
     "DTEND:" + t(e.ends_at),
     "SUMMARY:" + esc(e.title),
-    "LOCATION:" + esc(e.venue),
+    "LOCATION:" + esc(e.venue ?? e.area),
     "DESCRIPTION:" + esc(e.description),
     "END:VEVENT",
     "END:VCALENDAR",
@@ -46,17 +50,67 @@ function calendar(e: Row) {
   a.click();
   setTimeout(() => URL.revokeObjectURL(u), 1000);
 }
+
+function isExternalEvent(e: Row) {
+  return (
+    String(e.id ?? "").startsWith("luma-") ||
+    String(e.external_url ?? "").startsWith("https://luma.com/")
+  );
+}
+
+function mergeEvents(privateEvents: Row[], publicEvents: Row[]) {
+  const combined = [...privateEvents];
+  for (const event of publicEvents) {
+    const normalized: Row = {
+      ...event,
+      venue: event.venue ?? event.area ?? "Abu Dhabi",
+    };
+    const duplicate = combined.some(
+      (existing) =>
+        String(existing.id) === String(normalized.id) ||
+        (!!existing.external_url &&
+          existing.external_url === normalized.external_url) ||
+        (String(existing.title).toLowerCase() ===
+          String(normalized.title).toLowerCase() &&
+          existing.starts_at === normalized.starts_at),
+    );
+    if (!duplicate) combined.push(normalized);
+  }
+  return combined.sort(
+    (a, b) =>
+      new Date(String(a.starts_at)).getTime() -
+      new Date(String(b.starts_at)).getTime(),
+  );
+}
+
 export default function Members() {
   const [data, setData] = useState<{ member: Row; events: Row[] } | null>(null),
     [error, setError] = useState(""),
     [loading, setLoading] = useState(true),
     [busy, setBusy] = useState("");
+
   const load = useCallback(async () => {
-    const r = await fetch("/api/member"),
-      d = (await r.json()) as MemberResult;
-    if (!r.ok) throw Error(d.error);
-    setData(d);
+    const memberResponse = await fetch("/api/member", { cache: "no-store" });
+    const memberData = (await memberResponse.json()) as MemberResult;
+    if (!memberResponse.ok) throw Error(memberData.error);
+
+    let publicEvents: Row[] = [];
+    try {
+      const publicResponse = await fetch("/api/events", { cache: "no-store" });
+      if (publicResponse.ok) {
+        const publicData = (await publicResponse.json()) as PublicEventsResult;
+        if (Array.isArray(publicData.events)) publicEvents = publicData.events;
+      }
+    } catch {
+      // Member access should still work if the public calendar is temporarily unavailable.
+    }
+
+    setData({
+      member: memberData.member,
+      events: mergeEvents(memberData.events ?? [], publicEvents),
+    });
   }, []);
+
   useEffect(() => {
     let live = true;
     async function init() {
@@ -87,8 +141,9 @@ export default function Members() {
       live = false;
     };
   }, [load]);
+
   async function rsvp(e: Row, cancel = false) {
-    if (busy) return;
+    if (busy || isExternalEvent(e)) return;
     setBusy(String(e.id));
     setError("");
     try {
@@ -106,6 +161,7 @@ export default function Members() {
       setBusy("");
     }
   }
+
   return (
     <>
       <div className="subheader">
@@ -169,69 +225,87 @@ export default function Members() {
               </p>
             )}
             <div className="notice">
-              Your membership is approved. Each gathering has a separate RSVP
-              and limited capacity. Keep your private access link and venue
-              details within the House.
+              Your membership is approved. Upcoming Founder House gatherings
+              appear here automatically. Each event has its own registration or
+              RSVP and limited capacity. Keep your private access link within the
+              House.
             </div>
             {!data.events.length ? (
               <div className="empty-state">
                 <h3>No events announced yet.</h3>
                 <p>
-                  When a gathering is announced, you’ll be able to reserve your
-                  place here. The team will contact you using your membership
-                  details.
+                  When a gathering is announced, it will appear here
+                  automatically and you’ll be able to reserve your place.
                 </p>
               </div>
             ) : (
-              data.events.map((e) => (
-                <article key={String(e.id)} className="event-member">
-                  <span className="section-label">{e.format} · ABU DHABI</span>
-                  <h2>{e.title}</h2>
-                  <p>
-                    {date(e.starts_at)}
-                    <br />
-                    Until {date(e.ends_at)}
-                    <br />
-                    {e.venue}
-                  </p>
-                  <p>{e.description}</p>
-                  {e.rsvp_status && e.rsvp_status !== "cancelled" ? (
-                    <>
-                      <span className={"status " + e.rsvp_status}>
-                        {e.rsvp_status === "confirmed"
-                          ? "Your place is confirmed"
-                          : "You are on the event waitlist"}
-                      </span>
+              data.events.map((e) => {
+                const external = isExternalEvent(e);
+                return (
+                  <article key={String(e.id)} className="event-member">
+                    <span className="section-label">{e.format} · ABU DHABI</span>
+                    <h2>{e.title}</h2>
+                    <p>
+                      {date(e.starts_at)}
+                      <br />
+                      Until {date(e.ends_at)}
+                      <br />
+                      {e.venue ?? e.area}
+                    </p>
+                    <p>{e.description}</p>
+                    {external ? (
                       <div className="review-buttons">
-                        {e.rsvp_status === "confirmed" && (
-                          <button
-                            className="small-button"
-                            onClick={() => calendar(e)}
-                          >
-                            Add to calendar
-                          </button>
-                        )}
+                        <a
+                          className="button dark"
+                          href={`/events/${encodeURIComponent(String(e.id))}`}
+                        >
+                          View & register <ArrowUpRight size={17} />
+                        </a>
                         <button
                           className="small-button"
-                          disabled={!!busy}
-                          onClick={() => rsvp(e, true)}
+                          onClick={() => calendar(e)}
                         >
-                          Release my place
+                          Add to calendar
                         </button>
                       </div>
-                    </>
-                  ) : (
-                    <button
-                      className="button dark"
-                      disabled={!!busy}
-                      onClick={() => rsvp(e)}
-                    >
-                      {busy === e.id ? "Saving…" : "Request my place"}
-                      <ArrowUpRight size={17} />
-                    </button>
-                  )}
-                </article>
-              ))
+                    ) : e.rsvp_status && e.rsvp_status !== "cancelled" ? (
+                      <>
+                        <span className={"status " + e.rsvp_status}>
+                          {e.rsvp_status === "confirmed"
+                            ? "Your place is confirmed"
+                            : "You are on the event waitlist"}
+                        </span>
+                        <div className="review-buttons">
+                          {e.rsvp_status === "confirmed" && (
+                            <button
+                              className="small-button"
+                              onClick={() => calendar(e)}
+                            >
+                              Add to calendar
+                            </button>
+                          )}
+                          <button
+                            className="small-button"
+                            disabled={!!busy}
+                            onClick={() => rsvp(e, true)}
+                          >
+                            Release my place
+                          </button>
+                        </div>
+                      </>
+                    ) : (
+                      <button
+                        className="button dark"
+                        disabled={!!busy}
+                        onClick={() => rsvp(e)}
+                      >
+                        {busy === String(e.id) ? "Saving…" : "Request my place"}
+                        <ArrowUpRight size={17} />
+                      </button>
+                    )}
+                  </article>
+                );
+              })
             )}
           </>
         )}
