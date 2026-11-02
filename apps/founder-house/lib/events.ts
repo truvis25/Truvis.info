@@ -8,6 +8,7 @@ export type PublicEvent = {
   capacity: number;
   area: string;
   status: string;
+  external_url?: string | null;
 };
 export const HOUSE_ORIGIN = "https://house.truvis.info";
 export function eventDate(value: string) {
