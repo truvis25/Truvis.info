@@ -93,7 +93,8 @@ async function handle(request: Request) {
       );
     const responseBody = await response.arrayBuffer();
     if (publicEventsRoute) {
-      if (!response.ok) return json({ events: upcomingExternalEvents() });
+      if (!response.ok)
+        return json({ events: await upcomingExternalEvents() });
       try {
         const payload = JSON.parse(
           new TextDecoder().decode(responseBody),
@@ -102,7 +103,7 @@ async function handle(request: Request) {
           return new Response(
             JSON.stringify({
               ...payload,
-              events: mergeExternalEvents(payload.events),
+              events: await mergeExternalEvents(payload.events),
             }),
             { status: response.status, headers: outputHeaders },
           );
@@ -113,7 +114,8 @@ async function handle(request: Request) {
       headers: outputHeaders,
     });
   } catch {
-    if (publicEventsRoute) return json({ events: upcomingExternalEvents() });
+    if (publicEventsRoute)
+      return json({ events: await upcomingExternalEvents() });
     return json(
       {
         error:
