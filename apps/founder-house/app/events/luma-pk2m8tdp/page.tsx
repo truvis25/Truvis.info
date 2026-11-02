@@ -14,9 +14,6 @@ const EVENT_ID = "luma-pk2m8tdp";
 const LUMA_URL = "https://luma.com/pk2m8tdp";
 const LUMA_EMBED = "https://luma.com/embed/event/evt-EoVSOdqTbsOowoI/simple";
 
-const event =
-  upcomingExternalEvents(0).find((item) => item.id === EVENT_ID) ?? null;
-
 export const metadata: Metadata = {
   title: "Founder House Breakfast | Founder House",
   description:
@@ -37,7 +34,10 @@ export const metadata: Metadata = {
   },
 };
 
-export default function FounderHouseBreakfastLumaPage() {
+export default async function FounderHouseBreakfastLumaPage() {
+  const event =
+    (await upcomingExternalEvents(0)).find((item) => item.id === EVENT_ID) ??
+    null;
   if (!event) return null;
 
   return (
