@@ -1,5 +1,10 @@
 import { organiser } from "../../../lib/supabase";
 import { SUPABASE_URL, SUPABASE_ANON_KEY } from "../../../lib/config";
+import {
+  mergeExternalEvents,
+  upcomingExternalEvents,
+} from "../../../lib/external-events";
+import type { PublicEvent } from "../../../lib/events";
 export const dynamic = "force-dynamic";
 export const runtime = "nodejs";
 export const maxDuration = 30;
@@ -7,7 +12,8 @@ const json = (data: unknown, status = 200) =>
   Response.json(data, { status, headers: { "cache-control": "no-store" } });
 async function handle(request: Request) {
   const url = new URL(request.url),
-    path = url.pathname;
+    path = url.pathname,
+    publicEventsRoute = path === "/api/events" && request.method === "GET";
   if (["POST", "PATCH", "PUT", "DELETE"].includes(request.method)) {
     const origin = request.headers.get("origin");
     if (origin && origin !== url.origin)
@@ -85,11 +91,29 @@ async function handle(request: Request) {
         "set-cookie",
         "fh_member=; Path=/; HttpOnly; Secure; SameSite=Lax; Max-Age=0",
       );
-    return new Response(await response.arrayBuffer(), {
+    const responseBody = await response.arrayBuffer();
+    if (publicEventsRoute) {
+      if (!response.ok) return json({ events: upcomingExternalEvents() });
+      try {
+        const payload = JSON.parse(
+          new TextDecoder().decode(responseBody),
+        ) as { events?: PublicEvent[] };
+        if (Array.isArray(payload.events))
+          return new Response(
+            JSON.stringify({
+              ...payload,
+              events: mergeExternalEvents(payload.events),
+            }),
+            { status: response.status, headers: outputHeaders },
+          );
+      } catch {}
+    }
+    return new Response(responseBody, {
       status: response.status,
       headers: outputHeaders,
     });
   } catch {
+    if (publicEventsRoute) return json({ events: upcomingExternalEvents() });
     return json(
       {
         error:
