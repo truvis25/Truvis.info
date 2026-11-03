@@ -12,7 +12,7 @@ const FALLBACK_EVENTS: PublicEvent[] = [
     starts_at: "2026-11-07T07:00:00.000Z",
     ends_at: "2026-11-07T10:00:00.000Z",
     capacity: 12,
-    area: "Le Noir Café & Kitchen · Saadiyat Island",
+    area: "Saadiyat Island",
     status: "published",
     external_url: "https://luma.com/pk2m8tdp",
   },
