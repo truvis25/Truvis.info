@@ -22,6 +22,8 @@ import {
 } from "lucide-react";
 import type { PublicEvent } from "../lib/events";
 import { HouseMark } from "./brand-mark";
+import { EventArt } from "./event-art";
+import { daysAway, eventParts, googleCalendarUrl } from "../lib/events";
 
 const roleCopy = {
   Founder: true,
@@ -449,9 +451,14 @@ export default function House() {
           </div>
           <div aria-live="polite" aria-busy={eventsState === "loading"}>
             {eventsState === "loading" ? (
-              <div className="event-empty loading-events">
-                <CalendarDays size={28} />
-                <p>Loading upcoming events…</p>
+              <div className="event-spotlight is-skeleton">
+                <div className="spotlight-poster" />
+                <div className="spotlight-body">
+                  <span className="sr-only">Loading upcoming events…</span>
+                  <i />
+                  <i />
+                  <i />
+                </div>
               </div>
             ) : eventsState === "error" ? (
               <div className="event-empty">
@@ -514,51 +521,16 @@ export default function House() {
                 </button>
               </div>
             ) : (
-              <div className="event-grid">
-                {shownEvents.map((e) => (
-                  <a
-                    className="public-event-card"
-                    href={"/events/" + e.id}
-                    key={e.id}
-                  >
-                    <div className="event-date">
-                      <strong>
-                        {new Intl.DateTimeFormat("en-GB", {
-                          day: "2-digit",
-                          timeZone: "Asia/Dubai",
-                        }).format(new Date(e.starts_at))}
-                      </strong>
-                      <span>
-                        {new Intl.DateTimeFormat("en-GB", {
-                          month: "short",
-                          timeZone: "Asia/Dubai",
-                        }).format(new Date(e.starts_at))}
-                      </span>
-                    </div>
-                    <div>
-                      <span className="section-label">{e.format}</span>
-                      <h3>{e.title}</h3>
-                      <p>
-                        {new Intl.DateTimeFormat("en-GB", {
-                          weekday: "long",
-                          hour: "2-digit",
-                          minute: "2-digit",
-                          timeZone: "Asia/Dubai",
-                        }).format(new Date(e.starts_at))}{" "}
-                        GST
-                      </p>
-                      <p>
-                        <MapPin size={14} />
-                        {e.area}
-                      </p>
-                      <span className="event-members">
-                        Approved members · {e.capacity} places
-                      </span>
-                    </div>
-                    <ArrowUpRight size={21} />
-                  </a>
-                ))}
-              </div>
+              <>
+                <SpotlightEvent e={shownEvents[0]} />
+                {shownEvents.length > 1 && (
+                  <div className="event-grid">
+                    {shownEvents.slice(1).map((e) => (
+                      <EventCard e={e} key={e.id} />
+                    ))}
+                  </div>
+                )}
+              </>
             )}
           </div>
           <div className="events-footnote">
@@ -1248,5 +1220,108 @@ export default function House() {
       </main>
       <Footer />
     </>
+  );
+}
+
+function placesLabel(e: PublicEvent) {
+  return e.external_url
+    ? e.capacity === 1
+      ? "1 place left"
+      : e.capacity + " places left"
+    : "Members · " + e.capacity + " places";
+}
+function SpotlightEvent({ e }: { e: PublicEvent }) {
+  const when = eventParts(e.starts_at, e.ends_at);
+  return (
+    <article className="event-spotlight">
+      <a
+        className="spotlight-poster"
+        href={"/events/" + e.id}
+        tabIndex={-1}
+        aria-hidden="true"
+      >
+        <EventArt format={e.format} />
+        <span className="poster-date">
+          <strong>{when.day}</strong>
+          {when.month}
+        </span>
+      </a>
+      <div className="spotlight-body">
+        <div className="spotlight-tags">
+          <span className="spotlight-next">Next gathering</span>
+          <span>{daysAway(e.starts_at)}</span>
+        </div>
+        <h3>
+          <a href={"/events/" + e.id}>{e.title}</a>
+        </h3>
+        <p className="spotlight-text">{e.description}</p>
+        <dl className="spotlight-facts">
+          <div>
+            <dt>
+              <CalendarDays size={17} /> When
+            </dt>
+            <dd>
+              {when.weekday} {when.day} {when.month}
+              <br />
+              {when.time} GST
+            </dd>
+          </div>
+          <div>
+            <dt>
+              <MapPin size={17} /> Where
+            </dt>
+            <dd>{e.area}</dd>
+          </div>
+          <div>
+            <dt>
+              <Users size={17} /> Places
+            </dt>
+            <dd>{placesLabel(e)}</dd>
+          </div>
+        </dl>
+        <div className="spotlight-actions">
+          <a className="button lime" href={"/events/" + e.id}>
+            Reserve your place <ArrowRight size={18} />
+          </a>
+          <a
+            className="quiet-link"
+            href={googleCalendarUrl(e)}
+            target="_blank"
+            rel="noreferrer"
+          >
+            <CalendarDays size={17} /> Add to Google Calendar
+          </a>
+        </div>
+      </div>
+    </article>
+  );
+}
+function EventCard({ e }: { e: PublicEvent }) {
+  const when = eventParts(e.starts_at, e.ends_at);
+  return (
+    <a className="public-event-card" href={"/events/" + e.id}>
+      <div className="card-poster">
+        <EventArt format={e.format} />
+        <span className="poster-date">
+          <strong>{when.day}</strong>
+          {when.month}
+        </span>
+        <span className="card-soon">{daysAway(e.starts_at)}</span>
+      </div>
+      <div className="card-body">
+        <span className="section-label">{e.format}</span>
+        <h3>{e.title}</h3>
+        <p>
+          {when.weekday} · {when.time} GST
+        </p>
+        <p>
+          <MapPin size={14} />
+          {e.area}
+        </p>
+        <span className="event-members">
+          {placesLabel(e)} <ArrowUpRight size={18} />
+        </span>
+      </div>
+    </a>
   );
 }

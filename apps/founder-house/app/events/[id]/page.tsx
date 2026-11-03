@@ -1,17 +1,12 @@
 import { cache } from "react";
 import { notFound } from "next/navigation";
 import type { Metadata } from "next";
-import {
-  CalendarDays,
-  MapPin,
-  Users,
-  ArrowUpRight,
-  LockKeyhole,
-} from "lucide-react";
+import { CalendarDays, ArrowUpRight, LockKeyhole } from "lucide-react";
 import { Brand, Footer } from "../../house";
 import { publicEvents } from "../../../lib/public-events";
 import { upcomingExternalEvents } from "../../../lib/external-events";
-import { HOUSE_ORIGIN, eventDate } from "../../../lib/events";
+import { HOUSE_ORIGIN } from "../../../lib/events";
+import { EventHero } from "../event-hero";
 export const dynamic = "force-dynamic";
 const getEvent = cache(async (id: string) => {
   if (/^luma-[A-Za-z0-9_-]+$/.test(id)) {
@@ -99,32 +94,13 @@ export default async function EventPage({
         </header>
       </div>
       <main className="wrap subpage event-detail">
-        <span className="section-label">{e.format} · FOUNDER HOUSE</span>
-        <h1>{e.title}</h1>
+        <EventHero e={e} />
         {cancelled && (
           <div className="form-error" role="status">
             This event has been cancelled. Please check the upcoming events for
             another gathering.
           </div>
         )}
-        <div className="event-meta">
-          <p>
-            <CalendarDays size={20} />
-            <span>
-              {eventDate(e.starts_at)}
-              <br />
-              Until {eventDate(e.ends_at)}
-            </span>
-          </p>
-          <p>
-            <MapPin size={20} />
-            {e.area}, Abu Dhabi
-          </p>
-          <p>
-            <Users size={20} />
-            {e.capacity} places · Registration subject to approval
-          </p>
-        </div>
         <p className="event-description">{e.description}</p>
         <div className="notice">
           <LockKeyhole size={20} />

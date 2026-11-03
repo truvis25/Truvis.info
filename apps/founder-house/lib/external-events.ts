@@ -110,11 +110,15 @@ function eventsFromCalendarHtml(html: string): PublicEvent[] {
       if (!Number.isFinite(endsAt) || endsAt <= now) return null;
       const known = FALLBACK_EVENTS.find((event) => event.id === `luma-${slug}`);
       const description = item.description?.trim() || known?.description || item.name;
+      const lumaVenue =
+        item.location?.name || item.location?.address?.streetAddress;
+      // Luma reports only the city (sometimes in Arabic) until the venue is
+      // public, so prefer the venue we already know for that event.
       const venue =
-        item.location?.name ||
-        item.location?.address?.streetAddress ||
         known?.area ||
-        "Abu Dhabi";
+        (lumaVenue && !/united arab emirates|أبو ظبي/i.test(lumaVenue)
+          ? lumaVenue
+          : "Abu Dhabi");
       const remaining = spotsRemaining(html, slug);
       return {
         id: `luma-${slug}`,

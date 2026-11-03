@@ -1,13 +1,7 @@
 import type { Metadata } from "next";
-import {
-  ArrowUpRight,
-  CalendarDays,
-  MapPin,
-  Users,
-  ShieldCheck,
-} from "lucide-react";
+import { ArrowUpRight, ShieldCheck } from "lucide-react";
 import { Brand, Footer } from "../../house";
-import { eventDate } from "../../../lib/events";
+import { EventHero } from "../event-hero";
 import { upcomingExternalEvents } from "../../../lib/external-events";
 
 const EVENT_ID = "luma-pk2m8tdp";
@@ -52,27 +46,7 @@ export default async function FounderHouseBreakfastLumaPage() {
       </div>
 
       <main className="wrap subpage event-detail">
-        <span className="section-label">{event.format} · FOUNDER HOUSE</span>
-        <h1>{event.title}</h1>
-
-        <div className="event-meta">
-          <p>
-            <CalendarDays size={20} />
-            <span>
-              {eventDate(event.starts_at)}
-              <br />
-              Until {eventDate(event.ends_at)}
-            </span>
-          </p>
-          <p>
-            <MapPin size={20} />
-            {event.area}, Abu Dhabi
-          </p>
-          <p>
-            <Users size={20} />
-            {event.capacity} places · Registration subject to approval
-          </p>
-        </div>
+        <EventHero e={event} />
 
         <p className="event-description">{event.description}</p>
 
