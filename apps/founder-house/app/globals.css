@@ -3046,7 +3046,7 @@ th {
 }
 .event-spotlight {
   display: grid;
-  grid-template-columns: minmax(0, 0.82fr) minmax(0, 1.18fr);
+  grid-template-columns: minmax(280px, 380px) minmax(0, 1fr);
   gap: 0;
   background: var(--ink);
   color: #fff;
@@ -3057,9 +3057,9 @@ th {
 .spotlight-poster {
   position: relative;
   display: block;
-  min-height: 460px;
-  margin: 22px 0 0 22px;
-  border-radius: 999px 999px 0 0;
+  aspect-ratio: 5 / 7;
+  margin: 22px 0 22px 22px;
+  border-radius: 999px 999px 24px 24px;
   overflow: hidden;
   background: #0b4337;
 }
@@ -3299,9 +3299,9 @@ th {
     border-radius: 26px;
   }
   .spotlight-poster {
-    min-height: 0;
-    aspect-ratio: 1 / 1;
-    margin: 16px 16px 0;
+    aspect-ratio: 4 / 5;
+    width: min(100% - 32px, 320px);
+    margin: 20px auto 0;
   }
   .spotlight-poster .poster-date {
     bottom: 14px;
