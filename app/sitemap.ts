@@ -6,7 +6,9 @@ import { INDUSTRIES } from "@/lib/taxonomy/industries";
 // Only visible orgs/events reach the sitemap — the anon client is bound by
 // RLS, so hidden organizations can never leak into search engines (DIR-7).
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
-  const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+  const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
+    db: { schema: "info_ops" },
+  });
 
   const [{ data: orgs }, { data: events }] = await Promise.all([
     supabase.from("organizations").select("slug, updated_at"),

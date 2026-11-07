@@ -5,6 +5,7 @@ import { SUPABASE_URL, SUPABASE_ANON_KEY } from "./config";
 export async function serverClient() {
   const store = await cookies();
   return createServerClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
+    db: { schema: "info_ops" },
     cookies: {
       getAll: () => store.getAll(),
       setAll: (values) => {
