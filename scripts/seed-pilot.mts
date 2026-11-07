@@ -32,7 +32,7 @@ if (url === PROD_URL && !confirmed) {
 
 const db = createClient(url, serviceKey, {
   auth: { persistSession: false },
-  db: { schema: "info_ops" },
+  db: { schema: "info_ops" as "public" },
 });
 console.log(`${remove ? "Removing pilot data from" : "Seeding pilot data into"}: ${url}`);
 

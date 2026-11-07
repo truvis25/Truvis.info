@@ -7,7 +7,7 @@ import { INDUSTRIES } from "@/lib/taxonomy/industries";
 // RLS, so hidden organizations can never leak into search engines (DIR-7).
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
-    db: { schema: "info_ops" },
+    db: { schema: "info_ops" as "public" },
   });
 
   const [{ data: orgs }, { data: events }] = await Promise.all([

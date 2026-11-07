@@ -6,7 +6,7 @@ import { SUPABASE_URL, SUPABASE_ANON_KEY } from "@/lib/config";
 export async function GET() {
   const startedAt = Date.now();
   const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
-    db: { schema: "info_ops" },
+    db: { schema: "info_ops" as "public" },
   });
   const { error } = await supabase
     .from("subscription_plans")

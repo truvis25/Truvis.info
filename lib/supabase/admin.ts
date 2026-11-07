@@ -12,7 +12,7 @@ export function createAdminClient() {
     process.env.SUPABASE_SERVICE_ROLE_KEY!,
     {
       auth: { persistSession: false },
-      db: { schema: "info_ops" },
+      db: { schema: "info_ops" as "public" },
     },
   );
 }
