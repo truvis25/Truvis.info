@@ -11,7 +11,7 @@
 import { createClient } from "@supabase/supabase-js";
 import { pilotOrgs } from "../lib/compliance/pilot-data.ts";
 
-const PROD_URL = "https://hyzotwxtqssefsgryawl.supabase.co";
+const PROD_URL = "https://bieaydivdamnkdtmfsmg.supabase.co";
 const url = process.env.NEXT_PUBLIC_SUPABASE_URL ?? PROD_URL;
 const serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
 const args = new Set(process.argv.slice(2));
@@ -30,7 +30,10 @@ if (url === PROD_URL && !confirmed) {
   process.exit(1);
 }
 
-const db = createClient(url, serviceKey, { auth: { persistSession: false } });
+const db = createClient(url, serviceKey, {
+  auth: { persistSession: false },
+  db: { schema: "info_ops" as "public" },
+});
 console.log(`${remove ? "Removing pilot data from" : "Seeding pilot data into"}: ${url}`);
 
 function isoInDays(days: number): string {

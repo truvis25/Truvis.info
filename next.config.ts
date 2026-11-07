@@ -20,9 +20,9 @@ const securityHeaders = [
       "default-src 'self'",
       "script-src 'self' 'unsafe-inline' https://va.vercel-scripts.com",
       "style-src 'self' 'unsafe-inline'",
-      "img-src 'self' data: blob: https://hyzotwxtqssefsgryawl.supabase.co https://*.vercel.app",
+      "img-src 'self' data: blob: https://bieaydivdamnkdtmfsmg.supabase.co https://*.vercel.app",
       "font-src 'self' data:",
-      "connect-src 'self' https://hyzotwxtqssefsgryawl.supabase.co https://va.vercel-scripts.com https://vitals.vercel-insights.com",
+      "connect-src 'self' https://bieaydivdamnkdtmfsmg.supabase.co https://va.vercel-scripts.com https://vitals.vercel-insights.com",
       "frame-ancestors 'none'",
       "base-uri 'self'",
       "form-action 'self'",
@@ -35,7 +35,7 @@ const nextConfig: NextConfig = {
     remotePatterns: [
       {
         protocol: "https",
-        hostname: "hyzotwxtqssefsgryawl.supabase.co",
+        hostname: "bieaydivdamnkdtmfsmg.supabase.co",
         pathname: "/storage/v1/object/public/**",
       },
     ],

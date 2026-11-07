@@ -4,6 +4,7 @@ import { SUPABASE_URL, SUPABASE_ANON_KEY } from "./lib/config";
 export async function proxy(request: NextRequest) {
   let response = NextResponse.next({ request });
   const client = createServerClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
+    db: { schema: "info_ops" as "public" },
     cookies: {
       getAll: () => request.cookies.getAll(),
       setAll: (values) => {

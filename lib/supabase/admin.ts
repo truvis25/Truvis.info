@@ -10,7 +10,10 @@ export function createAdminClient() {
   return createSupabaseClient(
     SUPABASE_URL,
     process.env.SUPABASE_SERVICE_ROLE_KEY!,
-    { auth: { persistSession: false } },
+    {
+      auth: { persistSession: false },
+      db: { schema: "info_ops" as "public" },
+    },
   );
 }
 

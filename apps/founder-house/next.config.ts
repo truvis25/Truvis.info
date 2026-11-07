@@ -18,7 +18,7 @@ const config: NextConfig = {
           },
           {
             key: "Content-Security-Policy",
-            value: `default-src 'self'; script-src 'self' 'unsafe-inline' ${process.env.NODE_ENV === "development" ? "'unsafe-eval'" : ""}; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob:; font-src 'self' data:; connect-src 'self' https://hyzotwxtqssefsgryawl.supabase.co; frame-src 'self' https://luma.com https://*.luma.com; frame-ancestors ${process.env.NODE_ENV === "development" ? "'self'" : "'none'"}; base-uri 'self'; form-action 'self'`,
+            value: `default-src 'self'; script-src 'self' 'unsafe-inline' ${process.env.NODE_ENV === "development" ? "'unsafe-eval'" : ""}; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob:; font-src 'self' data:; connect-src 'self' https://bieaydivdamnkdtmfsmg.supabase.co; frame-src 'self' https://luma.com https://*.luma.com; frame-ancestors ${process.env.NODE_ENV === "development" ? "'self'" : "'none'"}; base-uri 'self'; form-action 'self'`,
           },
         ],
       },
