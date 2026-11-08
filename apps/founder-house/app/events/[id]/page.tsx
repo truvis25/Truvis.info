@@ -1,15 +1,28 @@
 import { cache } from "react";
 import { notFound } from "next/navigation";
 import type { Metadata } from "next";
-import { CalendarDays, ArrowUpRight, LockKeyhole } from "lucide-react";
+import {
+  ArrowUpRight,
+  CalendarDays,
+  CalendarPlus,
+  LockKeyhole,
+} from "lucide-react";
 import { Brand, Footer } from "../../house";
 import { publicEvents } from "../../../lib/public-events";
-import { upcomingExternalEvents } from "../../../lib/external-events";
-import { HOUSE_ORIGIN } from "../../../lib/events";
+import {
+  combineEvents,
+  upcomingExternalEvents,
+} from "../../../lib/external-events";
+import {
+  HOUSE_ORIGIN,
+  googleCalendarUrl,
+  registrationPlatform,
+  type PublicEvent,
+} from "../../../lib/events";
 import { EventHero } from "../event-hero";
 export const dynamic = "force-dynamic";
-const getEvent = cache(async (id: string) => {
-  if (/^luma-[A-Za-z0-9_-]+$/.test(id)) {
+const getEvent = cache(async (id: string): Promise<PublicEvent> => {
+  if (/^(luma|meetup)-[A-Za-z0-9_-]+$/.test(id)) {
     const event = (await upcomingExternalEvents(0)).find((e) => e.id === id);
     if (!event) notFound();
     return event;
@@ -18,7 +31,12 @@ const getEvent = cache(async (id: string) => {
   const events = await publicEvents("/api/calendar");
   const event = events.find((e) => e.id === id);
   if (!event) notFound();
-  return event;
+  // Attach the event's Luma and Meetup listings, if it has any.
+  return (
+    combineEvents([event], await upcomingExternalEvents(0)).find(
+      (e) => e.id === id,
+    ) ?? event
+  );
 });
 export async function generateMetadata({
   params,
@@ -27,13 +45,14 @@ export async function generateMetadata({
 }): Promise<Metadata> {
   const { id } = await params;
   const event = await getEvent(id);
+  const summary = (event.description || event.title).slice(0, 155);
   return {
     title: event.title + " | Founder House",
-    description: event.description.slice(0, 155),
+    description: summary,
     alternates: { canonical: "/events/" + event.id },
     openGraph: {
       title: event.title,
-      description: event.description.slice(0, 155),
+      description: summary,
       url: HOUSE_ORIGIN + "/events/" + event.id,
       images: [
         {
@@ -54,14 +73,20 @@ export default async function EventPage({
   const { id } = await params;
   const e = await getEvent(id);
   const cancelled = e.status === "cancelled";
-  const external = e.external_url?.startsWith("https://luma.com/")
-    ? e.external_url
-    : null;
+  const platform = registrationPlatform(e);
+  const others = (e.links ?? []).filter((l) => l.url !== e.external_url);
+  const full = e.availability === "sold-out" || e.availability === "closed";
+  const embed =
+    platform === "Luma" &&
+    e.luma_api_id &&
+    /^evt-[A-Za-z0-9]+$/.test(e.luma_api_id)
+      ? "https://luma.com/embed/event/" + e.luma_api_id + "/simple"
+      : null;
   const schema = {
     "@context": "https://schema.org",
     "@type": "Event",
     name: e.title,
-    description: e.description,
+    description: e.description || e.title,
     startDate: e.starts_at,
     endDate: e.ends_at,
     eventStatus:
@@ -82,6 +107,16 @@ export default async function EventPage({
       url: HOUSE_ORIGIN,
     },
     url: HOUSE_ORIGIN + "/events/" + e.id,
+    ...(e.external_url
+      ? {
+          offers: {
+            "@type": "Offer",
+            url: e.external_url,
+            availability:
+              "https://schema.org/" + (full ? "SoldOut" : "InStock"),
+          },
+        }
+      : {}),
   };
   return (
     <>
@@ -101,39 +136,124 @@ export default async function EventPage({
             another gathering.
           </div>
         )}
-        <p className="event-description">{e.description}</p>
-        <div className="notice">
-          <LockKeyhole size={20} />
-          <p>
-            {external
-              ? "Registration is managed through the official Founder House Luma event page."
-              : "Events are for approved members. Apply to join first, then reserve a place. Any event costs are shared before you commit."}
-          </p>
-        </div>
-        {!cancelled && (
-          <div className="hero-actions">
-            {external ? (
-              <a
-                className="button dark"
-                href={external}
-                target="_blank"
-                rel="noreferrer"
-              >
-                Register on Luma <ArrowUpRight size={18} />
-              </a>
+        <div className="event-body">
+          {!cancelled && (
+            <aside
+              id="register"
+              className="event-register"
+              aria-labelledby="register-heading"
+            >
+              <h2 id="register-heading">
+                {full ? "Registration" : "Reserve your place"}
+              </h2>
+              {embed && !full ? (
+                <>
+                  <div className="luma-embed">
+                    <iframe
+                      src={embed}
+                      title={"Register for " + e.title + " on Luma"}
+                      width="100%"
+                      height="640"
+                      allow="fullscreen; payment"
+                    />
+                  </div>
+                  <p className="register-help">
+                    Form not loading?{" "}
+                    <a href={e.external_url!} target="_blank" rel="noreferrer">
+                      Open registration on Luma <ArrowUpRight size={15} />
+                    </a>
+                  </p>
+                </>
+              ) : platform ? (
+                <>
+                  <p className="register-lede">
+                    {full
+                      ? "This gathering is fully booked. The listing shows any waitlist or released places."
+                      : platform === "Meetup"
+                        ? "RSVP on Meetup. The host confirms each place."
+                        : "Register on Luma. The host confirms each place."}
+                  </p>
+                  <a
+                    className="button dark"
+                    href={e.external_url!}
+                    target="_blank"
+                    rel="noreferrer"
+                  >
+                    {platform === "Meetup"
+                      ? "RSVP on Meetup"
+                      : "Register on Luma"}
+                    <ArrowUpRight size={18} />
+                  </a>
+                </>
+              ) : (
+                <>
+                  <p className="register-lede">
+                    Approved members reserve their place in member access.
+                  </p>
+                  <a className="button dark" href="/members">
+                    Member access & RSVP <ArrowUpRight size={18} />
+                  </a>
+                  <a className="button outline" href="/#apply">
+                    New here? Apply to join <ArrowUpRight size={18} />
+                  </a>
+                </>
+              )}
+              {others.length > 0 && (
+                <p className="register-also">
+                  Also listed on{" "}
+                  {others.map((l, i) => (
+                    <span key={l.platform}>
+                      {i > 0 && " and "}
+                      <a href={l.url} target="_blank" rel="noreferrer">
+                        {l.platform}
+                      </a>
+                    </span>
+                  ))}
+                </p>
+              )}
+              <div className="register-calendar">
+                <a
+                  className="quiet-link"
+                  href={googleCalendarUrl(e)}
+                  target="_blank"
+                  rel="noreferrer"
+                >
+                  <CalendarPlus size={17} aria-hidden="true" /> Add to Google
+                  Calendar
+                </a>
+                <a className="quiet-link" href="/events/calendar.ics">
+                  <CalendarDays size={17} aria-hidden="true" /> Subscribe to all
+                  events
+                </a>
+              </div>
+            </aside>
+          )}
+          <section className="event-about" aria-labelledby="about-heading">
+            <h2 id="about-heading">About this gathering</h2>
+            {e.description ? (
+              <p className="event-description">{e.description}</p>
             ) : (
-              <a className="button dark" href="/members">
-                Member access & RSVP <ArrowUpRight size={18} />
-              </a>
+              <p className="event-description">
+                Details are on the {platform ?? "event"} listing.
+              </p>
             )}
-            <a className="button outline" href="/#apply">
-              New here? Apply to join <ArrowUpRight size={18} />
-            </a>
-          </div>
-        )}
-        <a className="quiet-link" href="/events/calendar.ics">
-          Subscribe to the events calendar <CalendarDays size={17} />
-        </a>
+            <div className="notice">
+              <LockKeyhole size={20} aria-hidden="true" />
+              {platform ? (
+                <p>
+                  The exact venue is shared with confirmed guests. New to
+                  Founder House?{" "}
+                  <a href="/#apply">Apply to join the community</a>.
+                </p>
+              ) : (
+                <p>
+                  Events are for approved members. Apply to join first, then
+                  reserve a place. Any event costs are shared before you commit.
+                </p>
+              )}
+            </div>
+          </section>
+        </div>
         <script
           type="application/ld+json"
           dangerouslySetInnerHTML={{

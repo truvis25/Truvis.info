@@ -53,8 +53,7 @@ function calendar(e: Row) {
 
 function isExternalEvent(e: Row) {
   return (
-    String(e.id ?? "").startsWith("luma-") ||
-    String(e.external_url ?? "").startsWith("https://luma.com/")
+    /^(luma|meetup)-/.test(String(e.id ?? "")) || !!e.external_url
   );
 }
 

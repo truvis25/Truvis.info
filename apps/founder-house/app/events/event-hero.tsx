@@ -1,59 +1,72 @@
-import { CalendarDays, MapPin, Users } from "lucide-react";
+import {
+  ArrowDown,
+  CalendarDays,
+  MapPin,
+  Ticket,
+  Users,
+  type LucideIcon,
+} from "lucide-react";
 import { EventArt } from "../event-art";
 import {
   daysAway,
   eventParts,
-  googleCalendarUrl,
+  placesLabel,
+  registrationPlatform,
   type PublicEvent,
 } from "../../lib/events";
 
 export function EventHero({ e }: { e: PublicEvent }) {
   const when = eventParts(e.starts_at, e.ends_at);
   const place = /abu dhabi/i.test(e.area) ? e.area : e.area + ", Abu Dhabi";
-  const upcoming = new Date(e.ends_at).getTime() > Date.now();
+  const upcoming =
+    new Date(e.ends_at).getTime() > Date.now() && e.status !== "cancelled";
+  const platform = registrationPlatform(e);
+  const facts: Array<[LucideIcon, string, React.ReactNode]> = [
+    [
+      CalendarDays,
+      "When",
+      <>
+        {when.weekday} {when.day} {when.month}
+        <br />
+        {when.time} GST
+      </>,
+    ],
+    [MapPin, "Where", place],
+  ];
+  if (e.price) facts.push([Ticket, "Entry", e.price]);
+  facts.push([
+    Users,
+    "Places",
+    placesLabel(e) + (e.approval ? " · confirmed by the host" : ""),
+  ]);
   return (
     <div className="event-hero">
       <div className="event-hero-copy">
-        <span className="section-label">{e.format}</span>
+        <div className="event-hero-tags">
+          <span className="section-label">{e.format}</span>
+          {upcoming && (
+            <span className="event-hero-soon">{daysAway(e.starts_at)}</span>
+          )}
+        </div>
         <h1>{e.title}</h1>
-        {upcoming && e.status !== "cancelled" && (
-          <span className="event-hero-soon">{daysAway(e.starts_at)}</span>
-        )}
         <dl className="event-hero-facts">
-          <div>
-            <dt>
-              <CalendarDays size={19} /> When
-            </dt>
-            <dd>
-              {when.weekday} {when.day} {when.month}
-              <br />
-              {when.time} GST
-            </dd>
-          </div>
-          <div>
-            <dt>
-              <MapPin size={19} /> Where
-            </dt>
-            <dd>{place}</dd>
-          </div>
-          <div>
-            <dt>
-              <Users size={19} /> Places
-            </dt>
-            <dd>
-              {e.capacity} {e.external_url ? "left" : "places"} · subject to
-              approval
-            </dd>
-          </div>
+          {facts.map(([Icon, label, value]) => (
+            <div key={label}>
+              <dt>
+                <Icon size={18} aria-hidden="true" /> {label}
+              </dt>
+              <dd>{value}</dd>
+            </div>
+          ))}
         </dl>
         {upcoming && (
-          <a
-            className="quiet-link"
-            href={googleCalendarUrl(e)}
-            target="_blank"
-            rel="noreferrer"
-          >
-            <CalendarDays size={17} /> Add to Google Calendar
+          <a className="button dark" href="#register">
+            {platform === "Meetup"
+              ? "RSVP on Meetup"
+              : platform
+                ? "Register on Luma"
+                : "Reserve your place"}
+            <ArrowDown size={18} />
           </a>
         )}
       </div>

@@ -65,9 +65,18 @@ Founder House owns membership and final RSVP capacity. An external RSVP does not
 
 Luma cancellation synchronization closes registration and marks the listing cancelled without deleting the event or initiating refunds. Meetup returns the listing to draft. Workflow channels receive `withdraw`; their implementer must reconcile existing registrations and ticketing according to the organiser's policies. Review each channel status after cancellation. Increasing capacity is supported; reducing capacity after creation is rejected to avoid invalidating confirmed reservations.
 
+## Showing Luma and Meetup events on the site
+
+The site also reads public listings back, so events created directly on Luma or Meetup appear on the homepage, on `/events/<id>` pages and in the calendar feed without organiser action:
+
+- Luma: the public calendar page `https://luma.com/Founderhouse` (refreshed every two minutes). It supplies dates, area, price, places left, approval and waitlist status, and the Luma event id used to embed Luma's registration form. Descriptions come from each public event page. If Luma changes its page data, the schema.org event list on the same page is used instead.
+- Meetup: the group's public iCal feed, `https://www.meetup.com/<group>/events/ical/`. Set `FOUNDER_HOUSE_MEETUP_GROUP` (the group URL name, e.g. `founder-house-abu-dhabi`) on the **Vercel** project; the Edge Function's secret of the same name does not reach the Next.js app. Without it, Meetup is simply not shown.
+
+No credentials are used for reading. An event listed on more than one platform (or published from the organiser desk) is matched by start time and title and shown once with every link. Organiser events keep member RSVP and their own capacity.
+
 ## Calendar
 
-`/events/calendar.ics` is a public subscription feed for Apple Calendar, Google Calendar and Outlook. It contains public event information, stable UIDs and future cancellations. It does not expose private venues or attendee details. Calendar clients choose their refresh frequency.
+`/events/calendar.ics` is a public subscription feed for Apple Calendar, Google Calendar and Outlook. It contains organiser events and upcoming Luma and Meetup listings, public event information, stable UIDs and future organiser cancellations. It does not expose private venues or attendee details. Calendar clients choose their refresh frequency.
 
 ## Documentation checked
 

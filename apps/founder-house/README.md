@@ -28,7 +28,7 @@ Public Supabase configuration has the same safe defaults as the parent applicati
 
 ## Events and distribution
 
-The homepage shows confirmed upcoming events before the community description. Public event pages and `/events/calendar.ics` use only public fields; venues remain private.
+The homepage shows confirmed upcoming events before the community description: organiser events plus everything published on the [Founder House Luma calendar](https://luma.com/Founderhouse) and, when `FOUNDER_HOUSE_MEETUP_GROUP` is set on the Vercel project, the Meetup group. An event listed in several places appears once with each registration link. Public event pages and `/events/calendar.ics` use only public fields; venues remain private.
 
 Saving a published event automatically attempts all configured channels. Luma and Meetup have native API adapters. Eventbrite and LinkedIn use an authenticated publishing-workflow contract. Each channel has a persisted result, duplicate-create protection, safe retries for definite failures and manual receipt reconciliation for uncertain results. Credentials, paid platform requirements, lifecycle behaviour and the workflow contract are documented in [DISTRIBUTION.md](DISTRIBUTION.md).
 
@@ -56,6 +56,6 @@ Use the project-specific target returned by Vercel. Do not change apex, mail, or
 
 ## Verification
 
-`npm test` checks membership validation, email delivery and failure handling, publication privacy and retry behaviour, calendar formatting, and ten semantic contrast pairs. `tests/database.sql` tests approval, capacity, duplicate reservations, cancellation, waitlist promotion, revocation, rate limiting and anonymous access inside a transaction that is rolled back. Production build and the parent app's own test/build are checked separately.
+`npm test` checks membership validation, email delivery and failure handling, publication privacy and retry behaviour, calendar formatting, and fourteen semantic contrast pairs. `tests/database.sql` tests approval, capacity, duplicate reservations, cancellation, waitlist promotion, revocation, rate limiting and anonymous access inside a transaction that is rolled back. Production build and the parent app's own test/build are checked separately.
 
 See `BRAND.md` for design choices and `LAUNCH.md` for the proposed community launch rhythm. These are implementation and launch notes, not evidence of existing attendance, investor partnerships or promised outcomes.

@@ -23,6 +23,10 @@ const pairs = [
   ["Input outline / section", "#7a8c83", "#edf1e9", 3],
   ["Light text / dark section", "#c7d9cb", "#07362d", 4.5],
   ["Hero turquoise heading / forest", "#69d8d1", "#07362d", 4.5],
+  ["Light text / ticket stub", "#c7d9cb", "#0b4337", 4.5],
+  ["Turquoise label / ticket stub", "#69d8d1", "#0b4337", 4.5],
+  ["Secondary text / agenda row", "#53675c", "#ffffff", 4.5],
+  ["Forest text / turquoise action", "#07362d", "#43c6c5", 4.5],
 ];
 for (const [label, a, b, min] of pairs) {
   const r = contrast(a, b);
@@ -30,5 +34,6 @@ for (const [label, a, b, min] of pairs) {
   console.log("PASS " + label + ": " + r.toFixed(2) + ":1");
 }
 console.log(
-  "10 semantic colour pairs pass their applicable contrast thresholds. This is not a full WCAG audit.",
+  pairs.length +
+    " semantic colour pairs pass their applicable contrast thresholds. This is not a full WCAG audit.",
 );

@@ -1,9 +1,19 @@
 import { publicEvents } from "../../../lib/public-events";
 import { calendarFeed } from "../../../lib/calendar";
+import {
+  mergeExternalEvents,
+  upcomingExternalEvents,
+} from "../../../lib/external-events";
 export const dynamic = "force-dynamic";
 export async function GET() {
   try {
-    return new Response(calendarFeed(await publicEvents("/api/calendar")), {
+    // Luma and Meetup listings join the organiser's events. If the
+    // membership desk is unreachable, the external listings still publish.
+    const events = await publicEvents("/api/calendar").then(
+      mergeExternalEvents,
+      () => upcomingExternalEvents(),
+    );
+    return new Response(calendarFeed(events), {
       headers: {
         "content-type": "text/calendar; charset=utf-8",
         "content-disposition": "inline; filename=founder-house-events.ics",

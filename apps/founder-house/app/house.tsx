@@ -4,7 +4,6 @@ import {
   ArrowUpRight,
   ArrowRight,
   Check,
-  MapPin,
   Menu,
   X,
   Coffee,
@@ -12,18 +11,14 @@ import {
   HeartHandshake,
   LockKeyhole,
   Plus,
-  CalendarDays,
-  Bell,
   CircleDot,
   Sprout,
   Lightbulb,
   Compass,
   Phone,
 } from "lucide-react";
-import type { PublicEvent } from "../lib/events";
 import { HouseMark } from "./brand-mark";
-import { EventArt } from "./event-art";
-import { daysAway, eventParts, googleCalendarUrl } from "../lib/events";
+import { EventsSection } from "./events-section";
 
 const roleCopy = {
   Founder: true,
@@ -179,11 +174,6 @@ export function Footer() {
 }
 export default function House() {
   const [menu, setMenu] = useState(false),
-    [filter, setFilter] = useState("All events"),
-    [events, setEvents] = useState<PublicEvent[]>([]),
-    [eventsState, setEventsState] = useState<"loading" | "ready" | "error">(
-      "loading",
-    ),
     [step, setStep] = useState(1),
     [busy, setBusy] = useState(false),
     [error, setError] = useState(""),
@@ -193,24 +183,6 @@ export default function House() {
     [applicationRole, setApplicationRole] = useState("Founder"),
     [cityChoice, setCityChoice] = useState("");
   const form = useRef<HTMLFormElement>(null);
-  async function loadEvents(signal?: AbortSignal) {
-    setEventsState("loading");
-    try {
-      const response = await fetch("/api/events", { signal });
-      if (!response.ok) throw Error();
-      const data = await response.json();
-      if (!Array.isArray(data.events)) throw Error();
-      setEvents(data.events);
-      setEventsState("ready");
-    } catch {
-      if (!signal?.aborted) setEventsState("error");
-    }
-  }
-  useEffect(() => {
-    const controller = new AbortController();
-    void loadEvents(controller.signal);
-    return () => controller.abort();
-  }, []);
   useEffect(() => {
     if (success) document.getElementById("application-success")?.focus();
   }, [success]);
@@ -308,13 +280,6 @@ export default function House() {
       setBusy(false);
     }
   }
-  const shownEvents = events.filter(
-    (e) =>
-      filter === "All events" ||
-      (filter === "Sport & social"
-        ? /padel|football|volleyball|sport/i.test(e.format)
-        : !/padel|football|volleyball|sport/i.test(e.format)),
-  );
   return (
     <>
       <a className="skip-link" href="#main-content">
@@ -415,132 +380,7 @@ export default function House() {
             </span>
           </div>
         </div>
-        <section id="events" className="wrap section events-section">
-          <div className="section-top">
-            <div>
-              <div className="section-label">MEET IN PERSON</div>
-              <h2>What’s coming up</h2>
-            </div>
-            <p>
-              Find your next coffee, conversation or game.
-              <br />
-              Event times are shown in Abu Dhabi time.
-            </p>
-          </div>
-          <div className="filter-row">
-            <div
-              className="filter-options"
-              role="group"
-              aria-label="Filter upcoming events"
-            >
-              {["All events", "Conversations", "Sport & social"].map((f) => (
-                <button
-                  key={f}
-                  className={filter === f ? "filter active" : "filter"}
-                  aria-pressed={filter === f}
-                  onClick={() => setFilter(f)}
-                >
-                  {f}
-                </button>
-              ))}
-            </div>
-            <a className="quiet-link calendar-link" href="/events/calendar.ics">
-              <CalendarDays size={17} />
-              Subscribe to calendar
-            </a>
-          </div>
-          <div aria-live="polite" aria-busy={eventsState === "loading"}>
-            {eventsState === "loading" ? (
-              <div className="event-spotlight is-skeleton">
-                <div className="spotlight-poster" />
-                <div className="spotlight-body">
-                  <span className="sr-only">Loading upcoming events…</span>
-                  <i />
-                  <i />
-                  <i />
-                </div>
-              </div>
-            ) : eventsState === "error" ? (
-              <div className="event-empty">
-                <CalendarDays size={28} />
-                <div>
-                  <h3>We couldn’t load the events.</h3>
-                  <p>Please try again, or contact us at info@truvis.info.</p>
-                </div>
-                <button
-                  className="button outline"
-                  onClick={() => void loadEvents()}
-                >
-                  Try again <ArrowRight size={17} />
-                </button>
-              </div>
-            ) : !events.length ? (
-              <div className="event-empty first-events">
-                <div className="empty-icon">
-                  <CalendarDays size={37} strokeWidth={1.5} />
-                  <span>See you soon.</span>
-                </div>
-                <div>
-                  <span className="section-label">
-                    FIRST EVENTS COMING SOON
-                  </span>
-                  <h3>We’re planning our first gatherings.</h3>
-                  <p>
-                    Dates and venues will appear here as soon as they’re
-                    confirmed.
-                    <br />
-                    Apply to join and choose the events you’re interested in.
-                  </p>
-                  <div className="empty-formats">
-                    <span>
-                      <Coffee size={15} />
-                      Founder breakfasts
-                    </span>
-                    <span>
-                      <Users size={15} />
-                      Small group conversations
-                    </span>
-                    <span>
-                      <CircleDot size={15} />
-                      Padel & team sports
-                    </span>
-                  </div>
-                </div>
-                <a className="button dark" href="#apply">
-                  Keep me posted <Bell size={17} />
-                </a>
-              </div>
-            ) : !shownEvents.length ? (
-              <div className="event-empty">
-                <p>No upcoming events in this category yet.</p>
-                <button
-                  className="button outline"
-                  onClick={() => setFilter("All events")}
-                >
-                  See all events
-                </button>
-              </div>
-            ) : (
-              <>
-                <SpotlightEvent e={shownEvents[0]} />
-                {shownEvents.length > 1 && (
-                  <div className="event-grid">
-                    {shownEvents.slice(1).map((e) => (
-                      <EventCard e={e} key={e.id} />
-                    ))}
-                  </div>
-                )}
-              </>
-            )}
-          </div>
-          <div className="events-footnote">
-            <LockKeyhole size={15} />
-            <p>
-              Events are for approved members. Reserve your place through your{" "}
-              <a href="/members">member access</a>.
-            </p>
-          </div>
-        </section>
+        <EventsSection />
         <section id="people" className="people-intro wrap section">
           <figure className="community-photo">
             <img
@@ -1220,108 +1060,5 @@ export default function House() {
       </main>
       <Footer />
     </>
-  );
-}
-
-function placesLabel(e: PublicEvent) {
-  return e.external_url
-    ? e.capacity === 1
-      ? "1 place left"
-      : e.capacity + " places left"
-    : "Members · " + e.capacity + " places";
-}
-function SpotlightEvent({ e }: { e: PublicEvent }) {
-  const when = eventParts(e.starts_at, e.ends_at);
-  return (
-    <article className="event-spotlight">
-      <a
-        className="spotlight-poster"
-        href={"/events/" + e.id}
-        tabIndex={-1}
-        aria-hidden="true"
-      >
-        <EventArt format={e.format} />
-        <span className="poster-date">
-          <strong>{when.day}</strong>
-          {when.month}
-        </span>
-      </a>
-      <div className="spotlight-body">
-        <div className="spotlight-tags">
-          <span className="spotlight-next">Next gathering</span>
-          <span>{daysAway(e.starts_at)}</span>
-        </div>
-        <h3>
-          <a href={"/events/" + e.id}>{e.title}</a>
-        </h3>
-        <p className="spotlight-text">{e.description}</p>
-        <dl className="spotlight-facts">
-          <div>
-            <dt>
-              <CalendarDays size={17} /> When
-            </dt>
-            <dd>
-              {when.weekday} {when.day} {when.month}
-              <br />
-              {when.time} GST
-            </dd>
-          </div>
-          <div>
-            <dt>
-              <MapPin size={17} /> Where
-            </dt>
-            <dd>{e.area}</dd>
-          </div>
-          <div>
-            <dt>
-              <Users size={17} /> Places
-            </dt>
-            <dd>{placesLabel(e)}</dd>
-          </div>
-        </dl>
-        <div className="spotlight-actions">
-          <a className="button lime" href={"/events/" + e.id}>
-            Reserve your place <ArrowRight size={18} />
-          </a>
-          <a
-            className="quiet-link"
-            href={googleCalendarUrl(e)}
-            target="_blank"
-            rel="noreferrer"
-          >
-            <CalendarDays size={17} /> Add to Google Calendar
-          </a>
-        </div>
-      </div>
-    </article>
-  );
-}
-function EventCard({ e }: { e: PublicEvent }) {
-  const when = eventParts(e.starts_at, e.ends_at);
-  return (
-    <a className="public-event-card" href={"/events/" + e.id}>
-      <div className="card-poster">
-        <EventArt format={e.format} />
-        <span className="poster-date">
-          <strong>{when.day}</strong>
-          {when.month}
-        </span>
-        <span className="card-soon">{daysAway(e.starts_at)}</span>
-      </div>
-      <div className="card-body">
-        <span className="section-label">{e.format}</span>
-        <h3>{e.title}</h3>
-        <p>
-          {when.weekday} · {when.time} GST
-        </p>
-        <p>
-          <MapPin size={14} />
-          {e.area}
-        </p>
-        <span className="event-members">
-          {placesLabel(e)} <ArrowUpRight size={18} />
-        </span>
-      </div>
-    </a>
   );
 }

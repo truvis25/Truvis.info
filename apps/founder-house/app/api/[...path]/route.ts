@@ -1,6 +1,7 @@
 import { organiser } from "../../../lib/supabase";
 import { SUPABASE_URL, SUPABASE_ANON_KEY } from "../../../lib/config";
 import {
+  eventChannels,
   mergeExternalEvents,
   upcomingExternalEvents,
 } from "../../../lib/external-events";
@@ -94,7 +95,10 @@ async function handle(request: Request) {
     const responseBody = await response.arrayBuffer();
     if (publicEventsRoute) {
       if (!response.ok)
-        return json({ events: await upcomingExternalEvents() });
+        return json({
+          events: await upcomingExternalEvents(),
+          channels: eventChannels(),
+        });
       try {
         const payload = JSON.parse(
           new TextDecoder().decode(responseBody),
@@ -104,6 +108,7 @@ async function handle(request: Request) {
             JSON.stringify({
               ...payload,
               events: await mergeExternalEvents(payload.events),
+              channels: eventChannels(),
             }),
             { status: response.status, headers: outputHeaders },
           );
@@ -115,7 +120,10 @@ async function handle(request: Request) {
     });
   } catch {
     if (publicEventsRoute)
-      return json({ events: await upcomingExternalEvents() });
+      return json({
+        events: await upcomingExternalEvents(),
+        channels: eventChannels(),
+      });
     return json(
       {
         error:
