@@ -2984,26 +2984,19 @@ th {
   display: flex;
   flex-wrap: wrap;
   justify-content: flex-end;
-  gap: 8px;
+  gap: 0 24px;
 }
 .event-channels nav a {
   display: inline-flex;
   align-items: center;
-  gap: 8px;
+  gap: 7px;
   min-height: 44px;
-  padding: 9px 16px;
-  border: 1px solid var(--line);
-  border-radius: 100px;
-  background: #fff;
   font-size: 15px;
   font-weight: 650;
-  transition:
-    border-color 0.18s,
-    background 0.18s;
 }
 .event-channels nav a:hover {
-  border-color: var(--ink);
-  background: var(--tint);
+  text-decoration: underline;
+  text-underline-offset: 5px;
 }
 /* Platform marks: Luma a filled turquoise disc, Meetup a forest ring. */
 .channel-mark {
@@ -3136,6 +3129,7 @@ th {
   position: relative;
   display: flex;
   flex-direction: column;
+  justify-content: center;
   gap: 14px;
   padding: 24px 24px 18px;
   border-radius: 24px;
@@ -3330,10 +3324,6 @@ th {
   color: var(--muted);
   font-size: 14px;
   font-weight: 600;
-}
-.agenda-format {
-  padding-left: 10px;
-  border-left: 1px solid var(--line);
 }
 .agenda-title {
   font-family: var(--display);
@@ -3572,11 +3562,6 @@ th {
   }
   .next-event.is-skeleton .next-poster {
     height: 280px;
-  }
-  .event-channels nav a {
-    min-height: 44px;
-    padding: 8px 13px;
-    font-size: 14px;
   }
   .agenda {
     margin-top: 34px;

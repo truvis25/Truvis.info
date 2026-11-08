@@ -4,7 +4,6 @@ import {
   ArrowRight,
   ArrowUpRight,
   CalendarDays,
-  CalendarPlus,
   LockKeyhole,
   MapPin,
   RotateCcw,
@@ -16,7 +15,6 @@ import {
   LUMA_CALENDAR_URL,
   daysAway,
   eventParts,
-  googleCalendarUrl,
   placesLabel,
   registrationPlatform,
   type EventChannels,
@@ -118,24 +116,26 @@ export function EventsSection() {
         </div>
       </div>
 
-      {state === "ready" && events.length > 1 && (
-        <div
-          className="filter-options events-filter"
-          role="group"
-          aria-label="Filter upcoming events"
-        >
-          {FILTERS.map((f) => (
-            <button
-              key={f}
-              className={filter === f ? "filter active" : "filter"}
-              aria-pressed={filter === f}
-              onClick={() => setFilter(f)}
-            >
-              {f}
-            </button>
-          ))}
-        </div>
-      )}
+      {state === "ready" &&
+        events.some(isSport) &&
+        events.some((e) => !isSport(e)) && (
+          <div
+            className="filter-options events-filter"
+            role="group"
+            aria-label="Filter upcoming events"
+          >
+            {FILTERS.map((f) => (
+              <button
+                key={f}
+                className={filter === f ? "filter active" : "filter"}
+                aria-pressed={filter === f}
+                onClick={() => setFilter(f)}
+              >
+                {f}
+              </button>
+            ))}
+          </div>
+        )}
 
       <div aria-live="polite" aria-busy={state === "loading"}>
         {state === "loading" ? (
@@ -263,7 +263,6 @@ function NextEvent({ e }: { e: PublicEvent }) {
         <p className="next-kicker">
           <span className="next-flag">Next gathering</span>
           <span>{daysAway(e.starts_at)}</span>
-          <span>{e.format}</span>
         </p>
         <h3>
           <a href={href(e)}>{e.title}</a>
@@ -334,14 +333,6 @@ function NextEvent({ e }: { e: PublicEvent }) {
             </span>
           ))}
         </p>
-        <a
-          className="quiet-link"
-          href={googleCalendarUrl(e)}
-          target="_blank"
-          rel="noreferrer"
-        >
-          <CalendarPlus size={17} aria-hidden="true" /> Add to Google Calendar
-        </a>
       </aside>
     </article>
   );
@@ -359,10 +350,7 @@ function AgendaRow({ e }: { e: PublicEvent }) {
         <EventArt format={e.format} />
       </span>
       <span className="agenda-main">
-        <span className="agenda-meta">
-          {when.time} GST
-          <span className="agenda-format">{e.format}</span>
-        </span>
+        <span className="agenda-meta">{when.time} GST</span>
         <span className="agenda-title">{e.title}</span>
         <span className="agenda-where">
           <MapPin size={15} aria-hidden="true" />

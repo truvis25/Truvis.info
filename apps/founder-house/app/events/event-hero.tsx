@@ -34,11 +34,7 @@ export function EventHero({ e }: { e: PublicEvent }) {
     [MapPin, "Where", place],
   ];
   if (e.price) facts.push([Ticket, "Entry", e.price]);
-  facts.push([
-    Users,
-    "Places",
-    placesLabel(e) + (e.approval ? " · confirmed by the host" : ""),
-  ]);
+  facts.push([Users, "Places", placesLabel(e)]);
   return (
     <div className="event-hero">
       <div className="event-hero-copy">
