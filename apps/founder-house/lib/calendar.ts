@@ -53,13 +53,20 @@ export function calendarFeed(
       "DESCRIPTION:" +
         escapeText(
           e.description +
-            "\nApproved members only. Membership and RSVP: " +
-            HOUSE_ORIGIN +
-            "/events/" +
-            e.id,
+            (e.external_url
+              ? "\nRegistration: " + e.external_url
+              : "\nApproved members only. Membership and RSVP: " +
+                HOUSE_ORIGIN +
+                "/events/" +
+                e.id),
         ),
       "LOCATION:" +
-        escapeText(e.area + ", Abu Dhabi. Exact venue shared with members."),
+        escapeText(
+          (/abu dhabi/i.test(e.area) ? e.area : e.area + ", Abu Dhabi") +
+            (e.external_url
+              ? ". Exact venue shared with registered guests."
+              : ". Exact venue shared with members."),
+        ),
       "URL:" + HOUSE_ORIGIN + "/events/" + e.id,
       "STATUS:" + (e.status === "cancelled" ? "CANCELLED" : "CONFIRMED"),
       "END:VEVENT",
