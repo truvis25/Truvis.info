@@ -398,6 +398,60 @@ export const pilotOrgs: PilotOrg[] = [
       ],
     },
   },
+  // --- User-approved client profiles, grounded in current Drive records. ---
+  // Only public company facts are included here; private KYB/contact data is
+  // deliberately excluded. Keeping these in the mock standing catalog lets
+  // the production fallback poll refresh their 72-hour visibility window.
+  {
+    complianceOrgId: "client-oxy-technologies",
+    grant: grant("client-oxy-technologies", {
+      legalName: "OXY Technologies Ltd",
+      jurisdiction: "AE-AZ",
+      industryCode: "K.64",
+      sizeBand: "11-50",
+    }),
+    standing: {
+      state: "compliant",
+      riskLevel: "low",
+      score: 70,
+      renewalExpiry: null,
+      checkedAt: NOW_ISO,
+    },
+    seed: {
+      slug: "oxy-technologies",
+      tagline: "Intelligence for life and commerce",
+      description:
+        "An Abu Dhabi Global Market technology company building connected payment and commerce products for the UAE market.",
+      posts: [],
+      events: [],
+      catalog: [],
+    },
+  },
+  {
+    complianceOrgId: "client-kun-peng-technologies",
+    grant: grant("client-kun-peng-technologies", {
+      legalName: "KUN PENG TECHNOLOGIES - SOLE PROPRIETORSHIP L.L.C.",
+      jurisdiction: "AE-AZ",
+      incorporationYear: 2022,
+      industryCode: "J.62",
+    }),
+    standing: {
+      state: "compliant",
+      riskLevel: "low",
+      score: 70,
+      renewalExpiry: null,
+      checkedAt: NOW_ISO,
+    },
+    seed: {
+      slug: "kun-peng-technologies",
+      tagline: "Technology, AI and business innovation",
+      description:
+        "An Abu Dhabi technology company working across software design, IT consultancy, artificial intelligence and financial-technology innovation.",
+      posts: [],
+      events: [],
+      catalog: [],
+    },
+  },
   // --- Intentionally hidden: exercises the visibility engine's three levers ---
   {
     // Hidden by STATE (non_compliant).

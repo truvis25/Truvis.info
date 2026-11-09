@@ -6,24 +6,14 @@ import {
   BriefcaseBusiness,
   Building2,
   CalendarDays,
-  Check,
   MapPin,
   Search,
   ShieldCheck,
 } from "lucide-react";
 import type { HomeData } from "@/lib/home/data";
 import { SITE_URL } from "@/lib/config";
-
-const SELECTED_CLIENTS = [
-  {
-    name: "OXY Technologies Ltd",
-    descriptor: "Fintech & payments",
-  },
-  {
-    name: "KUN PENG Technologies LLC",
-    descriptor: "Technology & UAE operations",
-  },
-] as const;
+import { industryLabel } from "@/lib/taxonomy/industries";
+import { jurisdictionLabel } from "@/lib/taxonomy/jurisdictions";
 
 const LISTING_LABELS = {
   fundraise: "Fundraising",
@@ -198,39 +188,53 @@ export function PublicLanding({ data }: { data: HomeData }) {
         </div>
       </section>
 
-      <section aria-labelledby="client-proof-title" className="border-b border-border bg-white dark:bg-card">
-        <div className="mx-auto grid max-w-7xl gap-7 px-5 py-9 sm:px-8 md:grid-cols-[240px_1fr] md:items-center lg:px-10">
-          <div>
-            <p
-              id="client-proof-title"
-              className="font-display text-[10px] font-semibold uppercase tracking-[0.2em] text-deep-teal dark:text-cyan-accent"
-            >
-              Selected client relationships
-            </p>
-            <p className="mt-2 text-sm leading-6 text-muted-foreground">
-              Organizations supported by TRUVIS International Services.
-            </p>
-          </div>
-          <div className="grid gap-3 sm:grid-cols-2">
-            {SELECTED_CLIENTS.map((client) => (
-              <div
-                key={client.name}
-                className="flex min-h-20 items-center justify-between gap-5 rounded-xl border border-petroleum/10 bg-[#faf7f5] px-5 py-4 dark:border-white/10 dark:bg-background"
+      {data.featuredClients.length > 0 ? (
+        <section
+          aria-labelledby="client-proof-title"
+          className="border-b border-border bg-white dark:bg-card"
+        >
+          <div className="mx-auto grid max-w-7xl gap-7 px-5 py-9 sm:px-8 md:grid-cols-[240px_1fr] md:items-center lg:px-10">
+            <div>
+              <p
+                id="client-proof-title"
+                className="font-display text-[10px] font-semibold uppercase tracking-[0.2em] text-deep-teal dark:text-cyan-accent"
               >
-                <div>
-                  <p className="font-display text-sm font-bold text-petroleum dark:text-white">
-                    {client.name}
-                  </p>
-                  <p className="mt-1 text-xs text-muted-foreground">
-                    {client.descriptor}
-                  </p>
-                </div>
-                <Check className="size-5 shrink-0 text-emerald-brand" aria-hidden />
-              </div>
-            ))}
+                Selected companies
+              </p>
+              <p className="mt-2 text-sm leading-6 text-muted-foreground">
+                The same verified profiles are published in the Truvis directory.
+              </p>
+            </div>
+            <div className="grid gap-3 sm:grid-cols-2">
+              {data.featuredClients.map((client) => (
+                <Link
+                  key={client.slug}
+                  href={`/orgs/${client.slug}`}
+                  className="group flex min-h-20 items-center justify-between gap-5 rounded-xl border border-petroleum/10 bg-[#faf7f5] px-5 py-4 transition hover:-translate-y-0.5 hover:border-emerald-brand/40 hover:shadow-sm dark:border-white/10 dark:bg-background"
+                >
+                  <div>
+                    <p className="font-display text-sm font-bold text-petroleum dark:text-white">
+                      {client.legal_name}
+                    </p>
+                    <p className="mt-1 text-xs text-muted-foreground">
+                      {[
+                        industryLabel(client.industry_code),
+                        jurisdictionLabel(client.jurisdiction),
+                      ]
+                        .filter(Boolean)
+                        .join(" · ")}
+                    </p>
+                  </div>
+                  <ArrowRight
+                    className="size-5 shrink-0 text-emerald-brand transition-transform group-hover:translate-x-1"
+                    aria-hidden
+                  />
+                </Link>
+              ))}
+            </div>
           </div>
-        </div>
-      </section>
+        </section>
+      ) : null}
 
       <section className="bg-background">
         <div className="mx-auto max-w-7xl px-5 py-20 sm:px-8 lg:px-10 lg:py-24">
@@ -438,7 +442,7 @@ export function PublicLanding({ data }: { data: HomeData }) {
                       "View its verified profile, services and public standing."}
                   </p>
                   <p className="mt-6 inline-flex items-center gap-2 text-xs font-semibold text-[#0c6e8a] dark:text-cyan-accent">
-                    {featuredOrgs[0].jurisdiction ?? "Verified organization"}
+                    {jurisdictionLabel(featuredOrgs[0].jurisdiction) || "Verified organization"}
                     <ArrowRight className="size-3.5" aria-hidden />
                   </p>
                 </Link>
@@ -446,11 +450,7 @@ export function PublicLanding({ data }: { data: HomeData }) {
 
               {nextEvent ? (
                 <Link
-                  href={
-                    nextEvent.external_source === "luma" && nextEvent.luma_event_url
-                      ? nextEvent.luma_event_url
-                      : `/events/${nextEvent.slug}`
-                  }
+                  href={`/events/${nextEvent.slug}`}
                   className="rounded-2xl border border-border bg-card p-6"
                 >
                   <div className="flex items-center justify-between gap-4">

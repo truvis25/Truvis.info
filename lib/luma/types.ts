@@ -13,6 +13,8 @@ export interface LumaEvent {
   url: string; // public lu.ma page
   meetingUrl: string | null;
   address: string | null;
+  visibility: "public" | "members-only" | "private" | null;
+  registrationOpen: boolean | null;
 }
 
 export interface LumaEventInput {
@@ -23,13 +25,23 @@ export interface LumaEventInput {
   timezone?: string;
   address?: string | null;
   meetingUrl?: string | null;
+  slug?: string;
+  visibility?: "public" | "members-only" | "private";
+  registrationOpen?: boolean;
+  suppressNotifications?: boolean;
+}
+
+export interface LumaEventPage {
+  events: LumaEvent[];
+  nextCursor: string | null;
+  invalidEntries: number;
 }
 
 export interface LumaClient {
   listCalendarEvents(opts?: {
     after?: string;
     cursor?: string;
-  }): Promise<{ events: LumaEvent[]; nextCursor: string | null }>;
+  }): Promise<LumaEventPage>;
   getEvent(apiId: string): Promise<LumaEvent | null>;
   createEvent(input: LumaEventInput): Promise<LumaEvent>;
   updateEvent(apiId: string, input: Partial<LumaEventInput>): Promise<LumaEvent>;

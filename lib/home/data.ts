@@ -3,6 +3,19 @@ import type { DirectoryOrg } from "@/components/org-business-card";
 import type { PublicListing } from "@/components/listing-card";
 import type { FeedPost, HomeEvent, MemberOrg } from "./feed";
 
+export const FEATURED_CLIENT_SLUGS = [
+  "oxy-technologies",
+  "kun-peng-technologies",
+] as const;
+
+export type HomeFeaturedOrg = {
+  slug: string;
+  legal_name: string;
+  tagline: string | null;
+  jurisdiction: string | null;
+  industry_code: string | null;
+};
+
 // Home-hub data. Deliberately uncached in v1: total payload is ~10 rows of
 // indexed public queries and the route is force-dynamic anyway (auth
 // branch); introduce tag-based caching only if volumes ever warrant it.
@@ -12,6 +25,7 @@ export type HomeData = {
   listingCount: number;
   posts: FeedPost[];
   members: MemberOrg[];
+  featuredClients: HomeFeaturedOrg[];
   events: HomeEvent[];
   listings: PublicListing[];
 };
@@ -24,6 +38,7 @@ export async function getHomeData(supabase: SupabaseClient): Promise<HomeData> {
     { data: posts },
     { data: orgs },
     { data: orgMeta },
+    { data: featuredClientRows },
     { data: events },
     { data: listings },
   ] = await Promise.all([
@@ -47,6 +62,12 @@ export async function getHomeData(supabase: SupabaseClient): Promise<HomeData> {
       .select("id, slug, created_at")
       .order("created_at", { ascending: false })
       .limit(8),
+    // RLS applies the same visibility rule as /directory. A company can only
+    // appear in this home-page strip while its directory profile is public.
+    supabase
+      .from("organizations")
+      .select("slug, legal_name, tagline, jurisdiction, industry_code")
+      .in("slug", [...FEATURED_CLIENT_SLUGS]),
     supabase
       .from("events")
       .select(
@@ -77,6 +98,12 @@ export async function getHomeData(supabase: SupabaseClient): Promise<HomeData> {
   // the listing count comes from the RPC result — it returns exactly the
   // active listings the caller may see.
   const allListings = (listings ?? []) as PublicListing[];
+  const featuredBySlug = new Map(
+    ((featuredClientRows ?? []) as HomeFeaturedOrg[]).map((row) => [row.slug, row]),
+  );
+  const featuredClients = FEATURED_CLIENT_SLUGS.map((slug) =>
+    featuredBySlug.get(slug),
+  ).filter((row): row is HomeFeaturedOrg => row !== undefined);
 
   return {
     orgCount: orgCount ?? 0,
@@ -84,6 +111,7 @@ export async function getHomeData(supabase: SupabaseClient): Promise<HomeData> {
     listingCount: allListings.length,
     posts: (posts ?? []) as unknown as FeedPost[],
     members,
+    featuredClients,
     events: (events ?? []) as unknown as HomeEvent[],
     listings: allListings.slice(0, 4),
   };

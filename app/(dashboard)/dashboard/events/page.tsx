@@ -13,6 +13,7 @@ import {
 import { StatusBadge } from "@/components/status-badge";
 import { ConfirmSubmitButton } from "@/components/confirm-submit-button";
 import { formatDateTime } from "@/lib/format";
+import { getLumaIntegrationMode } from "@/lib/luma/client";
 
 export const metadata: Metadata = { title: "Events" };
 
@@ -43,6 +44,7 @@ export default async function EventsAdminPage({
   if (!user) redirect("/login?next=/dashboard/events");
   const org = await getManagedOrg(supabase, user.id);
   if (!org || !org.canManageEvents) redirect("/dashboard");
+  const lumaEnabled = getLumaIntegrationMode() !== "unconfigured";
 
   const { data: events } = await supabase
     .from("events")
@@ -64,6 +66,13 @@ export default async function EventsAdminPage({
       </div>
 
       <Notice error={error} saved={saved} />
+
+      {!lumaEnabled ? (
+        <p className="rounded-xl border border-amber-300/60 bg-amber-50 px-4 py-3 text-sm text-amber-900 dark:border-amber-700/50 dark:bg-amber-950/30 dark:text-amber-200">
+          Luma publishing is ready in the app but not active for this deployment.
+          Add the calendar API key to enable the option below.
+        </p>
+      ) : null}
 
       <section className="rounded-2xl border border-border p-6">
         <h2 className="mb-4 font-semibold">Create an event</h2>
@@ -110,11 +119,16 @@ export default async function EventsAdminPage({
             </select>
           </label>
           <label className="flex items-start gap-2 text-sm">
-            <input type="checkbox" name="luma_publish" className="mt-1" />
+            <input
+              type="checkbox"
+              name="luma_publish"
+              className="mt-1"
+              disabled={!lumaEnabled}
+            />
             <span>
-              Also publish on Luma (Truvis community calendar). Your event will
-              appear on the public Truvis calendar on lu.ma — registration
-              stays on Truvis.
+              Also publish on Luma (Truvis community calendar). The Luma listing
+              links back here, so registration and protected online links stay
+              on Truvis.
             </span>
           </label>
           <button type="submit" className={`${buttonCls} self-start`}>

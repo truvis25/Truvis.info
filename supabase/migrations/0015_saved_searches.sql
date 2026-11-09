@@ -27,3 +27,8 @@ alter table saved_searches enable row level security;
 create policy "user manages own saved searches" on saved_searches for all
   using (user_id = auth.uid())
   with check (user_id = auth.uid());
+
+-- New Supabase projects no longer expose freshly-created tables through the
+-- Data API implicitly. Grant only the authenticated role; RLS above still
+-- restricts every row to its owner.
+grant select, insert, update, delete on table saved_searches to authenticated;

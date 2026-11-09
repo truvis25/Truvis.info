@@ -7,6 +7,8 @@ import { RatingStars } from "@/components/ui/rating-stars";
 import { BrandArt } from "@/components/brand-art";
 import { fnv1a } from "@/lib/brand-art";
 import { cn, initials } from "@/lib/utils";
+import { industryLabel } from "@/lib/taxonomy/industries";
+import { jurisdictionLabel } from "@/lib/taxonomy/jurisdictions";
 
 // Deterministic sector tint: each industry gets a subconscious color code
 // drawn from the existing brand trio.
@@ -44,7 +46,11 @@ export type DirectoryOrg = {
 // mark, key facts, and social proof (rating + followers). Whole card links
 // to the org's public profile.
 export function OrgBusinessCard({ org }: { org: DirectoryOrg }) {
-  const chips = [org.jurisdiction, org.industry_code, org.size_band].filter(
+  const chips = [
+    jurisdictionLabel(org.jurisdiction),
+    industryLabel(org.industry_code),
+    org.size_band,
+  ].filter(
     (chip): chip is string => Boolean(chip),
   );
   const tint = SECTOR_TINTS[fnv1a(org.industry_code ?? org.slug) % 3];
